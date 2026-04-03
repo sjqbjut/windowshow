@@ -9,7 +9,7 @@
     {
         "pattern":  1,
         "type":  "三交六椀菱花",
-        "building":  "太和殿（金銮殿）",
+        "building":  "太和殿",
         "building_id":  12,
         "area":  "外朝中路（礼制核心区）"
     },
@@ -30,7 +30,7 @@
     {
         "pattern":  3,
         "type":  "正方格",
-        "building":  "协和门 / 熙和门",
+        "building":  "协和门",
         "building_id":  15,
         "area":  "外朝中路（礼制核心区）"
     },
@@ -39,6 +39,13 @@
         "type":  "正方格",
         "building":  "乾清门",
         "building_id":  16,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  3,
+        "type":  "正方格",
+        "building":  "熙和门",
+        "building_id":  17,
         "area":  "外朝中路（礼制核心区）"
     },
     {
@@ -233,7 +240,7 @@
     {
         "pattern":  6,
         "type":  "步步锦",
-        "building":  "启祥宫（太极殿）",
+        "building":  "启祥宫",
         "building_id":  56,
         "area":  "内廷西六宫（妃嫔居所）"
     },
@@ -296,14 +303,21 @@
     {
         "pattern":  5,
         "type":  "双交四椀菱花",
-        "building":  "符望阁（迷楼）",
+        "building":  "符望阁",
         "building_id":  75,
         "area":  "宁寿宫区（乾隆太上皇宫殿区）"
     },
     {
         "pattern":  1,
         "type":  "三交六椀菱花",
-        "building":  "万春亭 / 千秋亭",
+        "building":  "万春亭",
+        "building_id":  80,
+        "area":  "御花园及园林建筑"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "千秋亭",
         "building_id":  81,
         "area":  "御花园及园林建筑"
     },

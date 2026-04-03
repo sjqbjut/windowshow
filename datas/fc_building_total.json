@@ -16,7 +16,7 @@
     {
         "building_id":  12,
         "area":  "外朝中路（礼制核心区）",
-        "building":  "太和殿（金銮殿）",
+        "building":  "太和殿",
         "time":  "明永乐十八年（1420），清康熙三十四年（1695）重建",
         "patterns":  [
                          "三交六椀菱花"
@@ -58,7 +58,7 @@
     {
         "building_id":  15,
         "area":  "外朝中路（礼制核心区）",
-        "building":  "协和门 / 熙和门",
+        "building":  "协和门",
         "time":  "明永乐十八年（1420），明清多次灾后重修",
         "patterns":  [
                          "正方格"
@@ -67,7 +67,7 @@
                             3
                         ],
         "num_patterns":  1,
-        "introduction":  "太和殿东西侧礼制通道门，外朝与内廷过渡建筑"
+        "introduction":  "太和殿东侧礼制通道门，外朝与内廷过渡建筑"
     },
     {
         "building_id":  16,
@@ -82,6 +82,20 @@
                         ],
         "num_patterns":  1,
         "introduction":  "内廷正门，清代御门听政之所"
+    },
+    {
+        "building_id":  17,
+        "area":  "外朝中路（礼制核心区）",
+        "building":  "熙和门",
+        "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
+        "patterns":  [
+                         "正方格"
+                     ],
+        "pattern_ids":  [
+                            3
+                        ],
+        "num_patterns":  1,
+        "introduction":  "太和殿西侧礼制通道门，外朝与内廷过渡建筑"
     },
     {
         "building_id":  21,
@@ -344,7 +358,7 @@
     {
         "building_id":  56,
         "area":  "内廷西六宫（妃嫔居所）",
-        "building":  "启祥宫（太极殿）",
+        "building":  "启祥宫",
         "time":  "明永乐十八年（1420），明嘉靖十四年更名，清多次修缮",
         "patterns":  [
                          "步步锦"
@@ -458,7 +472,7 @@
     {
         "building_id":  75,
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
-        "building":  "符望阁（迷楼）",
+        "building":  "符望阁",
         "time":  "清乾隆三十七年（1772）始建，乾隆四十一年（1776）建成",
         "patterns":  [
                          "双交四椀菱花"
@@ -470,9 +484,9 @@
         "introduction":  "宁寿宫花园最高大建筑，室内装修以漆纱、掐丝珐琅为特色，俗称 “迷楼”"
     },
     {
-        "building_id":  81,
+        "building_id":  80,
         "area":  "御花园及园林建筑",
-        "building":  "万春亭 / 千秋亭",
+        "building":  "万春亭",
         "time":  "明嘉靖十五年（1536）始建，清多次修缮",
         "patterns":  [
                          "三交六椀菱花"
@@ -481,7 +495,21 @@
                             1
                         ],
         "num_patterns":  1,
-        "introduction":  "御花园内对称建造的标志性建筑，造型完全一致，仅彩画有细微差别故宫博物院"
+        "introduction":  "御花园内对称建造的标志性建筑"
+    },
+    {
+        "building_id":  81,
+        "area":  "御花园及园林建筑",
+        "building":  "千秋亭",
+        "time":  "明嘉靖十五年（1536）始建，清多次修缮",
+        "patterns":  [
+                         "三交六椀菱花"
+                     ],
+        "pattern_ids":  [
+                            1
+                        ],
+        "num_patterns":  1,
+        "introduction":  "御花园内对称建造的标志性建筑，与万春亭造型完全一致，仅彩画有细微差别"
     },
     {
         "building_id":  82,

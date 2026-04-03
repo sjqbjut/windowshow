@@ -2,7 +2,7 @@
     {
         "source":  "午门",
         "source_id":  11,
-        "target":  "太和殿（金銮殿）",
+        "target":  "太和殿",
         "target_id":  12,
         "type":  "same_area_and_pattern",
         "shared_area":  "外朝中路（礼制核心区）",
@@ -38,7 +38,7 @@
     {
         "source":  "午门",
         "source_id":  11,
-        "target":  "协和门 / 熙和门",
+        "target":  "协和门",
         "target_id":  15,
         "type":  "same_area",
         "shared_area":  "外朝中路（礼制核心区）",
@@ -52,6 +52,18 @@
         "source_id":  11,
         "target":  "乾清门",
         "target_id":  16,
+        "type":  "same_area",
+        "shared_area":  "外朝中路（礼制核心区）",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "午门",
+        "source_id":  11,
+        "target":  "熙和门",
+        "target_id":  17,
         "type":  "same_area",
         "shared_area":  "外朝中路（礼制核心区）",
         "shared_patterns":  [
@@ -134,7 +146,19 @@
     {
         "source":  "午门",
         "source_id":  11,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "午门",
+        "source_id":  11,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -144,7 +168,7 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "中和殿",
         "target_id":  13,
@@ -156,7 +180,7 @@
         "weight":  2
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "保和殿",
         "target_id":  14,
@@ -168,9 +192,9 @@
         "weight":  2
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
-        "target":  "协和门 / 熙和门",
+        "target":  "协和门",
         "target_id":  15,
         "type":  "same_area",
         "shared_area":  "外朝中路（礼制核心区）",
@@ -180,7 +204,7 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "乾清门",
         "target_id":  16,
@@ -192,7 +216,19 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
+        "source_id":  12,
+        "target":  "熙和门",
+        "target_id":  17,
+        "type":  "same_area",
+        "shared_area":  "外朝中路（礼制核心区）",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "文华殿",
         "target_id":  21,
@@ -204,7 +240,7 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "武英殿",
         "target_id":  22,
@@ -216,7 +252,7 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "乾清宫",
         "target_id":  31,
@@ -228,7 +264,7 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "交泰殿",
         "target_id":  32,
@@ -240,7 +276,7 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "寿康宫",
         "target_id":  62,
@@ -252,7 +288,7 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
         "target":  "皇极殿",
         "target_id":  71,
@@ -264,9 +300,21 @@
         "weight":  1
     },
     {
-        "source":  "太和殿（金銮殿）",
+        "source":  "太和殿",
         "source_id":  12,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "太和殿",
+        "source_id":  12,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -290,7 +338,7 @@
     {
         "source":  "中和殿",
         "source_id":  13,
-        "target":  "协和门 / 熙和门",
+        "target":  "协和门",
         "target_id":  15,
         "type":  "same_area",
         "shared_area":  "外朝中路（礼制核心区）",
@@ -304,6 +352,18 @@
         "source_id":  13,
         "target":  "乾清门",
         "target_id":  16,
+        "type":  "same_area",
+        "shared_area":  "外朝中路（礼制核心区）",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "中和殿",
+        "source_id":  13,
+        "target":  "熙和门",
+        "target_id":  17,
         "type":  "same_area",
         "shared_area":  "外朝中路（礼制核心区）",
         "shared_patterns":  [
@@ -386,7 +446,19 @@
     {
         "source":  "中和殿",
         "source_id":  13,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "中和殿",
+        "source_id":  13,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -398,7 +470,7 @@
     {
         "source":  "保和殿",
         "source_id":  14,
-        "target":  "协和门 / 熙和门",
+        "target":  "协和门",
         "target_id":  15,
         "type":  "same_area",
         "shared_area":  "外朝中路（礼制核心区）",
@@ -412,6 +484,18 @@
         "source_id":  14,
         "target":  "乾清门",
         "target_id":  16,
+        "type":  "same_area",
+        "shared_area":  "外朝中路（礼制核心区）",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "保和殿",
+        "source_id":  14,
+        "target":  "熙和门",
+        "target_id":  17,
         "type":  "same_area",
         "shared_area":  "外朝中路（礼制核心区）",
         "shared_patterns":  [
@@ -494,7 +578,19 @@
     {
         "source":  "保和殿",
         "source_id":  14,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "保和殿",
+        "source_id":  14,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -504,7 +600,7 @@
         "weight":  1
     },
     {
-        "source":  "协和门 / 熙和门",
+        "source":  "协和门",
         "source_id":  15,
         "target":  "乾清门",
         "target_id":  16,
@@ -516,7 +612,19 @@
         "weight":  2
     },
     {
-        "source":  "协和门 / 熙和门",
+        "source":  "协和门",
+        "source_id":  15,
+        "target":  "熙和门",
+        "target_id":  17,
+        "type":  "same_area_and_pattern",
+        "shared_area":  "外朝中路（礼制核心区）",
+        "shared_patterns":  [
+                                "正方格"
+                            ],
+        "weight":  2
+    },
+    {
+        "source":  "协和门",
         "source_id":  15,
         "target":  "景仁宫",
         "target_id":  41,
@@ -528,7 +636,7 @@
         "weight":  1
     },
     {
-        "source":  "协和门 / 熙和门",
+        "source":  "协和门",
         "source_id":  15,
         "target":  "景阳宫",
         "target_id":  44,
@@ -542,6 +650,18 @@
     {
         "source":  "乾清门",
         "source_id":  16,
+        "target":  "熙和门",
+        "target_id":  17,
+        "type":  "same_area_and_pattern",
+        "shared_area":  "外朝中路（礼制核心区）",
+        "shared_patterns":  [
+                                "正方格"
+                            ],
+        "weight":  2
+    },
+    {
+        "source":  "乾清门",
+        "source_id":  16,
         "target":  "景仁宫",
         "target_id":  41,
         "type":  "same_pattern",
@@ -554,6 +674,30 @@
     {
         "source":  "乾清门",
         "source_id":  16,
+        "target":  "景阳宫",
+        "target_id":  44,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "正方格"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "熙和门",
+        "source_id":  17,
+        "target":  "景仁宫",
+        "target_id":  41,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "正方格"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "熙和门",
+        "source_id":  17,
         "target":  "景阳宫",
         "target_id":  44,
         "type":  "same_pattern",
@@ -626,7 +770,19 @@
     {
         "source":  "文华殿",
         "source_id":  21,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "文华殿",
+        "source_id":  21,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -686,7 +842,19 @@
     {
         "source":  "武英殿",
         "source_id":  22,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "武英殿",
+        "source_id":  22,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -758,7 +926,19 @@
     {
         "source":  "乾清宫",
         "source_id":  31,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "乾清宫",
+        "source_id":  31,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -818,7 +998,19 @@
     {
         "source":  "交泰殿",
         "source_id":  32,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "交泰殿",
+        "source_id":  32,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -950,7 +1142,7 @@
     {
         "source":  "坤宁宫",
         "source_id":  33,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1058,7 +1250,7 @@
     {
         "source":  "养心殿",
         "source_id":  34,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1251,7 +1443,7 @@
     {
         "source":  "景仁宫",
         "source_id":  41,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1359,7 +1551,7 @@
     {
         "source":  "钟粹宫",
         "source_id":  42,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1530,7 +1722,7 @@
     {
         "source":  "承乾宫",
         "source_id":  43,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1603,7 +1795,7 @@
     {
         "source":  "承乾宫",
         "source_id":  43,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1723,7 +1915,7 @@
     {
         "source":  "景阳宫",
         "source_id":  44,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1797,7 +1989,7 @@
     {
         "source":  "永和宫",
         "source_id":  45,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -1942,7 +2134,7 @@
     {
         "source":  "延禧宫",
         "source_id":  46,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2015,7 +2207,7 @@
     {
         "source":  "延禧宫",
         "source_id":  46,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2100,7 +2292,7 @@
     {
         "source":  "翊坤宫",
         "source_id":  51,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_area_and_pattern",
         "shared_area":  "内廷西六宫（妃嫔居所）",
@@ -2220,7 +2412,7 @@
     {
         "source":  "储秀宫",
         "source_id":  52,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_area_and_pattern",
         "shared_area":  "内廷西六宫（妃嫔居所）",
@@ -2316,7 +2508,7 @@
     {
         "source":  "永寿宫",
         "source_id":  53,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_area",
         "shared_area":  "内廷西六宫（妃嫔居所）",
@@ -2364,7 +2556,7 @@
     {
         "source":  "永寿宫",
         "source_id":  53,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2388,7 +2580,7 @@
     {
         "source":  "长春宫",
         "source_id":  54,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_area_and_pattern",
         "shared_area":  "内廷西六宫（妃嫔居所）",
@@ -2472,7 +2664,7 @@
     {
         "source":  "咸福宫",
         "source_id":  55,
-        "target":  "启祥宫（太极殿）",
+        "target":  "启祥宫",
         "target_id":  56,
         "type":  "same_area_and_pattern",
         "shared_area":  "内廷西六宫（妃嫔居所）",
@@ -2545,7 +2737,7 @@
     {
         "source":  "咸福宫",
         "source_id":  55,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2579,7 +2771,7 @@
         "weight":  1
     },
     {
-        "source":  "启祥宫（太极殿）",
+        "source":  "启祥宫",
         "source_id":  56,
         "target":  "寿安宫",
         "target_id":  63,
@@ -2591,7 +2783,7 @@
         "weight":  1
     },
     {
-        "source":  "启祥宫（太极殿）",
+        "source":  "启祥宫",
         "source_id":  56,
         "target":  "倦勤斋",
         "target_id":  73,
@@ -2603,7 +2795,7 @@
         "weight":  1
     },
     {
-        "source":  "启祥宫（太极殿）",
+        "source":  "启祥宫",
         "source_id":  56,
         "target":  "萃赏楼",
         "target_id":  74,
@@ -2615,7 +2807,7 @@
         "weight":  1
     },
     {
-        "source":  "启祥宫（太极殿）",
+        "source":  "启祥宫",
         "source_id":  56,
         "target":  "养性斋",
         "target_id":  84,
@@ -2627,7 +2819,7 @@
         "weight":  1
     },
     {
-        "source":  "启祥宫（太极殿）",
+        "source":  "启祥宫",
         "source_id":  56,
         "target":  "阅是楼",
         "target_id":  85,
@@ -2677,7 +2869,7 @@
     {
         "source":  "慈宁宫",
         "source_id":  61,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2713,7 +2905,19 @@
     {
         "source":  "寿康宫",
         "source_id":  62,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "寿康宫",
+        "source_id":  62,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2761,7 +2965,7 @@
     {
         "source":  "寿安宫",
         "source_id":  63,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2833,7 +3037,7 @@
     {
         "source":  "皇极殿",
         "source_id":  71,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_area",
         "shared_area":  "宁寿宫区（乾隆太上皇宫殿区）",
@@ -2845,7 +3049,19 @@
     {
         "source":  "皇极殿",
         "source_id":  71,
-        "target":  "万春亭 / 千秋亭",
+        "target":  "万春亭",
+        "target_id":  80,
+        "type":  "same_pattern",
+        "shared_area":  null,
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "皇极殿",
+        "source_id":  71,
+        "target":  "千秋亭",
         "target_id":  81,
         "type":  "same_pattern",
         "shared_area":  null,
@@ -2881,7 +3097,7 @@
     {
         "source":  "宁寿宫",
         "source_id":  72,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_area_and_pattern",
         "shared_area":  "宁寿宫区（乾隆太上皇宫殿区）",
@@ -2905,7 +3121,7 @@
     {
         "source":  "倦勤斋",
         "source_id":  73,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_area",
         "shared_area":  "宁寿宫区（乾隆太上皇宫殿区）",
@@ -2941,7 +3157,7 @@
     {
         "source":  "萃赏楼",
         "source_id":  74,
-        "target":  "符望阁（迷楼）",
+        "target":  "符望阁",
         "target_id":  75,
         "type":  "same_area",
         "shared_area":  "宁寿宫区（乾隆太上皇宫殿区）",
@@ -2975,7 +3191,67 @@
         "weight":  1
     },
     {
-        "source":  "万春亭 / 千秋亭",
+        "source":  "万春亭",
+        "source_id":  80,
+        "target":  "千秋亭",
+        "target_id":  81,
+        "type":  "same_area_and_pattern",
+        "shared_area":  "御花园及园林建筑",
+        "shared_patterns":  [
+                                "三交六椀菱花"
+                            ],
+        "weight":  2
+    },
+    {
+        "source":  "万春亭",
+        "source_id":  80,
+        "target":  "绛雪轩",
+        "target_id":  82,
+        "type":  "same_area",
+        "shared_area":  "御花园及园林建筑",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "万春亭",
+        "source_id":  80,
+        "target":  "临溪亭",
+        "target_id":  83,
+        "type":  "same_area",
+        "shared_area":  "御花园及园林建筑",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "万春亭",
+        "source_id":  80,
+        "target":  "养性斋",
+        "target_id":  84,
+        "type":  "same_area",
+        "shared_area":  "御花园及园林建筑",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "万春亭",
+        "source_id":  80,
+        "target":  "阅是楼",
+        "target_id":  85,
+        "type":  "same_area",
+        "shared_area":  "御花园及园林建筑",
+        "shared_patterns":  [
+
+                            ],
+        "weight":  1
+    },
+    {
+        "source":  "千秋亭",
         "source_id":  81,
         "target":  "绛雪轩",
         "target_id":  82,
@@ -2987,7 +3263,7 @@
         "weight":  1
     },
     {
-        "source":  "万春亭 / 千秋亭",
+        "source":  "千秋亭",
         "source_id":  81,
         "target":  "临溪亭",
         "target_id":  83,
@@ -2999,7 +3275,7 @@
         "weight":  1
     },
     {
-        "source":  "万春亭 / 千秋亭",
+        "source":  "千秋亭",
         "source_id":  81,
         "target":  "养性斋",
         "target_id":  84,
@@ -3011,7 +3287,7 @@
         "weight":  1
     },
     {
-        "source":  "万春亭 / 千秋亭",
+        "source":  "千秋亭",
         "source_id":  81,
         "target":  "阅是楼",
         "target_id":  85,

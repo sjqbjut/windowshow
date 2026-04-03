@@ -1,4 +1,4 @@
-
+﻿
 //TODO: Fix x and y of color circles?
 // var data_save;
 // var data_new = []
@@ -70,8 +70,8 @@ function create_CCS_chart() {
     //////////////// Initialize helpers and scales ///////////////
     //////////////////////////////////////////////////////////////
 
-    var num_chapters = 50,
-        num_volume = 12;
+    var num_chapters = 0,
+        num_volume = 0;
     var pi2 = 2*Math.PI,
         pi1_2 = Math.PI/2;
 
@@ -102,16 +102,11 @@ function create_CCS_chart() {
         rad_line_max = 0.31,
         rad_line_min = 0.215,
         rad_line_label = width * 0.29, //textual label that explains the hovers
-        rad_donut_inner = width * 0.14, //inner radius of the character donut
-        rad_donut_outer = width * 0.148, //outer radius of the character donut
+        rad_donut_inner = width * 0.18, //inner radius of the character donut
+        rad_donut_outer = width * 0.188, //outer radius of the character donut
         rad_name = rad_donut_outer + 8 * size_factor, //padding between character donut and start of the character name
         rad_image = rad_donut_inner - 4 * size_factor; //radius of the central image shown on hover
         rad_relation = rad_donut_inner - 8 * size_factor; //padding between character donut and inner lines
-
-    //Angle for each chapter on the outside
-    var angle = d3.scaleLinear()
-        .domain([0, num_chapters])
-        .range([pi2/num_chapters/2, pi2 + pi2/num_chapters/2]);
 
     //Radius scale for the color circles
     var radius_scale = d3.scaleSqrt()
@@ -128,24 +123,121 @@ function create_CCS_chart() {
     ///////////////////////////////////////////////////////////////////////////
 
     d3.queue()
-        .defer(d3.json, "data/ccs_chapter_hierarchy.json")
-        .defer(d3.json, "data/ccs_chapter_total.json")
-        .defer(d3.json, "data/ccs_character_per_chapter.json")
-        .defer(d3.json, "data/ccs_character_per_chapter_cover.json")
-        .defer(d3.csv, "data/ccs_character_total.csv")
-        .defer(d3.csv, "data/ccs_character_relations.csv")
-        .defer(d3.json, "data/ccs_color_distribution.json")
+        .defer(d3.json, "datas/fc_pattern_hierarchy.json")
+        .defer(d3.json, "datas/fc_pattern_total.json")
+        .defer(d3.json, "datas/fc_building_per_pattern.json")
+        .defer(d3.json, "datas/fc_building_total.json")
+        .defer(d3.json, "datas/fc_building_relations.json")
         .await(draw);
 
-    function draw(error, chapter_hierarchy_data, chapter_total_data, character_data, cover_data, character_total_data, relation_data, color_data) {
+    function draw(error, chapter_hierarchy_data, chapter_total_data, character_data, character_total_data, relation_data) {
 
         if (error) throw error;
+
+        // Map building/pattern data to the schema used throughout the chart.
+        chapter_total_data = chapter_total_data.map(function (d) {
+            return {
+                chapter: +d.pattern,
+                volume: +d.era,
+                card_captured: d.type,
+                popular_time: d.popular_time,
+                introduction: d.introduction,
+                meaning: d.meaning
+            };
+        });
+        num_chapters = chapter_total_data.length;
+        num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
+
+        character_data = character_data.map(function (d) {
+            return {
+                chapter: +d.pattern,
+                character: d.building
+            };
+        });
+        var cover_data = character_data.slice();
+
+        var area_names = [];
+        var area_seen = {};
+        character_total_data.forEach(function (d) {
+            if (!area_seen[d.area]) {
+                area_seen[d.area] = true;
+                area_names.push(d.area);
+            }
+        });
+        var area_palette = [
+            "#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0",
+            "#E47C41", "#BD211B", "#82C3AA", "#2F2F2F", "#9A8473"
+        ];
+        var area_color = d3.scaleOrdinal().domain(area_names).range(area_palette);
+
+        character_total_data.sort(function (a, b) { return (+a.building_id) - (+b.building_id); });
+        character_total_data = character_total_data.map(function (d) {
+            return {
+                character: d.building,
+                full_name: d.building,
+                first_name: d.building,
+                last_name: "",
+                num_chapters: +d.num_patterns,
+                color: area_color(d.area),
+                type: d.area,
+                area: d.area,
+                time: d.time,
+                introduction: d.introduction
+            };
+        });
+
+        var chapter_palette = d3.scaleOrdinal()
+            .domain(chapter_total_data.map(function (d) { return d.chapter; }))
+            .range(["#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0", "#E47C41", "#BD211B", "#82C3AA"]);
+        var patternIdByName = {};
+        chapter_total_data.forEach(function (d) {
+            patternIdByName[d.card_captured] = d.chapter;
+        });
+
+        var pattern_relation_data = [];
+        relation_data.forEach(function (d) {
+            var shared_patterns = d.shared_patterns || [];
+            shared_patterns.forEach(function (pattern_name) {
+                var pattern_id = patternIdByName[pattern_name];
+                pattern_relation_data.push({
+                    source: d.source,
+                    target: d.target,
+                    type: "same_pattern",
+                    pattern: pattern_name,
+                    pattern_id: pattern_id || null,
+                    pattern_color: pattern_id ? chapter_palette(pattern_id) : "#9e9e9e",
+                    x: 0,
+                    y: 0,
+                    note: "Shared pattern: " + pattern_name
+                });
+            });
+        });
+        relation_data = pattern_relation_data;
+
+        var chapter_image = {};
+        chapter_total_data.forEach(function (d) {
+            // Pattern id 3 currently has no image file in datas/imgs.
+            chapter_image[d.chapter] = d.chapter === 3
+                ? "img/white-square.jpg"
+                : "datas/imgs/" + d.card_captured + ".png";
+        });
+
+        var color_data = [];
+        chapter_total_data.forEach(function (d) {
+            var base = d3.rgb(chapter_palette(d.chapter));
+            color_data.push({ chapter: d.chapter, percentage: 0.55, color: base.toString() });
+            color_data.push({ chapter: d.chapter, percentage: 0.30, color: base.brighter(0.8).toString() });
+            color_data.push({ chapter: d.chapter, percentage: 0.15, color: base.darker(0.8).toString() });
+        });
 
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////////// Calculate chapter locations /////////////////////
         /////////////////////////////////////////////////////////////////////////// 
 
-        chapter_hierarchy_data = chapter_hierarchy_data.filter(function (d) { return d.name === "CCS" || (d.volume_num <= num_volume && !d.num) || (d.num >= 1 && d.num <= num_chapters); });
+        var hierarchy_root_name = chapter_hierarchy_data.length ? chapter_hierarchy_data[0].name : "ROOT";
+        chapter_hierarchy_data = chapter_hierarchy_data.filter(function (d) {
+            return d.name === hierarchy_root_name || d.num === null || (d.num >= 1 && d.num <= num_chapters);
+        });
         //Based on typical hierarchical clustering example
         var root = d3.stratify()
             .id(function (d) { return d.name; })
@@ -159,11 +251,18 @@ function create_CCS_chart() {
         cluster(root);
         var chapter_location_data = root.leaves()
         chapter_location_data.forEach(function (d, i) {
+            d.chapter = +d.data.num;
             d.centerAngle = d.x * Math.PI / 180;
+        });
+        var chapterById = {};
+        chapter_location_data.forEach(function (d) {
+            chapterById[d.chapter] = d;
         });
 
         //The distance between two chapters that belong to the same volume
-        var chapter_angle_distance = chapter_location_data[1].centerAngle - chapter_location_data[0].centerAngle;
+        var chapter_angle_distance = chapter_location_data.length > 1
+            ? chapter_location_data[1].centerAngle - chapter_location_data[0].centerAngle
+            : pi2;
 
         //Add some useful metrics to the chapter data
         chapter_location_data.forEach(function (d, i) {
@@ -185,14 +284,13 @@ function create_CCS_chart() {
         cover_data.sort(sortCharacter);
         character_data.sort(sortCharacter);
 
-        color_data = color_data.filter(function (d) { return d.chapter <= num_chapters; })
+        color_data = color_data.filter(function (d) { return !!chapterById[d.chapter]; })
         color_data.forEach(function (d) {
-            d.cluster = d.chapter - 1;
             d.radius = radius_scale(d.percentage);
 
             //The center of gravity for this datapoint
-            d.focusX = rad_color * Math.cos(chapter_location_data[d.cluster].centerAngle - pi1_2);
-            d.focusY = rad_color * Math.sin(chapter_location_data[d.cluster].centerAngle - pi1_2);
+            d.focusX = rad_color * Math.cos(chapterById[d.chapter].centerAngle - pi1_2);
+            d.focusY = rad_color * Math.sin(chapterById[d.chapter].centerAngle - pi1_2);
             //Add a bit of random to not get weird placement behavior in the simulation
             d.x = d.focusX + random();
             d.y = d.focusY + random();
@@ -338,20 +436,6 @@ function create_CCS_chart() {
             .style("font-size", (9*size_factor)+"px")
             .text(function (d, i) { return character_total_data[i].last_name; });
 
-        //Add one more line for the classmates label
-        names.filter(function(d,i) { return i === arcs.length - 1; })
-            .append("text")
-            .attr("class", "last-name-label")
-            .attr("dy", ".35em")
-            .attr("y", "1.35em")
-            .attr("transform", function (d, i) {
-                var finalAngle = (d.endAngle - d.startAngle) / 2 + d.startAngle - 0.03;
-                return "rotate(" + (finalAngle * 180 / Math.PI - 90) + ")"
-                    + "translate(" + rad_name + ")rotate(180)";
-            })
-            .style("font-size", (9*size_factor)+"px")
-            .text("Rika, Yamazaki");
-
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////////////// Create name dots ////////////////////////////
         /////////////////////////////////////////////////////////////////////////// 
@@ -400,13 +484,9 @@ function create_CCS_chart() {
         var pull_scale = d3.scaleLinear()
             .domain([2 * rad_relation, 0])
             .range([0.7, 2.3]);
-        var color_relation = d3.scaleOrdinal()
-            .domain(["family", "crush", "love", "friends", "master"]) //"teacher","ex-lovers","reincarnation","rival"
-            .range(["#2C9AC6", "#FA88A8", "#E01A25", "#7EB852", "#F6B42B"])
-            .unknown("#bbbbbb");
         var stroke_relation = d3.scaleOrdinal()
-            .domain(["family", "crush", "love", "friends", "master"]) //"teacher","ex-lovers","reincarnation","rival"
-            .range([4, 5, 8, 4, 5])
+            .domain(["same_pattern"])
+            .range([4])
             .unknown(3);
 
         var relation_group = chart.append("g").attr("class", "relation-group");
@@ -417,7 +497,7 @@ function create_CCS_chart() {
             .enter().append("path")
             .attr("class", "relation-path")
             .style("fill", "none")
-            .style("stroke", function (d) { return color_relation(d.type); })
+            .style("stroke", function (d) { return d.pattern_color || "#bbbbbb"; })
             .style("stroke-width", function (d) { return stroke_relation(d.type) * size_factor; })
             .style("stroke-linecap", "round")
             .style("mix-blend-mode", "multiply")
@@ -431,6 +511,8 @@ function create_CCS_chart() {
                 y1 = rad_relation * Math.sin(source_a - pi1_2),
                 x2 = rad_relation * Math.cos(target_a - pi1_2),
                 y2 = rad_relation * Math.sin(target_a - pi1_2);
+            d.x = (x1 + x2) / 2;
+            d.y = (y1 + y2) / 2;
             var dx = x2 - x1,
                 dy = y2 - y1,
                 dr = Math.sqrt(dx * dx + dy * dy);
@@ -481,10 +563,10 @@ function create_CCS_chart() {
                 {
                     note: {
                         label: d.note,
-                        title: capitalizeFirstLetter(d.type),
+                        title: formatRelationType(d.type),
                         wrap: 150*size_factor,
                     },
-                    relation_type: "family",
+                    relation_type: d.type,
                     x: +d.x * size_factor,
                     y: +d.y * size_factor,
                     dx: 5 * size_factor,
@@ -503,7 +585,7 @@ function create_CCS_chart() {
             annotation_relation_group.selectAll(".note-line, .connector")
                 .style("stroke", "none");
             annotation_relation_group.select(".annotation-note-title")
-                .style("fill", color_relation(d.type) === "#bbbbbb" ? "#9e9e9e" : color_relation(d.type));
+                .style("fill", d.pattern_color || "#9e9e9e");
             
         }//function mouse_over_relation
 
@@ -553,26 +635,25 @@ function create_CCS_chart() {
             line_label_path.attr("d", label_arc(characterByName[d.character].name_angle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            var label_words = d.character === "Classmates" ? "Naoko, Chiharu, Rika and/or Yamazaki appear" : d.character === "Nakuru" ? "Ruby Moon (also known as Nakuru) appears" : d.character === "Spinel" ? "Spinel Sun appears" : d.character + " appears";
-            line_label.text("chapters that " + label_words + " in");
+            line_label.text("patterns used in " + d.character);
 
             //Highlight the chapters this character appears in
             var char_chapters = character_data
                 .filter(function(c) { return c.character === d.character; })
                 .map(function(c) { return c.chapter; });
             var char_color = characterByName[d.character].color;
-            chapter_hover_slice.filter(function(c,j) { return char_chapters.indexOf(j+1) >= 0; })
+            chapter_hover_slice.filter(function(c,j) { return char_chapters.indexOf(c.chapter) >= 0; })
                 .style("fill", char_color)
                 .style("stroke", char_color);
-            chapter_number.filter(function(c,j) { return char_chapters.indexOf(j+1) >= 0; })
+            chapter_number.filter(function(c,j) { return char_chapters.indexOf(c.chapter) >= 0; })
                 .style("fill", "white");
-            chapter_dot.filter(function(c,j) { return char_chapters.indexOf(j+1) >= 0; })
+            chapter_dot.filter(function(c,j) { return char_chapters.indexOf(c.chapter) >= 0; })
                 .attr("r", chapter_dot_rad * 1.5)
                 .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
                 .style("fill", char_color);
 
             //Show the character image in the center
-            cover_image.attr("xlink:href", "img/character-" + d.character.toLowerCase() + ".jpg")
+            cover_image.attr("xlink:href", "img/white-square.jpg")
             cover_circle.style("fill", "url(#cover-image)");
 
             //Show the hover circle
@@ -635,7 +716,7 @@ function create_CCS_chart() {
                     "rotate(" + -angle + ")";
             })
             .style("font-size", (9*size_factor) + "px")
-            .text(function (d, i) { return i + 1; });
+            .text(function (d, i) { return d.chapter; });
 
         //Add a circle at the inside of each chapter slice
         var chapter_dot_rad = 3.5 * size_factor;
@@ -657,26 +738,39 @@ function create_CCS_chart() {
         //Create groups in right order
         var donut_volume_group = chart.append("g").attr("class", "donut-volume-group");
 
-        //Create the arcs data
-        var volume_data = [
-            { volume: 1, num_chapters: 5, chapter_start: 1, chapter_end: 5 },
-            { volume: 2, num_chapters: 5, chapter_start: 6, chapter_end: 10 },
-            { volume: 4, num_chapters: 4, chapter_start: 11, chapter_end: 14 },
-            { volume: 3, num_chapters: 4, chapter_start: 15, chapter_end: 18 },
-            { volume: 5, num_chapters: 4, chapter_start: 19, chapter_end: 22 },
-            { volume: 6, num_chapters: 4, chapter_start: 23, chapter_end: 26 },
-            { volume: 7, num_chapters: 4, chapter_start: 27, chapter_end: 30 },
-            { volume: 8, num_chapters: 4, chapter_start: 31, chapter_end: 34 },
-            { volume: 9, num_chapters: 4, chapter_start: 35, chapter_end: 38 },
-            { volume: 10, num_chapters: 4, chapter_start: 39, chapter_end: 42 },
-            { volume: 11, num_chapters: 3, chapter_start: 43, chapter_end: 45 },
-            { volume: 12, num_chapters: 5, chapter_start: 46, chapter_end: 50 }
-        ];
-        volume_data = volume_data.filter(function(d) { return d.volume <= num_volume; });
+        var chapterGroupById = {};
+        chapter_hierarchy_data.forEach(function (d) {
+            if (d.num !== null) chapterGroupById[+d.num] = d.parent;
+        });
+        var group_order = [];
+        var group_seen = {};
+        var group_to_chapters = {};
+        chapter_location_data.forEach(function (d) {
+            var group = chapterGroupById[d.chapter] || "group_1";
+            if (!group_seen[group]) {
+                group_seen[group] = true;
+                group_order.push(group);
+                group_to_chapters[group] = [];
+            }
+            group_to_chapters[group].push(d.chapter);
+        });
+        var volume_data = group_order.map(function (group, idx) {
+            var chapters = group_to_chapters[group].slice().sort(function (a, b) { return a - b; });
+            return {
+                volume: idx + 1,
+                group: group,
+                num_chapters: chapters.length,
+                chapter_start: chapters[0],
+                chapter_end: chapters[chapters.length - 1]
+            };
+        });
+        var volume_color = d3.scaleOrdinal()
+            .domain(group_order)
+            .range(["#F6B42B", "#EB5580", "#4FB127", "#2C9AC6", "#5865B0", "#E47C41"]);
         //Figure out the start and end angle
         volume_data.forEach(function (d, i) {
-            d.startAngle = chapter_location_data[d.chapter_start - 1].startAngle,
-            d.endAngle = chapter_location_data[d.chapter_end - 1].endAngle;
+            d.startAngle = chapterById[d.chapter_start].startAngle,
+            d.endAngle = chapterById[d.chapter_end].endAngle;
             d.centerAngle = (d.endAngle - d.startAngle) / 2 + d.startAngle;
         });
 
@@ -685,7 +779,7 @@ function create_CCS_chart() {
             .enter().append("path")
             .attr("class", "volume-arc")
             .style("stroke", "#c4c4c4")
-            .style("stroke", function(d,i) { return d.volume <= 6 ? color_kero : color_sakura; })
+            .style("stroke", function(d,i) { return volume_color(d.group); })
             .style("stroke-width", 3 * size_factor)
             .style("stroke-dasharray", "0," + (7 * size_factor))
             .attr("d", function(d,i) {
@@ -725,17 +819,17 @@ function create_CCS_chart() {
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.lineWidth = 4 * size_factor;
             ctx.globalAlpha = 1;
-            create_lines("chapter", character_data.filter(function (c) { return c.chapter === i+1; }));
+            create_lines("chapter", character_data.filter(function (c) { return c.chapter === d.chapter; }));
             
             //Update label path
             line_label_path.attr("d", label_arc(d.centerAngle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("characters that appear in chapter " + (i+1) );
+            line_label.text("buildings using pattern " + d.chapter + ": " + d.data.type);
 
             //Highlight the characters that appear in this chapter
             var char_chapters = character_data
-                .filter(function(c) { return c.chapter === i+1; })
+                .filter(function(c) { return c.chapter === d.chapter; })
                 .map(function(c) { return c.character; });
 
             names.filter(function(c) { return char_chapters.indexOf(c.character) < 0; })
@@ -755,7 +849,7 @@ function create_CCS_chart() {
                 .style("fill", color_sakura);
 
             //Show the cover image in the center
-            cover_image.attr("xlink:href", "img/ccs-chapter-" + (i+1) + ".jpg")
+            cover_image.attr("xlink:href", chapter_image[d.chapter] || "img/white-square.jpg")
             cover_circle.style("fill", "url(#cover-image)");
         }//function mouse_over_chapter
 
@@ -889,17 +983,17 @@ function create_CCS_chart() {
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.lineWidth = 4 * size_factor;
             ctx.globalAlpha = 1;
-            create_lines("character", cover_data.filter(function (c) { return c.chapter === i+1; }));
+            create_lines("character", cover_data.filter(function (c) { return c.chapter === d.chapter; }));
             
             //Update label path
             line_label_path.attr("d", label_arc(d.centerAngle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("characters that appear on the cover of chapter " + (i+1) );
+            line_label.text("buildings linked to pattern " + d.chapter + ": " + d.data.type);
 
             //Highlight the characters that appear in this chapter
             var char_chapters = cover_data
-                .filter(function(c) { return c.chapter === i+1; })
+                .filter(function(c) { return c.chapter === d.chapter; })
                 .map(function(c) { return c.character; });
 
             names.filter(function(c) { return char_chapters.indexOf(c.character) < 0; })
@@ -917,7 +1011,7 @@ function create_CCS_chart() {
                 .style("fill", color_sakura);
 
             //Show the cover image in the center
-            cover_image.attr("xlink:href", "img/ccs-chapter-" + (i+1) + ".jpg")
+            cover_image.attr("xlink:href", chapter_image[d.chapter] || "img/white-square.jpg")
             cover_circle.style("fill", "url(#cover-image)");
 
             //Show the circle around the color chapter group
@@ -991,7 +1085,7 @@ function create_CCS_chart() {
             .attr("class", "card-label")
             .attr("dy", ".35em")
             .each(function(d,i) {
-                d.centerAngle = chapter_location_data[d.chapter-1].centerAngle;
+                d.centerAngle = chapterById[d.chapter] ? chapterById[d.chapter].centerAngle : 0;
             })
             .attr("transform", function (d, i) {
                 return "rotate(" + (d.centerAngle * 180 / Math.PI - 90) + ")"
@@ -1035,7 +1129,7 @@ function create_CCS_chart() {
         ///////////////////////////////////////////////////////////////////////////
 
         //Only create annotations when the screen is big enough
-        if(!width_too_small) {
+        if(!width_too_small && num_chapters >= 50) {
 
             var annotations = [
                 {
@@ -1349,12 +1443,12 @@ function create_CCS_chart() {
         var line_label_path = line_label_group.append("path")
             .attr("class", "line-label-path")
             .attr("id", "line-label-path")
-            .attr("d", label_arc(characterByName["Sakura"].name_angle))
+            .attr("d", label_arc(character_total_data.length ? characterByName[character_total_data[0].character].name_angle : 0))
             .style("fill", "none")
             .style("display", "none");
 
         //Create the label text
-        var default_label_text = "currently, these lines show which characters appear on the chapter's cover art";
+        var default_label_text = "currently, these lines show which buildings are linked to the highlighted pattern";
         var line_label = line_label_group.append("text")
             .attr("class", "line-label")
             .attr("dy", "0.35em")
@@ -1383,12 +1477,14 @@ function create_CCS_chart() {
         function create_lines(type, data) {
 
             for (var i = 0; i < data.length; i++) {
-                d = data[i];
+                var d = data[i];
                 var line_data = [];
+
+                if (!characterByName[d.character] || !chapterById[d.chapter]) continue;
 
                 var source_a = characterByName[d.character].name_angle,
                     source_r = characterByName[d.character].dot_name_rad
-                var target_a = chapter_location_data[d.chapter - 1].centerAngle,
+                var target_a = chapterById[d.chapter].centerAngle,
                     target_r = rad_dot_color;
 
                 //Figure out some variable that will determine the path points to create
@@ -1554,6 +1650,12 @@ function random() {
     return x - Math.floor(x);
 }//function random
 
+function formatRelationType(type) {
+    if (type === "same_pattern") return "Same Pattern";
+    return "Relation";
+}//function formatRelationType
+
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }//function capitalizeFirstLetter
+

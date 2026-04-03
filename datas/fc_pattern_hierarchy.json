@@ -1,0 +1,90 @@
+﻿[
+    {
+        "name":  "FORBIDDEN_CITY_PATTERNS",
+        "parent":  "",
+        "num":  null
+    },
+    {
+        "name":  "era_1",
+        "parent":  "FORBIDDEN_CITY_PATTERNS",
+        "num":  null,
+        "era":  "清康熙",
+        "era_num":  1
+    },
+    {
+        "name":  "era_2",
+        "parent":  "FORBIDDEN_CITY_PATTERNS",
+        "num":  null,
+        "era":  "明嘉靖",
+        "era_num":  2
+    },
+    {
+        "name":  "era_3",
+        "parent":  "FORBIDDEN_CITY_PATTERNS",
+        "num":  null,
+        "era":  "明永乐",
+        "era_num":  3
+    },
+    {
+        "name":  "era_4",
+        "parent":  "FORBIDDEN_CITY_PATTERNS",
+        "num":  null,
+        "era":  "清乾隆",
+        "era_num":  4
+    },
+    {
+        "name":  "era_5",
+        "parent":  "FORBIDDEN_CITY_PATTERNS",
+        "num":  null,
+        "era":  "明万历",
+        "era_num":  5
+    },
+    {
+        "name":  "pattern_1",
+        "parent":  "era_1",
+        "num":  1,
+        "type":  "三交六椀菱花"
+    },
+    {
+        "name":  "pattern_2",
+        "parent":  "era_2",
+        "num":  2,
+        "type":  "轱辘钱"
+    },
+    {
+        "name":  "pattern_3",
+        "parent":  "era_3",
+        "num":  3,
+        "type":  "正方格"
+    },
+    {
+        "name":  "pattern_4",
+        "parent":  "era_2",
+        "num":  4,
+        "type":  "冰裂纹"
+    },
+    {
+        "name":  "pattern_5",
+        "parent":  "era_3",
+        "num":  5,
+        "type":  "双交四椀菱花"
+    },
+    {
+        "name":  "pattern_6",
+        "parent":  "era_4",
+        "num":  6,
+        "type":  "步步锦"
+    },
+    {
+        "name":  "pattern_7",
+        "parent":  "era_5",
+        "num":  7,
+        "type":  "斜方格"
+    },
+    {
+        "name":  "pattern_8",
+        "parent":  "era_4",
+        "num":  8,
+        "type":  "万字纹"
+    }
+]

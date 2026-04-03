@@ -70,8 +70,8 @@ function create_CCS_chart() {
     //////////////// Initialize helpers and scales ///////////////
     //////////////////////////////////////////////////////////////
 
-    var num_chapters = 8,
-        num_volume = 39;
+    var num_chapters = 50,
+        num_volume = 12;
     var pi2 = 2*Math.PI,
         pi1_2 = Math.PI/2;
 
@@ -102,8 +102,8 @@ function create_CCS_chart() {
         rad_line_max = 0.31,
         rad_line_min = 0.215,
         rad_line_label = width * 0.29, //textual label that explains the hovers
-        rad_donut_inner = width * 0.13, //inner radius of the character donut
-        rad_donut_outer = width * 0.138, //outer radius of the character donut
+        rad_donut_inner = width * 0.14, //inner radius of the character donut
+        rad_donut_outer = width * 0.148, //outer radius of the character donut
         rad_name = rad_donut_outer + 8 * size_factor, //padding between character donut and start of the character name
         rad_image = rad_donut_inner - 4 * size_factor; //radius of the central image shown on hover
         rad_relation = rad_donut_inner - 8 * size_factor; //padding between character donut and inner lines

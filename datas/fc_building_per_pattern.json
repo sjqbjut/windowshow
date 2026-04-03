@@ -1,0 +1,345 @@
+﻿[
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "午门",
+        "building_id":  11,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "太和殿（金銮殿）",
+        "building_id":  12,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "中和殿",
+        "building_id":  13,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "保和殿",
+        "building_id":  14,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  3,
+        "type":  "正方格",
+        "building":  "协和门 / 熙和门",
+        "building_id":  15,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  3,
+        "type":  "正方格",
+        "building":  "乾清门",
+        "building_id":  16,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "文华殿",
+        "building_id":  21,
+        "area":  "外朝东西两翼"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "武英殿",
+        "building_id":  22,
+        "area":  "外朝东西两翼"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "乾清宫",
+        "building_id":  31,
+        "area":  "内廷后三宫（帝后核心生活区）"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "交泰殿",
+        "building_id":  32,
+        "area":  "内廷后三宫（帝后核心生活区）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "坤宁宫",
+        "building_id":  33,
+        "area":  "内廷后三宫（帝后核心生活区）"
+    },
+    {
+        "pattern":  2,
+        "type":  "轱辘钱",
+        "building":  "养心殿",
+        "building_id":  34,
+        "area":  "内廷后三宫（帝后核心生活区）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "养心殿",
+        "building_id":  34,
+        "area":  "内廷后三宫（帝后核心生活区）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "景仁宫",
+        "building_id":  41,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  3,
+        "type":  "正方格",
+        "building":  "景仁宫",
+        "building_id":  41,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  4,
+        "type":  "冰裂纹",
+        "building":  "钟粹宫",
+        "building_id":  42,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "钟粹宫",
+        "building_id":  42,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "承乾宫",
+        "building_id":  43,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "承乾宫",
+        "building_id":  43,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "景阳宫",
+        "building_id":  44,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  3,
+        "type":  "正方格",
+        "building":  "景阳宫",
+        "building_id":  44,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "永和宫",
+        "building_id":  45,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  8,
+        "type":  "万字纹",
+        "building":  "永和宫",
+        "building_id":  45,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "延禧宫",
+        "building_id":  46,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "延禧宫",
+        "building_id":  46,
+        "area":  "内廷东六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "翊坤宫",
+        "building_id":  51,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  8,
+        "type":  "万字纹",
+        "building":  "翊坤宫",
+        "building_id":  51,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "储秀宫",
+        "building_id":  52,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "永寿宫",
+        "building_id":  53,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "长春宫",
+        "building_id":  54,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  8,
+        "type":  "万字纹",
+        "building":  "长春宫",
+        "building_id":  54,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "咸福宫",
+        "building_id":  55,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "咸福宫",
+        "building_id":  55,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "启祥宫（太极殿）",
+        "building_id":  56,
+        "area":  "内廷西六宫（妃嫔居所）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "慈宁宫",
+        "building_id":  61,
+        "area":  "太后 / 太妃宫区"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "寿康宫",
+        "building_id":  62,
+        "area":  "太后 / 太妃宫区"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "寿安宫",
+        "building_id":  63,
+        "area":  "太后 / 太妃宫区"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "寿安宫",
+        "building_id":  63,
+        "area":  "太后 / 太妃宫区"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "皇极殿",
+        "building_id":  71,
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "宁寿宫",
+        "building_id":  72,
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "倦勤斋",
+        "building_id":  73,
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "萃赏楼",
+        "building_id":  74,
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）"
+    },
+    {
+        "pattern":  5,
+        "type":  "双交四椀菱花",
+        "building":  "符望阁（迷楼）",
+        "building_id":  75,
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）"
+    },
+    {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "万春亭 / 千秋亭",
+        "building_id":  81,
+        "area":  "御花园及园林建筑"
+    },
+    {
+        "pattern":  8,
+        "type":  "万字纹",
+        "building":  "绛雪轩",
+        "building_id":  82,
+        "area":  "御花园及园林建筑"
+    },
+    {
+        "pattern":  7,
+        "type":  "斜方格",
+        "building":  "临溪亭",
+        "building_id":  83,
+        "area":  "御花园及园林建筑"
+    },
+    {
+        "pattern":  4,
+        "type":  "冰裂纹",
+        "building":  "养性斋",
+        "building_id":  84,
+        "area":  "御花园及园林建筑"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "养性斋",
+        "building_id":  84,
+        "area":  "御花园及园林建筑"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "阅是楼",
+        "building_id":  85,
+        "area":  "御花园及园林建筑"
+    }
+]

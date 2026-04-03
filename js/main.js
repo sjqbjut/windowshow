@@ -14,119 +14,25 @@ function create_CCS_chart() {
     ////////////////////////////////////////////////////////////// 
     
     var container = d3.select("#chart");
-    
-    window.scroll(0,window.pageYOffset);
-    //Remove anything that was still there
+
+    // Remove the previous chart before re-rendering
     container.selectAll("svg, canvas").remove();
     container.style("height", null);
     document.body.style.width = null;
-    d3.selectAll(".outer-container")
-        .style("width", null)
-        .style("margin-left", null)
-        .style("margin-right", null)
-        .style("padding-left", null)
-        .style("padding-right", null);
-    d3.selectAll(".manga-img").style("display", null);
-    d3.selectAll(".manga-mobile-img").style("display", null);
-    d3.selectAll(".manga-img div")
-        .style("height", null)
-        .style("width", null);
-    d3.selectAll(".character-group").style("height", null);
-    d3.select("#annotation-explanation").style("display", null);
-
 
     var base_width = 1600;
-    var ww = window.innerWidth,
-        wh = window.innerHeight;
+    var ww = window.innerWidth;
     var width_too_small = ww < 500;
 
-    var width;
-    if(wh < ww) {
-        width = wh/0.7;
-    } else {
-        if(ww < width_too_small) width = ww/0.5;
-        else if(ww < 600) width = ww/0.6;
-        else if(ww < 800) width = ww/0.7;
-        else if(ww < 1100) width = ww/0.8;
-        else width = ww/0.8;
-    }//else
-    width = Math.round(Math.min(base_width, width));
+    // Keep the visualization responsive while focusing on the chart only
+    var width = Math.round(Math.min(base_width, Math.max(320, ww * 0.96)));
     var height = width;
+    var size_factor = width / base_width;
 
-    //Scaling the entire visual, as compared to the base size
-    var size_factor = width/base_width;
-
-    //Adjust the general layout based on the width of the visual
     container.style("height", height + "px");
-    //Reset the body width
-    var annotation_padding = width_too_small ? 0 : 240 * size_factor;
-    var total_chart_width = width + annotation_padding;
-    var no_scrollbar_padding = total_chart_width > ww ? 0 : 20;
-    if(total_chart_width > ww) document.body.style.width = total_chart_width + 'px';
-    var outer_container_width = Math.min(base_width, ww - no_scrollbar_padding - 2*20); //2 * 20px padding
-    d3.selectAll(".outer-container").style("width", outer_container_width + "px"); 
 
-    //Update the sizes of the images in the introduction
-    if(ww > 900) {
-        //Adjust the sizes of the images in the intro
-        for(var i = 1; i <= 2 ; i++) {
-            var par_height = document.getElementById("character-text-" + i).getBoundingClientRect().height;
-            var div_width = document.getElementById("character-intro").getBoundingClientRect().width;
-            if(total_chart_width > ww) var width_left = (parseInt(document.body.style.width) - div_width)/2;
-            else var width_left = (window.innerWidth - div_width)/2 - 10;
-
-            var max_width = par_height*1.99;
-            var window_based_width = div_width*0.48 + width_left;
-            if(window_based_width > max_width) par_height = window_based_width/1.99;
-
-            d3.select("#manga-img-" + i)
-                .style("height", par_height + "px")
-                .style("width", Math.min(par_height*1.99, window_based_width) + "px") //width img = 45%
-                .style("display","block");
-
-            d3.select("#character-group-" + i).style("height", par_height + "px");
-        }//for i
-        d3.selectAll(".manga-mobile-img").style("display","hidden");
-    } else {
-        d3.selectAll(".manga-mobile-img").style("display","block");
-        d3.selectAll(".manga-img").style("display","hidden");
-    }//else
-
-    //Do the read-more button
-    d3.selectAll(".read-more").style("display","none");
-    var do_display_more = false;
-    d3.select("#read-more-button p")
-        .style("display","inline-block")
-        .html("read more...")
-        .on("click", function() {
-            do_display_more = !do_display_more;
-            d3.select("#read-more-button p").html(do_display_more ? "hide extra info" : "read more...");
-            d3.selectAll(".read-more").style("display", do_display_more ? null : "none");
-        });
-
-    //Move the window to the top left of the text if the chart is wider than the screen
-    if(total_chart_width > ww) {
-        var pos = document.getElementById("top-outer-container").getBoundingClientRect();
-        var scrollX = pos.left - 15;
-        if(total_chart_width - ww < pos.left) {
-            scrollX = (total_chart_width - ww)/2; 
-        } else if(outer_container_width >= base_width) scrollX = pos.left - (parseInt(document.body.style.width) - pos.width)/4 - 10;
-        //Scroll to the new position on the horizontal
-        window.scrollTo(scrollX,window.pageYOffset);
-
-        //This doesn't work in all browsers, so check (actually it only doesn't seem to work in Chrome mobile...)
-        if( Math.abs(window.scrollX - scrollX) > 2 ) {
-            window.scrollTo(0,window.pageYOffset)
-            d3.selectAll(".outer-container")
-                .style("margin-left", 0 + "px")
-                .style("margin-right", 0 + "px")
-                .style("padding-left", 30 + "px")
-                .style("padding-right", 30 + "px")
-        }//if
-    }//if
-
-    document.querySelector('html').style.setProperty('--annotation-title-font-size', Math.min(14,15*size_factor) + 'px')
-    document.querySelector('html').style.setProperty('--annotation-label-font-size', Math.min(14,15*size_factor) + 'px')
+    document.querySelector("html").style.setProperty("--annotation-title-font-size", Math.min(14, 15 * size_factor) + "px");
+    document.querySelector("html").style.setProperty("--annotation-label-font-size", Math.min(14, 15 * size_factor) + "px");
 
     ////////////////////////////////////////////////////////////// 
     //////////////////// Create SVG & Canvas /////////////////////
@@ -1418,23 +1324,7 @@ function create_CCS_chart() {
                 .style("stroke-width", 2.5 * size_factor)
                 .style("stroke", color_syaoran);
 
-            //Make it possible to show/hide the annotations
-            var show_annotations = true;
-            d3.select("#story-annotation")
-                .style("opacity", 1)
-                .on("click", spoiler_click);
-
-            function spoiler_click() {
-                show_annotations = !show_annotations;
-                annotation_group.selectAll(".note-story")
-                    .style("opacity", show_annotations ? 1 : 0);
-                d3.select("#hide-show").html(show_annotations ? "hide" : "show");
-            }//function spoiler_click
-
-        } else {
-            //Hide the annotation mentions in the intro
-            d3.select("#annotation-explanation").style("display","none");
-        }//else
+        }//if
 
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////////// Create line title label /////////////////////////

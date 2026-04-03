@@ -70,8 +70,8 @@ function create_CCS_chart() {
     //////////////// Initialize helpers and scales ///////////////
     //////////////////////////////////////////////////////////////
 
-    var num_chapters = 50,
-        num_volume = 12;
+    var num_chapters = 8,
+        num_volume = 39;
     var pi2 = 2*Math.PI,
         pi1_2 = Math.PI/2;
 
@@ -90,8 +90,8 @@ function create_CCS_chart() {
     var rad_card_label = width * 0.4, //capture card text on the outside
         rad_cover_outer = width * 0.395, //outside of the hidden cover hover
         rad_cover_inner = width * 0.350, //inside of the hidden cover hover
-        // rad_volume_donut_outer = width * 0.427, //outer radius of the volume donut
-        // rad_volume_donut_inner = width * 0.425, //inner radius of the volume donut
+        //rad_volume_donut_outer = width * 0.427, //outer radius of the volume donut
+        //rad_volume_donut_inner = width * 0.425, //inner radius of the volume donut
         rad_color = width * 0.373, //color circles' center
         rad_chapter_outer = width * 0.3499, //outside of the hidden chapter hover
         rad_volume_inner = width * 0.343, //radius of the volume arcs
@@ -102,8 +102,8 @@ function create_CCS_chart() {
         rad_line_max = 0.31,
         rad_line_min = 0.215,
         rad_line_label = width * 0.29, //textual label that explains the hovers
-        rad_donut_inner = width * 0.122, //inner radius of the character donut
-        rad_donut_outer = width * 0.13, //outer radius of the character donut
+        rad_donut_inner = width * 0.13, //inner radius of the character donut
+        rad_donut_outer = width * 0.138, //outer radius of the character donut
         rad_name = rad_donut_outer + 8 * size_factor, //padding between character donut and start of the character name
         rad_image = rad_donut_inner - 4 * size_factor; //radius of the central image shown on hover
         rad_relation = rad_donut_inner - 8 * size_factor; //padding between character donut and inner lines

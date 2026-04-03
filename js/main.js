@@ -102,8 +102,8 @@ function create_CCS_chart() {
         rad_line_max = 0.31,
         rad_line_min = 0.215,
         rad_line_label = width * 0.29, //textual label that explains the hovers
-        rad_donut_inner = width * 0.18, //inner radius of the character donut
-        rad_donut_outer = width * 0.188, //outer radius of the character donut
+        rad_donut_inner = width * 0.15, //inner radius of the character donut
+        rad_donut_outer = width * 0.158, //outer radius of the character donut
         rad_name = rad_donut_outer + 8 * size_factor, //padding between character donut and start of the character name
         rad_image = rad_donut_inner - 4 * size_factor; //radius of the central image shown on hover
         rad_relation = rad_donut_inner - 8 * size_factor; //padding between character donut and inner lines
@@ -123,111 +123,125 @@ function create_CCS_chart() {
     ///////////////////////////////////////////////////////////////////////////
 
     d3.queue()
-        .defer(d3.json, "datas/fc_pattern_hierarchy.json")
         .defer(d3.json, "datas/fc_pattern_total.json")
         .defer(d3.json, "datas/fc_building_per_pattern.json")
         .defer(d3.json, "datas/fc_building_total.json")
-        .defer(d3.json, "datas/fc_building_relations.json")
         .await(draw);
 
-    function draw(error, chapter_hierarchy_data, chapter_total_data, character_data, character_total_data, relation_data) {
+    function draw(error, pattern_total_data, building_per_pattern_data, building_total_data) {
 
         if (error) throw error;
 
-        // Map building/pattern data to the schema used throughout the chart.
-        chapter_total_data = chapter_total_data.map(function (d) {
-            return {
-                chapter: +d.pattern,
-                volume: +d.era,
-                card_captured: d.type,
-                popular_time: d.popular_time,
-                introduction: d.introduction,
-                meaning: d.meaning
-            };
-        });
-        num_chapters = chapter_total_data.length;
-        num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
+        var pattern_palette = d3.scaleOrdinal()
+            .domain(pattern_total_data.map(function (d) { return +d.pattern; }))
+            .range(["#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0", "#E47C41", "#BD211B", "#82C3AA"]);
 
-        character_data = character_data.map(function (d) {
-            return {
-                chapter: +d.pattern,
-                character: d.building
-            };
-        });
-        var cover_data = character_data.slice();
-
-        var area_names = [];
-        var area_seen = {};
-        character_total_data.forEach(function (d) {
-            if (!area_seen[d.area]) {
-                area_seen[d.area] = true;
-                area_names.push(d.area);
-            }
-        });
         var area_palette = [
             "#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0",
             "#E47C41", "#BD211B", "#82C3AA", "#2F2F2F", "#9A8473"
         ];
-        var area_color = d3.scaleOrdinal().domain(area_names).range(area_palette);
 
-        character_total_data.sort(function (a, b) { return (+a.building_id) - (+b.building_id); });
-        character_total_data = character_total_data.map(function (d) {
+        var building_area_names = [];
+        var area_seen = {};
+        building_total_data.forEach(function (d) {
+            if (!area_seen[d.area]) {
+                area_seen[d.area] = true;
+                building_area_names.push(d.area);
+            }
+        });
+        var building_area_index = {};
+        building_area_names.forEach(function (area, index) {
+            building_area_index[area] = index + 1;
+        });
+        var area_color = d3.scaleOrdinal().domain(building_area_names).range(area_palette);
+
+        // Outer circle: buildings.
+        var chapter_total_data = building_total_data.slice()
+            .sort(function (a, b) { return (+a.building_id) - (+b.building_id); })
+            .map(function (d) {
+                return {
+                    chapter: +d.building_id,
+                    volume: building_area_index[d.area] || 1,
+                    card_captured: d.building,
+                    popular_time: d.time,
+                    introduction: d.introduction,
+                    meaning: d.area,
+                    area: d.area
+                };
+            });
+        num_chapters = chapter_total_data.length;
+        num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
+
+        // Inner circle to outer links: pattern -> building.
+        var character_data = building_per_pattern_data.map(function (d) {
             return {
-                character: d.building,
-                full_name: d.building,
-                first_name: d.building,
-                last_name: "",
-                num_chapters: +d.num_patterns,
-                color: area_color(d.area),
-                type: d.area,
-                area: d.area,
-                time: d.time,
-                introduction: d.introduction
+                chapter: +d.building_id,
+                character: d.type
             };
         });
+        var cover_data = character_data.slice();
 
-        var chapter_palette = d3.scaleOrdinal()
-            .domain(chapter_total_data.map(function (d) { return d.chapter; }))
-            .range(["#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0", "#E47C41", "#BD211B", "#82C3AA"]);
-        var patternIdByName = {};
-        chapter_total_data.forEach(function (d) {
-            patternIdByName[d.card_captured] = d.chapter;
+        var pattern_usage_count = {};
+        character_data.forEach(function (d) {
+            pattern_usage_count[d.character] = (pattern_usage_count[d.character] || 0) + 1;
         });
 
-        var pattern_relation_data = [];
-        relation_data.forEach(function (d) {
-            var shared_patterns = d.shared_patterns || [];
-            shared_patterns.forEach(function (pattern_name) {
-                var pattern_id = patternIdByName[pattern_name];
-                pattern_relation_data.push({
-                    source: d.source,
-                    target: d.target,
-                    type: "same_pattern",
-                    pattern: pattern_name,
-                    pattern_id: pattern_id || null,
-                    pattern_color: pattern_id ? chapter_palette(pattern_id) : "#9e9e9e",
-                    x: 0,
-                    y: 0,
-                    note: "Shared pattern: " + pattern_name
-                });
+        // Inner circle: patterns.
+        var character_total_data = pattern_total_data.slice()
+            .sort(function (a, b) { return (+a.pattern) - (+b.pattern); })
+            .map(function (d) {
+                return {
+                    character: d.type,
+                    full_name: d.type,
+                    first_name: d.type,
+                    last_name: "",
+                    num_chapters: pattern_usage_count[d.type] || 0,
+                    color: pattern_palette(+d.pattern),
+                    type: d.popular_time,
+                    area: "纹样",
+                    time: d.popular_time,
+                    introduction: d.introduction,
+                    pattern_id: +d.pattern
+                };
             });
-        });
-        relation_data = pattern_relation_data;
+
+        // Inner one-to-one relations are suspended for now.
+        var relation_data = [];
 
         var chapter_image = {};
         chapter_total_data.forEach(function (d) {
-            // Pattern id 3 currently has no image file in datas/imgs.
-            chapter_image[d.chapter] = d.chapter === 3
-                ? "img/white-square.jpg"
-                : "datas/imgs/" + d.card_captured + ".png";
+            chapter_image[d.chapter] = "img/white-square.jpg";
         });
 
         var color_data = [];
         chapter_total_data.forEach(function (d) {
-            var base = d3.rgb(chapter_palette(d.chapter));
+            var base = d3.rgb(area_color(d.area));
             color_data.push({ chapter: d.chapter, percentage: 0.55, color: base.toString() });
             color_data.push({ chapter: d.chapter, percentage: 0.30, color: base.brighter(0.8).toString() });
             color_data.push({ chapter: d.chapter, percentage: 0.15, color: base.darker(0.8).toString() });
+        });
+
+        // Build hierarchy for the outer building ring, grouped by area.
+        var chapter_hierarchy_data = [{
+            name: "FORBIDDEN_CITY_BUILDINGS",
+            parent: "",
+            num: null
+        }];
+        building_area_names.forEach(function (area, index) {
+            chapter_hierarchy_data.push({
+                name: "area_" + (index + 1),
+                parent: "FORBIDDEN_CITY_BUILDINGS",
+                num: null,
+                area: area
+            });
+        });
+        chapter_total_data.forEach(function (d) {
+            chapter_hierarchy_data.push({
+                name: "building_" + d.chapter,
+                parent: "area_" + (building_area_index[d.area] || 1),
+                num: d.chapter,
+                type: d.card_captured
+            });
         });
 
         ///////////////////////////////////////////////////////////////////////////
@@ -235,8 +249,12 @@ function create_CCS_chart() {
         /////////////////////////////////////////////////////////////////////////// 
 
         var hierarchy_root_name = chapter_hierarchy_data.length ? chapter_hierarchy_data[0].name : "ROOT";
+        var valid_chapter_ids = {};
+        chapter_total_data.forEach(function (d) {
+            valid_chapter_ids[d.chapter] = true;
+        });
         chapter_hierarchy_data = chapter_hierarchy_data.filter(function (d) {
-            return d.name === hierarchy_root_name || d.num === null || (d.num >= 1 && d.num <= num_chapters);
+            return d.name === hierarchy_root_name || d.num === null || !!valid_chapter_ids[+d.num];
         });
         //Based on typical hierarchical clustering example
         var root = d3.stratify()
@@ -635,7 +653,7 @@ function create_CCS_chart() {
             line_label_path.attr("d", label_arc(characterByName[d.character].name_angle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("patterns used in " + d.character);
+            line_label.text("buildings using pattern " + d.character);
 
             //Highlight the chapters this character appears in
             var char_chapters = character_data
@@ -825,7 +843,7 @@ function create_CCS_chart() {
             line_label_path.attr("d", label_arc(d.centerAngle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("buildings using pattern " + d.chapter + ": " + d.data.type);
+            line_label.text("patterns used in building " + d.data.type);
 
             //Highlight the characters that appear in this chapter
             var char_chapters = character_data
@@ -989,7 +1007,7 @@ function create_CCS_chart() {
             line_label_path.attr("d", label_arc(d.centerAngle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("buildings linked to pattern " + d.chapter + ": " + d.data.type);
+            line_label.text("patterns linked to building " + d.data.type);
 
             //Highlight the characters that appear in this chapter
             var char_chapters = cover_data
@@ -1448,7 +1466,7 @@ function create_CCS_chart() {
             .style("display", "none");
 
         //Create the label text
-        var default_label_text = "currently, these lines show which buildings are linked to the highlighted pattern";
+        var default_label_text = "currently, these lines show links between inner patterns and outer buildings";
         var line_label = line_label_group.append("text")
             .attr("class", "line-label")
             .attr("dy", "0.35em")

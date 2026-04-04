@@ -210,14 +210,27 @@ function create_CCS_chart() {
 
         var default_center_image = "img/white-square.jpg";
         var chapter_image_candidates = {};
+        var pattern_image_candidates = {};
         var building_image_extensions = [".jpg", ".jpeg", ".png", ".webp"];
+        var pattern_image_extensions = [".jpg", ".jpeg", ".png", ".webp"];
         chapter_total_data.forEach(function (d) {
             var building_name_encoded = encodeURIComponent(d.card_captured);
             chapter_image_candidates[d.chapter] = building_image_extensions.map(function (ext) {
                 return "datas/imgs/buildings_img/" + building_name_encoded + ext;
             });
         });
-
+        character_total_data.forEach(function (d) {
+            var pattern_name_encoded = encodeURIComponent(d.character);
+            var candidates = pattern_image_extensions.map(function (ext) {
+                return "datas/imgs/patterns_img/" + pattern_name_encoded + ext;
+            });
+            if (d.pattern_id !== undefined && d.pattern_id !== null) {
+                candidates = candidates.concat(pattern_image_extensions.map(function (ext) {
+                    return "datas/imgs/patterns_img/" + d.pattern_id + ext;
+                }));
+            }
+            pattern_image_candidates[d.character] = candidates;
+        });
         var color_data = [];
         chapter_total_data.forEach(function (d) {
             var base = d3.rgb(area_color(d.area));
@@ -383,6 +396,28 @@ function create_CCS_chart() {
         }
         function show_center_image_for_chapter(chapter_id) {
             var candidates = chapter_image_candidates[chapter_id] || [];
+            center_image_request_id += 1;
+            var request_id = center_image_request_id;
+
+            function load_candidate(index) {
+                if (request_id !== center_image_request_id) return;
+                if (index >= candidates.length) {
+                    show_default_center_image();
+                    return;
+                }
+                cover_image
+                    .on("error", function () { load_candidate(index + 1); })
+                    .attr("xlink:href", candidates[index]);
+            }
+
+            if (!candidates.length) {
+                show_default_center_image();
+                return;
+            }
+            load_candidate(0);
+        }
+        function show_center_image_for_pattern(pattern_name) {
+            var candidates = pattern_image_candidates[pattern_name] || [];
             center_image_request_id += 1;
             var request_id = center_image_request_id;
 
@@ -704,7 +739,7 @@ function create_CCS_chart() {
                 .style("fill", char_color);
 
             //Show the character image in the center
-            show_default_center_image();
+            show_center_image_for_pattern(d.character);
             cover_circle.style("fill", "url(#cover-image)");
 
             //Show the hover circle

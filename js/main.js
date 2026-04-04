@@ -306,6 +306,34 @@ function create_CCS_chart() {
             d.endAngle = d.centerAngle + chapter_angle_distance / 2;
         })
 
+        // Build contiguous outer-ring segments by area (replaces label-number ring styling).
+        var chapter_meta_by_id = {};
+        chapter_total_data.forEach(function (d) {
+            chapter_meta_by_id[d.chapter] = d;
+        });
+        var area_ring_data = [];
+        chapter_location_data
+            .slice()
+            .sort(function (a, b) { return a.centerAngle - b.centerAngle; })
+            .forEach(function (d) {
+                var meta = chapter_meta_by_id[d.chapter] || {};
+                var area_name = meta.area || "";
+                if (!area_ring_data.length || area_ring_data[area_ring_data.length - 1].area !== area_name) {
+                    area_ring_data.push({
+                        area: area_name,
+                        startAngle: d.startAngle,
+                        endAngle: d.endAngle
+                    });
+                } else {
+                    area_ring_data[area_ring_data.length - 1].endAngle = d.endAngle;
+                }
+            });
+        // Merge first/last segment when the same area spans the 0-degree boundary.
+        if (area_ring_data.length > 1 && area_ring_data[0].area === area_ring_data[area_ring_data.length - 1].area) {
+            area_ring_data[0].startAngle = area_ring_data[area_ring_data.length - 1].startAngle;
+            area_ring_data.pop();
+        }
+
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////////////// Final data prep /////////////////////////////
         ///////////////////////////////////////////////////////////////////////////
@@ -500,7 +528,7 @@ function create_CCS_chart() {
                     + "translate(" + rad_name + ")"
                     + (finalAngle > 0 & finalAngle < Math.PI ? "" : "rotate(180)");
             })
-            .style("font-size", (12*size_factor)+"px")
+            .style("font-size", (20*size_factor)+"px")
             .text(function (d, i) { return character_total_data[i].first_name; });
 
         //Add the smaller last name (if available) below
@@ -519,7 +547,7 @@ function create_CCS_chart() {
                     + "translate(" + rad_name + ")"
                     + (finalAngle > 0 & finalAngle < Math.PI ? "" : "rotate(180)");
             })
-            .style("font-size", (9*size_factor)+"px")
+            .style("font-size", (20*size_factor)+"px")
             .text(function (d, i) { return character_total_data[i].last_name; });
 
         ///////////////////////////////////////////////////////////////////////////
@@ -768,12 +796,12 @@ function create_CCS_chart() {
 
         //Create the donut slices per character (and the number of chapters they appeared in)
         var chapter_slice = donut_chapter_group.selectAll(".arc")
-            .data(chapter_location_data)
+            .data(area_ring_data)
             .enter().append("path")
             .attr("class", "arc")
             .attr("d", arc_chapter)
-            .style("fill", "none")
-            .style("stroke", "#c4c4c4")
+            .style("fill", function (d) { return area_color(d.area); })
+            .style("stroke", "white")
             .style("stroke-width", 1 * size_factor);
         //Create the donut slices per character (and the number of chapters they appeared in)
         var chapter_hover_slice = donut_chapter_hover_group.selectAll(".arc")
@@ -802,7 +830,7 @@ function create_CCS_chart() {
                     "rotate(" + -angle + ")";
             })
             .style("font-size", (9*size_factor) + "px")
-            .text(function (d, i) { return d.chapter; });
+            .text("");
 
         //Add a circle at the inside of each chapter slice
         var chapter_dot_rad = 3.5 * size_factor;
@@ -1179,7 +1207,7 @@ function create_CCS_chart() {
                     + (d.centerAngle > 0 & d.centerAngle < Math.PI ? "" : "rotate(180)");
             })
             .style("text-anchor", function (d) { return d.centerAngle > 0 & d.centerAngle < Math.PI ? "start" : "end"; })
-            .style("font-size", (10 * size_factor) + "px")
+            .style("font-size", (22 * size_factor) + "px")
             .text(function (d, i) { return d.card_captured; });
 
         //////////////////////////////////////////////////////////////

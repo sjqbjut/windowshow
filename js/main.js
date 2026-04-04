@@ -208,9 +208,14 @@ function create_CCS_chart() {
         // Inner one-to-one relations are suspended for now.
         var relation_data = [];
 
-        var chapter_image = {};
+        var default_center_image = "img/white-square.jpg";
+        var chapter_image_candidates = {};
+        var building_image_extensions = [".jpg", ".jpeg", ".png", ".webp"];
         chapter_total_data.forEach(function (d) {
-            chapter_image[d.chapter] = "img/white-square.jpg";
+            var building_name_encoded = encodeURIComponent(d.card_captured);
+            chapter_image_candidates[d.chapter] = building_image_extensions.map(function (ext) {
+                return "datas/imgs/buildings_img/" + building_name_encoded + ext;
+            });
         });
 
         var color_data = [];
@@ -367,9 +372,37 @@ function create_CCS_chart() {
             .attr("height", "100%")
             .attr("width", "100%")
             .append("image")
-            .attr("xlink:href", "img/white-square.jpg")
+            .attr("xlink:href", default_center_image)
             .attr("height", 2 * image_radius)
             .attr("width", 2 * image_radius);
+
+        var center_image_request_id = 0;
+        function show_default_center_image() {
+            center_image_request_id += 1;
+            cover_image.on("error", null).attr("xlink:href", default_center_image);
+        }
+        function show_center_image_for_chapter(chapter_id) {
+            var candidates = chapter_image_candidates[chapter_id] || [];
+            center_image_request_id += 1;
+            var request_id = center_image_request_id;
+
+            function load_candidate(index) {
+                if (request_id !== center_image_request_id) return;
+                if (index >= candidates.length) {
+                    show_default_center_image();
+                    return;
+                }
+                cover_image
+                    .on("error", function () { load_candidate(index + 1); })
+                    .attr("xlink:href", candidates[index]);
+            }
+
+            if (!candidates.length) {
+                show_default_center_image();
+                return;
+            }
+            load_candidate(0);
+        }
 
         ///////////////////////////////////////////////////////////////////////////
         /////////////////////// Create character donut chart //////////////////////
@@ -671,7 +704,7 @@ function create_CCS_chart() {
                 .style("fill", char_color);
 
             //Show the character image in the center
-            cover_image.attr("xlink:href", "img/white-square.jpg")
+            show_default_center_image();
             cover_circle.style("fill", "url(#cover-image)");
 
             //Show the hover circle
@@ -867,7 +900,7 @@ function create_CCS_chart() {
                 .style("fill", color_sakura);
 
             //Show the cover image in the center
-            cover_image.attr("xlink:href", chapter_image[d.chapter] || "img/white-square.jpg")
+            show_center_image_for_chapter(d.chapter);
             cover_circle.style("fill", "url(#cover-image)");
         }//function mouse_over_chapter
 
@@ -1029,7 +1062,7 @@ function create_CCS_chart() {
                 .style("fill", color_sakura);
 
             //Show the cover image in the center
-            cover_image.attr("xlink:href", chapter_image[d.chapter] || "img/white-square.jpg")
+            show_center_image_for_chapter(d.chapter);
             cover_circle.style("fill", "url(#cover-image)");
 
             //Show the circle around the color chapter group
@@ -1077,7 +1110,7 @@ function create_CCS_chart() {
 
             //Remove cover image
             cover_circle.style("fill", "none");
-            cover_image.attr("xlink:href", "img/white-square.jpg");
+            show_default_center_image();
 
             //Hide the hover circle
             hover_circle.style("opacity", 0);

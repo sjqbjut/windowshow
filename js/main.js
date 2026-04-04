@@ -92,10 +92,10 @@ function create_CCS_chart() {
         rad_cover_inner = width * 0.350, //inside of the hidden cover hover
         //rad_volume_donut_outer = width * 0.427, //outer radius of the volume donut
         //rad_volume_donut_inner = width * 0.425, //inner radius of the volume donut
-        rad_color = width * 0.373, //color circles' center
+        rad_color = width * 0.378, //彩色图标圆心所处圆的半径 (slightly outward to make room for area labels)
+        rad_area_label = width * 0.344, //area圈文字排版半径
         rad_chapter_outer = width * 0.3499, //outside of the hidden chapter hover
-        rad_volume_inner = width * 0.343, //radius of the volume arcs
-        rad_chapter_donut_outer = width * 0.334, //outer radius of the chapter donut
+        rad_chapter_donut_outer = width * 0.330, //outer radius of the chapter donut
         rad_chapter_donut_inner = width * 0.32, //inner radius of the chapter donut
         rad_chapter_inner = width * 0.30, //outside of the hidden chapter hover
         rad_dot_color = width * 0.32, //chapter dot
@@ -333,6 +333,32 @@ function create_CCS_chart() {
             area_ring_data[0].startAngle = area_ring_data[area_ring_data.length - 1].startAngle;
             area_ring_data.pop();
         }
+        var area_label_font_size = 20 * size_factor;//area名称字体大小
+        var area_label_data = area_ring_data.map(function (d, i) {
+            var span = d.endAngle - d.startAngle;
+            if (span < 0) span += pi2;
+            var pad = Math.min(0.08, span * 0.22);
+            var label_span = span - 2 * pad;
+            var label_start = (d.startAngle + pad + pi2) % pi2;
+            var label_end = (label_start + label_span) % pi2;
+            var center_angle = d.startAngle + span / 2;
+            if (center_angle >= pi2) center_angle -= pi2;
+            return {
+                area: d.area,
+                color: area_color(d.area),
+                startAngle: label_start,
+                endAngle: label_end,
+                centerAngle: center_angle,
+                span: label_span,
+                path_id: "area-name-path-" + i
+            };
+        }).filter(function (d) { return !!d.area && d.span > 0.12; });
+        var area_label_seen = {};
+        area_label_data = area_label_data.filter(function (d) {
+            if (area_label_seen[d.area]) return false;
+            area_label_seen[d.area] = true;
+            return true;
+        });
 
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////////////// Final data prep /////////////////////////////
@@ -528,7 +554,7 @@ function create_CCS_chart() {
                     + "translate(" + rad_name + ")"
                     + (finalAngle > 0 & finalAngle < Math.PI ? "" : "rotate(180)");
             })
-            .style("font-size", (20*size_factor)+"px")
+            .style("font-size", (20*size_factor)+"px")//内圈纹样名字体大小
             .text(function (d, i) { return character_total_data[i].first_name; });
 
         //Add the smaller last name (if available) below
@@ -783,6 +809,7 @@ function create_CCS_chart() {
         //Create groups in right order
         var chapter_group = chart.append("g").attr("class", "chapter-group");
         var donut_chapter_group = chapter_group.append("g").attr("class", "donut-chapter-group");
+        var chapter_area_name_group = chapter_group.append("g").attr("class", "chapter-area-name-group");
         var chapter_dot_group = chapter_group.append("g").attr("class", "chapter-dot-group");
         var donut_chapter_hover_group = chapter_group.append("g").attr("class", "donut-chapter_hover-group");
         var chapter_num_group = chapter_group.append("g").attr("class", "chapter-number-group");
@@ -803,6 +830,40 @@ function create_CCS_chart() {
             .style("fill", function (d) { return area_color(d.area); })
             .style("stroke", "white")
             .style("stroke-width", 1 * size_factor);
+
+        defs.selectAll(".area-name-path")
+            .data(area_label_data)
+            .enter().append("path")
+            .attr("class", "area-name-path")
+            .attr("id", function (d) { return d.path_id; })
+            .attr("d", function (d) {
+                var reverse = !(d.centerAngle > 0 && d.centerAngle < Math.PI);
+                var from_angle = reverse ? d.endAngle : d.startAngle;
+                var to_angle = reverse ? d.startAngle : d.endAngle;
+                var x1 = rad_area_label * Math.cos(from_angle - pi1_2),
+                    y1 = rad_area_label * Math.sin(from_angle - pi1_2);
+                var x2 = rad_area_label * Math.cos(to_angle - pi1_2),
+                    y2 = rad_area_label * Math.sin(to_angle - pi1_2);
+                var large_arc = d.span > Math.PI ? 1 : 0;
+                var sweep = reverse ? 0 : 1;
+                return "M" + x1 + "," + y1 + " A" + rad_area_label + "," + rad_area_label + " 0 " + large_arc + " " + sweep + " " + x2 + "," + y2;
+            });
+
+        chapter_area_name_group
+            .style("pointer-events", "none")
+            .selectAll(".chapter-area-name")
+            .data(area_label_data)
+            .enter().append("text")
+            .attr("class", "chapter-area-name")
+            .style("fill", function (d) { return d.color; })
+            .style("font-size", area_label_font_size + "px")
+            .style("font-family", "\"Noto Sans SC\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif")
+            .style("font-weight", 600)
+            .append("textPath")
+            .attr("xlink:href", function (d) { return "#" + d.path_id; })
+            .attr("startOffset", "50%")
+            .style("text-anchor", "middle")
+            .text(function (d) { return d.area; });
         //Create the donut slices per character (and the number of chapters they appeared in)
         var chapter_hover_slice = donut_chapter_hover_group.selectAll(".arc")
             .data(chapter_location_data)
@@ -844,66 +905,6 @@ function create_CCS_chart() {
             .style("fill", "#c4c4c4")
             .style("stroke", "white")
             .style("stroke-width", chapter_dot_rad * 0.5);
-
-        ///////////////////////////////////////////////////////////////////////////
-        ///////////////////////// Create volume dotted line ///////////////////////
-        /////////////////////////////////////////////////////////////////////////// 
-
-        //Create groups in right order
-        var donut_volume_group = chart.append("g").attr("class", "donut-volume-group");
-
-        var chapterGroupById = {};
-        chapter_hierarchy_data.forEach(function (d) {
-            if (d.num !== null) chapterGroupById[+d.num] = d.parent;
-        });
-        var group_order = [];
-        var group_seen = {};
-        var group_to_chapters = {};
-        chapter_location_data.forEach(function (d) {
-            var group = chapterGroupById[d.chapter] || "group_1";
-            if (!group_seen[group]) {
-                group_seen[group] = true;
-                group_order.push(group);
-                group_to_chapters[group] = [];
-            }
-            group_to_chapters[group].push(d.chapter);
-        });
-        var volume_data = group_order.map(function (group, idx) {
-            var chapters = group_to_chapters[group].slice().sort(function (a, b) { return a - b; });
-            return {
-                volume: idx + 1,
-                group: group,
-                num_chapters: chapters.length,
-                chapter_start: chapters[0],
-                chapter_end: chapters[chapters.length - 1]
-            };
-        });
-        var volume_color = d3.scaleOrdinal()
-            .domain(group_order)
-            .range(["#F6B42B", "#EB5580", "#4FB127", "#2C9AC6", "#5865B0", "#E47C41"]);
-        //Figure out the start and end angle
-        volume_data.forEach(function (d, i) {
-            d.startAngle = chapterById[d.chapter_start].startAngle,
-            d.endAngle = chapterById[d.chapter_end].endAngle;
-            d.centerAngle = (d.endAngle - d.startAngle) / 2 + d.startAngle;
-        });
-
-        var volume_slice = donut_volume_group.selectAll(".volume-arc")
-            .data(volume_data)
-            .enter().append("path")
-            .attr("class", "volume-arc")
-            .style("stroke", "#c4c4c4")
-            .style("stroke", function(d,i) { return volume_color(d.group); })
-            .style("stroke-width", 3 * size_factor)
-            .style("stroke-dasharray", "0," + (7 * size_factor))
-            .attr("d", function(d,i) {
-                var rad = rad_volume_inner,
-                    xs = rad * Math.cos(d.startAngle - pi1_2),
-                    ys = rad * Math.sin(d.startAngle - pi1_2),
-                    xt = rad * Math.cos(d.endAngle - pi1_2),
-                    yt = rad * Math.sin(d.endAngle - pi1_2)
-                return "M" + xs + "," + ys + " A" + rad + "," + rad + " 0 0 1 " + xt + "," + yt;
-            });
 
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////// Create hidden chapter hover areas ///////////////////
@@ -1207,7 +1208,7 @@ function create_CCS_chart() {
                     + (d.centerAngle > 0 & d.centerAngle < Math.PI ? "" : "rotate(180)");
             })
             .style("text-anchor", function (d) { return d.centerAngle > 0 & d.centerAngle < Math.PI ? "start" : "end"; })
-            .style("font-size", (22 * size_factor) + "px")
+            .style("font-size", (22 * size_factor) + "px")//外圈建筑名字体大小
             .text(function (d, i) { return d.card_captured; });
 
         //////////////////////////////////////////////////////////////

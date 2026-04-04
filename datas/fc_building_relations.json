@@ -713,7 +713,7 @@
         "target":  "武英殿",
         "target_id":  22,
         "type":  "same_area_and_pattern",
-        "shared_area":  "外朝东西两翼",
+        "shared_area":  "外朝两翼",
         "shared_patterns":  [
                                 "三交六椀菱花"
                             ],

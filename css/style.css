@@ -68,11 +68,6 @@ canvas {
     fill: #a1a1a1;
 }
 
-.volume-arc {
-    fill: none;
-    stroke-linecap: round;
-}
-
 .annotation-group {
     pointer-events: none;
 }

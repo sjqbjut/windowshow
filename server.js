@@ -124,8 +124,15 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const PORT = 8000;
-server.listen(PORT, async () => {
-  console.log('Server started: http://localhost:8000');
-  await open('http://localhost:8000');
+// Use an auto-assigned port by default to avoid collisions with local services.
+// Set PORT explicitly if a fixed port is required.
+const requestedPort = Number.parseInt(process.env.PORT || '', 10);
+const port = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 0;
+
+server.listen(port, '127.0.0.1', async () => {
+  const address = server.address();
+  const activePort = typeof address === 'object' && address ? address.port : port;
+  const url = `http://127.0.0.1:${activePort}`;
+  console.log(`Server started: ${url}`);
+  await open(url);
 });

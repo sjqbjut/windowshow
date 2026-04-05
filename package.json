@@ -1,5 +1,24 @@
 {
-  "devDependencies": {
+  "name": "windowshow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local static dashboard server packaged as a Windows exe.",
+  "main": "server.js",
+  "bin": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build:exe": "pkg . --targets node18-win-x64 --output dist/windowshow.exe"
+  },
+  "dependencies": {
     "open": "^8.4.0"
+  },
+  "pkg": {
+    "assets": [
+      "index.html",
+      "css/**/*",
+      "datas/**/*",
+      "js/**/*",
+      "plugins/**/*"
+    ]
   }
 }

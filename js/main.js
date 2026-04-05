@@ -7,6 +7,16 @@
 // })
 // copy(data_new)
 
+// 主渲染流程：
+// 1) 根据当前视口宽度计算响应式几何参数；
+// 2) 加载并规整数据，生成各图层可直接使用的视图模型；
+// 3) 构建 SVG 静态层（环形、标签、悬浮命中区、注释）；
+// 4) 使用 Canvas 绘制高频变化的连线以提升性能；
+// 5) 绑定悬浮交互，切换连线子集与中心预览图。
+//
+// 术语说明（沿用原始代码命名）：
+// - chapter   => 建筑
+// - character => 纹样
 function create_CCS_chart() {
 
     ////////////////////////////////////////////////////////////// 
@@ -122,6 +132,10 @@ function create_CCS_chart() {
     //////////////////////////// Read in the data /////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
 
+    // 数据来源：
+    // - pattern_total：纹样元数据
+    // - building_per_pattern：建筑与纹样的多对多关系
+    // - building_total：建筑元数据
     d3.queue()
         .defer(d3.json, "datas/fc_pattern_total.json")
         .defer(d3.json, "datas/fc_building_per_pattern.json")
@@ -136,6 +150,9 @@ function create_CCS_chart() {
             return value === undefined || value === null ? "" : String(value).trim();
         }
 
+        // 统计每个纹样被多少建筑使用，用于：
+        // - 单次出现纹样合并到“其他”
+        // - 计算内圈纹样环的扇区大小
         var pattern_usage_count = {};
         building_per_pattern_data.forEach(function (d) {
             var pattern_type = cleanText(d.type);
@@ -144,7 +161,8 @@ function create_CCS_chart() {
         });
 
         var singleton_pattern_types = {};
-        // Merge patterns that only appear on one building into a single "其他" slice.
+        // 仅出现一次的纹样统一合并到“其他”，
+        // 避免环上出现大量过小扇区导致难以阅读。
         Object.keys(pattern_usage_count).forEach(function (type) {
             if (pattern_usage_count[type] === 1) {
                 singleton_pattern_types[type] = true;
@@ -178,7 +196,8 @@ function create_CCS_chart() {
         });
         var area_color = d3.scaleOrdinal().domain(building_area_names).range(area_palette);
 
-        // Outer circle: buildings.
+        // 外圈数据模型（建筑）。
+        // volume 是区域索引，用于按区域聚类建筑。
         var chapter_total_data = building_total_data.slice()
             .sort(function (a, b) { return (+a.building_id) - (+b.building_id); })
             .map(function (d) {
@@ -195,7 +214,8 @@ function create_CCS_chart() {
         num_chapters = chapter_total_data.length;
         num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
 
-        // Inner circle to outer links: pattern -> building.
+        // 连线数据模型（纹样 -> 建筑）。
+        // 单次出现纹样会被重映射到聚合节点“其他”。
         var character_data = building_per_pattern_data.map(function (d) {
             var source_type = cleanText(d.type);
             return {
@@ -210,7 +230,7 @@ function create_CCS_chart() {
             display_pattern_usage_count[d.character] = (display_pattern_usage_count[d.character] || 0) + 1;
         });
 
-        // Inner circle: patterns.
+        // 内圈数据模型（纹样），用于环形扇区和名称标签。
         var character_total_data = visible_pattern_data
             .map(function (d) {
                 return {
@@ -244,9 +264,11 @@ function create_CCS_chart() {
             });
         }
 
-        // Inner one-to-one relations are suspended for now.
+        // 预留：内圈纹样之间关系线（当前未启用）。
         var relation_data = [];
 
+        // 中心预览图的兜底图与候选表。
+        // 每个建筑/纹样对应一组候选 URL，按扩展名依次重试，失败再回退。
         var default_center_image = "img/white-square.jpg";
         var chapter_image_candidates = {};
         var pattern_image_candidates = {};
@@ -276,6 +298,8 @@ function create_CCS_chart() {
             }
             pattern_image_candidates[pattern_type] = candidates;
         });
+        // 颜色点数据：每个建筑拆成三档权重颜色。
+        // 后续通过力导向把颜色点聚拢到该建筑对应角度附近。
         var color_data = [];
         chapter_total_data.forEach(function (d) {
             var base = d3.rgb(area_color(d.area));
@@ -284,7 +308,8 @@ function create_CCS_chart() {
             color_data.push({ chapter: d.chapter, percentage: 0.15, color: base.darker(0.8).toString() });
         });
 
-        // Build hierarchy for the outer building ring, grouped by area.
+        // 构建层级节点：
+        // ROOT -> 区域 -> 建筑，然后使用 d3.cluster 计算角度位置。
         var chapter_hierarchy_data = [{
             name: "FORBIDDEN_CITY_BUILDINGS",
             parent: "",
@@ -351,7 +376,7 @@ function create_CCS_chart() {
             d.endAngle = d.centerAngle + chapter_angle_distance / 2;
         })
 
-        // Build contiguous outer-ring segments by area (replaces label-number ring styling).
+        // 按区域构建连续弧段，使每个区域都有完整环段与独立文字路径。
         var chapter_meta_by_id = {};
         chapter_total_data.forEach(function (d) {
             chapter_meta_by_id[d.chapter] = d;
@@ -398,6 +423,7 @@ function create_CCS_chart() {
                 path_id: "area-name-path-" + i
             };
         }).filter(function (d) { return !!d.area && d.span > 0.12; });
+        // 每个区域仅保留一条标签，避免跨 0 度时重复渲染。
         var area_label_seen = {};
         area_label_data = area_label_data.filter(function (d) {
             if (area_label_seen[d.area]) return false;
@@ -433,7 +459,8 @@ function create_CCS_chart() {
 
         ///////////////////////////////////////////////////////////////////////////
         /////////////////////////// Run force simulation //////////////////////////
-        ///////////////////////////////////////////////////////////////////////////   
+        ///////////////////////////////////////////////////////////////////////////
+        // 力导向目标：在不重叠的前提下，让颜色点围绕其建筑焦点分布。
         
         simulation = d3.forceSimulation(color_data)
             .force("x", d3.forceX().x(function (d) { return d.focusX; }).strength(0.05))
@@ -447,7 +474,7 @@ function create_CCS_chart() {
         //Run the simulation "manually"
         //for (var i = 0; i < 300; ++i) simulation.tick();
 
-        //Ramp up collision strength to provide smooth transition
+        // 碰撞力由弱到强平滑提升，避免初始瞬间“炸开”。
         var t = d3.timer(function (elapsed) {
             var dt = elapsed / 3000;
             simulation.force("collide").strength(Math.pow(dt, 2) * 0.7);
@@ -466,7 +493,8 @@ function create_CCS_chart() {
             color_circle.style("fill", function (d, i) { return "url(#pattern-total-" + i + ")"; })
         }//function simulation_end
 
-        data_save = color_data; //So I save the final positions
+        // 历史调试钩子：用于手动微调颜色点布局时导出位置。
+        data_save = color_data;
 
         //////////////////////////////////////////////////////////////
         /////////////// Create circle for cover image ////////////////
@@ -493,8 +521,9 @@ function create_CCS_chart() {
             center_image_request_id += 1;
             cover_image.on("error", null).attr("xlink:href", default_center_image);
         }
-        function show_center_image_for_chapter(chapter_id) {
-            var candidates = chapter_image_candidates[chapter_id] || [];
+        function show_center_image_from_candidates(candidates) {
+            // 使用递增请求 id 避免异步竞态：
+            // 快速切换悬浮目标时，旧回调会被自动忽略。
             center_image_request_id += 1;
             var request_id = center_image_request_id;
 
@@ -515,27 +544,11 @@ function create_CCS_chart() {
             }
             load_candidate(0);
         }
+        function show_center_image_for_chapter(chapter_id) {
+            show_center_image_from_candidates(chapter_image_candidates[chapter_id] || []);
+        }
         function show_center_image_for_pattern(pattern_name) {
-            var candidates = pattern_image_candidates[pattern_name] || [];
-            center_image_request_id += 1;
-            var request_id = center_image_request_id;
-
-            function load_candidate(index) {
-                if (request_id !== center_image_request_id) return;
-                if (index >= candidates.length) {
-                    show_default_center_image();
-                    return;
-                }
-                cover_image
-                    .on("error", function () { load_candidate(index + 1); })
-                    .attr("xlink:href", candidates[index]);
-            }
-
-            if (!candidates.length) {
-                show_default_center_image();
-                return;
-            }
-            load_candidate(0);
+            show_center_image_from_candidates(pattern_image_candidates[pattern_name] || []);
         }
 
         // "其他" slideshow timing (seconds) can be adjusted here.
@@ -555,6 +568,8 @@ function create_CCS_chart() {
         }
 
         function start_merged_pattern_cycle() {
+            // “其他”节点会循环播放被合并纹样的图片，
+            // 避免只展示单一占位图而丢失信息。
             stop_merged_pattern_cycle();
 
             if (!singleton_pattern_names.length) {
@@ -631,11 +646,17 @@ function create_CCS_chart() {
         var name_group = chart.append("g").attr("class", "name-group");
 
         //Create a group per character
+        // 标签朝向辅助：
+        // 右半侧保持正向，左半侧旋转 180 度保证可读性。
+        function isRightSideAngle(angle) {
+            return angle > 0 && angle < Math.PI;
+        }
+
         var names = name_group.selectAll(".name")
             .data(arcs)
             .enter().append("g")
             .attr("class", "name")
-            .style("text-anchor", function (d) { return d.centerAngle > 0 & d.centerAngle < Math.PI ? "start" : "end";; })
+            .style("text-anchor", function (d) { return isRightSideAngle(d.centerAngle) ? "start" : "end"; })
             .style("font-family", "Anime Ace")
             
         //Add the big "main" name
@@ -646,13 +667,13 @@ function create_CCS_chart() {
             .attr("transform", function (d, i) {
                 //If there is a last name, move the first a bit upward
                 if(character_total_data[i].last_name !== "") {
-                    var finalAngle = d.centerAngle + (d.centerAngle > 0 & d.centerAngle < Math.PI ? -0.02 : 0.02);
+                    var finalAngle = d.centerAngle + (isRightSideAngle(d.centerAngle) ? -0.02 : 0.02);
                 } else {
                     var finalAngle = d.centerAngle;
                 }//else
                 return "rotate(" + (finalAngle * 180 / Math.PI - 90) + ")"
                     + "translate(" + rad_name + ")"
-                    + (finalAngle > 0 & finalAngle < Math.PI ? "" : "rotate(180)");
+                    + (isRightSideAngle(finalAngle) ? "" : "rotate(180)");
             })
             .style("font-size", (22*size_factor)+"px")//内圈纹样名字体大小
             .text(function (d, i) { return character_total_data[i].first_name; });
@@ -665,13 +686,13 @@ function create_CCS_chart() {
             .attr("transform", function (d, i) {
                 //If there is a last name, move the last a bit downward
                 if(character_total_data[i].last_name !== "") {
-                    var finalAngle = d.centerAngle + (d.centerAngle > 0 & d.centerAngle < Math.PI ? 0.03 : -0.03);
+                    var finalAngle = d.centerAngle + (isRightSideAngle(d.centerAngle) ? 0.03 : -0.03);
                 } else {
                     var finalAngle = d.centerAngle;
                 }//else
                 return "rotate(" + (finalAngle * 180 / Math.PI - 90) + ")"
                     + "translate(" + rad_name + ")"
-                    + (finalAngle > 0 & finalAngle < Math.PI ? "" : "rotate(180)");
+                    + (isRightSideAngle(finalAngle) ? "" : "rotate(180)");
             })
             .style("font-size", (20*size_factor)+"px")
             .text(function (d, i) { return character_total_data[i].last_name; });
@@ -680,7 +701,8 @@ function create_CCS_chart() {
         ///////////////////////////// Create name dots ////////////////////////////
         /////////////////////////////////////////////////////////////////////////// 
 
-        var characterByName = [];
+        // 纹样名 -> 数据对象的快速索引，供连线与悬浮逻辑复用。
+        var characterByName = {};
         //Color of the dot behind the name can be the type
         character_total_data.forEach(function (d, i) {
             var text_width_first = document.getElementById('name-label-' + i).getComputedTextLength();
@@ -745,6 +767,8 @@ function create_CCS_chart() {
             .attr("d", create_relation_lines);
 
         function create_relation_lines(d) {
+            // 在两个纹样节点之间绘制弧线。
+            // sweep_flag 选择更优方向，尽量减少视觉交叉。
             var source_a = characterByName[d.source].name_angle,
                 target_a = characterByName[d.target].name_angle;
             var x1 = rad_relation * Math.cos(source_a - pi1_2),
@@ -868,7 +892,7 @@ function create_CCS_chart() {
 
             stop_merged_pattern_cycle();
 
-            //Show the chosen lines
+            // 仅绘制当前纹样相关连线。
             ctx.clearRect(-width/2, -height/2, width, height);
             ctx.globalAlpha = 0.8;
             create_lines("character", character_data.filter(function(c,j) {return c.character === d.character; }) );
@@ -879,7 +903,7 @@ function create_CCS_chart() {
             clearTimeout(remove_text_timer);
             line_label.text("多建筑共用窗棂纹样：" + d.character);
 
-            //Highlight the chapters this character appears in
+            // 交叉高亮与该纹样关联的外圈建筑。
             var char_chapters = character_data
                 .filter(function(c) { return c.character === d.character; })
                 .map(function(c) { return c.chapter; });
@@ -1032,7 +1056,7 @@ function create_CCS_chart() {
             .on("mouseover", mouse_over_chapter)
             .on("mouseout", mouse_out);
 
-        //When you mouse over a chapter arc
+        // 悬浮建筑扇区：仅显示该建筑与纹样的连线。
         function mouse_over_chapter(d,i) {
             d3.event.stopPropagation();
             mouse_over_in_action = true;
@@ -1049,7 +1073,7 @@ function create_CCS_chart() {
             clearTimeout(remove_text_timer);
             line_label.text("采用窗棂纹样的建筑：" + d.data.type);
 
-            //Highlight the characters that appear in this chapter
+            // 淡化无关纹样标签与圆点，突出关联关系。
             var char_chapters = character_data
                 .filter(function(c) { return c.chapter === d.chapter; })
                 .map(function(c) { return c.character; });
@@ -1197,7 +1221,7 @@ function create_CCS_chart() {
             .on("mouseover", mouse_over_cover)
             .on("mouseout", mouse_out);
 
-        //When you mouse over a chapter arc
+        // 悬浮封面环逻辑与建筑悬浮类似，额外显示颜色点聚焦圈。
         function mouse_over_cover(d,i) {
             d3.event.stopPropagation();
             mouse_over_in_action = true;
@@ -1250,7 +1274,7 @@ function create_CCS_chart() {
 
         container.on("mouseout", mouse_out);
 
-        //When you mouse out of a chapter or character
+        // 所有悬浮出口统一走该重置逻辑。
         function mouse_out() {
             //Only run this if there was a mouseover before
             if(!mouse_over_in_action) return;
@@ -1314,9 +1338,9 @@ function create_CCS_chart() {
             .attr("transform", function (d, i) {
                 return "rotate(" + (d.centerAngle * 180 / Math.PI - 90) + ")"
                     + "translate(" + rad_card_label + ")"
-                    + (d.centerAngle > 0 & d.centerAngle < Math.PI ? "" : "rotate(180)");
+                    + (isRightSideAngle(d.centerAngle) ? "" : "rotate(180)");
             })
-            .style("text-anchor", function (d) { return d.centerAngle > 0 & d.centerAngle < Math.PI ? "start" : "end"; })
+            .style("text-anchor", function (d) { return isRightSideAngle(d.centerAngle) ? "start" : "end"; })
             .style("font-size", (18 * size_factor) + "px")//外圈建筑名字体大小
             .text(function (d, i) { return d.card_captured; });
 
@@ -1650,7 +1674,8 @@ function create_CCS_chart() {
 
         var line_label_group = chart.append("g").attr("class", "line-label-group");
 
-        //Define the arc on which to draw the label text
+        // 以给定角度生成一小段弧线路径，承载弯曲提示文字。
+        // 左半侧翻转方向，确保文字保持正向阅读。
         function label_arc(angle) {
             var x1 = rad_line_label * Math.cos(angle + 0.01 - pi1_2),
                 y1 = rad_line_label * Math.sin(angle + 0.01 - pi1_2);
@@ -1699,6 +1724,17 @@ function create_CCS_chart() {
         create_lines("character", cover_data);
 
         function create_lines(type, data) {
+            // 同一套路径生成器复用两种模式：
+            // - "character"：强调一个纹样连接多个建筑
+            // - "chapter"：强调一个建筑连接多个纹样
+            var curve_range = type === "character" ? [rad_line_max, rad_line_min] : [rad_line_min, rad_line_max];
+            var start_offset_range = type === "character" ? [0, 0.07] : [0, 0.01];
+            var end_offset_range = type === "character" ? [0, 0.02] : [0, 0.07];
+            var step = 0.06;
+
+            function interpolate(range, value) {
+                return range[0] + (range[1] - range[0]) * value;
+            }
 
             for (var i = 0; i < data.length; i++) {
                 var d = data[i];
@@ -1711,7 +1747,8 @@ function create_CCS_chart() {
                 var target_a = chapterById[d.chapter].centerAngle,
                     target_r = rad_dot_color;
 
-                //Figure out some variable that will determine the path points to create
+                // 计算转向与归一化角距 da，
+                // 由此决定曲率和首尾偏移量。
                 if (target_a - source_a < -Math.PI) {
                     var side = "cw";
                     var da = 2 + (target_a - source_a) / Math.PI;
@@ -1733,25 +1770,13 @@ function create_CCS_chart() {
 
 
                 //Calculate the radius of the middle arcing section of the line
-                var range = type === "character" ? [rad_line_max, rad_line_min] : [rad_line_min, rad_line_max];
-                var scale_rad_curve = d3.scaleLinear()
-                    .domain([0, 1])
-                    .range(range);
-                var rad_curve_line = scale_rad_curve(da) * width;
+                var rad_curve_line = interpolate(curve_range, da) * width;
 
                 //Slightly offset the first point on the curve from the source
-                var range = type === "character" ? [0, 0.07] : [0, 0.01];
-                var scale_angle_start_offset = d3.scaleLinear()
-                    .domain([0, 1])
-                    .range(range);
-                var start_angle = source_a + angle_sign * scale_angle_start_offset(da) * Math.PI;
+                var start_angle = source_a + angle_sign * interpolate(start_offset_range, da) * Math.PI;
 
                 //Slightly offset the last point on the curve from the target
-                var range = type === "character" ? [0, 0.02] : [0, 0.07];
-                var scale_angle_end_offset = d3.scaleLinear()
-                    .domain([0, 1])
-                    .range(range);
-                var end_angle = target_a - angle_sign * scale_angle_end_offset(da) * Math.PI;
+                var end_angle = target_a - angle_sign * interpolate(end_offset_range, da) * Math.PI;
 
                 if (target_a - source_a < -Math.PI) {
                     var da_inner = pi2 + (end_angle - start_angle);
@@ -1775,8 +1800,7 @@ function create_CCS_chart() {
                     radius: rad_curve_line
                 });
 
-                //Create points in between for the curve line
-                var step = 0.06;
+                // 对弧段进行采样，交给 lineRadial 生成平滑曲线。
                 var n = Math.abs(Math.floor(da_inner / step));
                 var curve_angle = start_angle;
                 var sign = side === "cw" ? 1 : -1;
@@ -1851,7 +1875,8 @@ function create_CCS_chart() {
 ////////////////////// Helper functions //////////////////////
 //////////////////////////////////////////////////////////////
 
-//Turn RGB into CMYK "circle radii"
+// 将 RGB 转为 CMYK 比例，用于半调网点半径计算。
+// 输出四个通道均为 [0, 1] 范围。
 function rgbToCMYK(rgb) {
     var r = rgb.r / 255,
         g = rgb.g / 255,
@@ -1866,7 +1891,8 @@ function rgbToCMYK(rgb) {
     };
 }//function rgbToCMYK
 
-//Get a "random" number generator where you can fix the starting seed
+// 固定种子的伪随机函数，用于稳定初始抖动。
+// 保持可复现，便于调参与排查布局问题。
 //https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
 var seed = 4;
 function random() {

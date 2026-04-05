@@ -33,6 +33,7 @@
     </div>
 
     <script>
+        // 首次渲染前等待字体加载完成，减少文字跳动和重排。
         WebFont.load({
             google: {
                 families: ["Barlow Semi Condensed:400,400i,600", "Barlow:400"]
@@ -45,6 +46,7 @@
             }
         });
 
+        // 仅在宽度变化时（防抖）重建图表，因为几何尺寸和标签布局都依赖宽度。
         var current_width = window.innerWidth;
         var eventTimeout;
         d3.select(window).on("resize", function() {
@@ -59,6 +61,10 @@
             }
         });
 
+        // 落地页流程：
+        // 1) 点击开始按钮
+        // 2) 计算可覆盖整个视口的波纹半径
+        // 3) 播放过渡动画并隐藏落地页
         (function setupLandingTransition() {
             var landingScreen = document.getElementById("landing-screen");
             var startButton = document.getElementById("start-visualization");
@@ -78,16 +84,19 @@
                 var rippleRadius = Math.hypot(maxX, maxY);
                 var diameter = rippleRadius * 2;
 
+                // 让波纹圆心与按钮中心对齐。
                 landingRipple.style.width = diameter + "px";
                 landingRipple.style.height = diameter + "px";
                 landingRipple.style.left = (centerX - rippleRadius) + "px";
                 landingRipple.style.top = (centerY - rippleRadius) + "px";
 
+                // 通过强制回流重启动画，确保每次点击都能播放。
                 landingRipple.classList.remove("animate");
                 void landingRipple.offsetWidth;
                 landingRipple.classList.add("animate");
                 landingScreen.classList.add("is-leaving");
 
+                // 延时与 CSS 过渡/波纹时长保持一致。
                 window.setTimeout(function() {
                     landingScreen.classList.add("is-hidden");
                     document.body.classList.remove("landing-active");

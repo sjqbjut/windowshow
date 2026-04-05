@@ -3,8 +3,14 @@ const path = require('path');
 const http = require('http');
 const open = require('open');
 
+// 内存静态文件表：
+//   key   => 请求路径（例如 "/css/style.css"）
+//   value => 文件 Buffer 内容
+//
+// 启动时一次性预加载，避免每次请求都触发磁盘 I/O。
 const files = {};
 
+// 将单个静态文件注册到内存表。
 function addFile(urlPath, relativeFilePath) {
   const absPath = path.join(__dirname, relativeFilePath);
   if (!fs.existsSync(absPath)) return;
@@ -30,6 +36,13 @@ function addFile(urlPath, relativeFilePath) {
   addFile(urlPath, urlPath.slice(1));
 });
 
+// 图片同时注册两种 URL：
+// 1) 原始文件名 URL（用于直接引用）
+// 2) URL 编码后的 basename URL（兼容中文/空格）
+//
+// 例：
+//   /datas/imgs/patterns_img/万字纹.jpg
+//   /datas/imgs/patterns_img/%E4%B8%87%E5%AD%97%E7%BA%B9.jpg
 function addImageFileBothUrls(urlPrefix, fileName) {
   const absPath = path.join(__dirname, urlPrefix.slice(1), fileName);
   if (!fs.existsSync(absPath)) return false;
@@ -45,6 +58,7 @@ function addImageFileBothUrls(urlPrefix, fileName) {
   return true;
 }
 
+// 遍历目录并注册所有建筑图片。
 function addBuildingImages() {
   const urlPrefix = '/datas/imgs/buildings_img';
   const absDir = path.join(__dirname, 'datas/imgs/buildings_img');
@@ -55,6 +69,8 @@ function addBuildingImages() {
     .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
 }
 
+// 根据 datas/patterns.csv 中的纹样名注册纹样图片。
+// 这样服务端可访问资源与数据集保持一致。
 function addPatternImagesFromCsv() {
   const csvPath = path.join(__dirname, 'datas/patterns.csv');
   const imageUrlPrefix = '/datas/imgs/patterns_img';
@@ -86,6 +102,7 @@ addBuildingImages();
 addPatternImagesFromCsv();
 files['/'] = files['/index.html'];
 
+// 项目内用到的最小 MIME 类型映射。
 const mimeTypes = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -100,6 +117,10 @@ const mimeTypes = {
   '.webp': 'image/webp',
 };
 
+// 轻量静态服务器：
+// - 去掉查询参数
+// - 先按原始 URL 查找，再尝试 decodeURI 后的 URL
+// - 从预加载内存表返回内容
 const server = http.createServer((req, res) => {
   let url = (req.url || '/').split('?')[0];
   if (url === '/') url = '/index.html';
@@ -116,6 +137,8 @@ const server = http.createServer((req, res) => {
   const content = files[url] || files[decodedUrl];
 
   if (content) {
+    // 这里不额外拼接 charset：
+    // 该服务主要回传静态/二进制资源，浏览器默认处理即可。
     res.writeHead(200, { 'Content-Type': contentType });
     res.end(content);
   } else {
@@ -124,15 +147,17 @@ const server = http.createServer((req, res) => {
   }
 });
 
-// Use an auto-assigned port by default to avoid collisions with local services.
-// Set PORT explicitly if a fixed port is required.
+// 默认使用系统分配端口，避免与本机已有服务冲突。
+// 如需固定端口，可通过环境变量 PORT 指定。
 const requestedPort = Number.parseInt(process.env.PORT || '', 10);
 const port = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 0;
 
 server.listen(port, '127.0.0.1', async () => {
+  // 当 port=0 时，Node 会自动分配可用端口，需要从 address() 读取。
   const address = server.address();
   const activePort = typeof address === 'object' && address ? address.port : port;
   const url = `http://127.0.0.1:${activePort}`;
   console.log(`Server started: ${url}`);
+  // 自动打开浏览器，适配桌面端“双击启动即预览”的使用方式。
   await open(url);
 });

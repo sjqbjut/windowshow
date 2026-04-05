@@ -98,6 +98,20 @@
         "introduction":  "太和殿西侧礼制通道门，外朝与内廷过渡建筑"
     },
     {
+        "building_id":  18,
+        "area":  "外朝中路（礼制核心区）",
+        "building":  "体仁阁",
+        "time":  "清乾隆三十七年（1772）",
+        "patterns":  [
+                         "一马三箭"
+                     ],
+        "pattern_ids":  [
+                            10
+                        ],
+        "num_patterns":  1,
+        "introduction":  "太和殿东侧的礼制配阁，与西侧弘义阁遥相呼应"
+    },
+    {
         "building_id":  21,
         "area":  "外朝两翼",
         "building":  "文华殿",
@@ -568,5 +582,19 @@
                         ],
         "num_patterns":  1,
         "introduction":  "宁寿宫区畅音阁对面，皇家观戏楼故宫博物院故宫博物院"
+    },
+    {
+        "building_id":  86,
+        "area":  "御花园及园林建筑",
+        "building":  "延晖阁",
+        "time":  "明永乐十八年（1420）",
+        "patterns":  [
+                         "灯笼框"
+                     ],
+        "pattern_ids":  [
+                            9
+                        ],
+        "num_patterns":  1,
+        "introduction":  "御花园西北隅的休憩楼阁，清代选秀女时的阅选场所"
     }
 ]

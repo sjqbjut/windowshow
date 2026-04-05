@@ -132,8 +132,31 @@ function create_CCS_chart() {
 
         if (error) throw error;
 
+        function cleanText(value) {
+            return value === undefined || value === null ? "" : String(value).trim();
+        }
+
+        var pattern_usage_count = {};
+        building_per_pattern_data.forEach(function (d) {
+            var pattern_type = cleanText(d.type);
+            if (!pattern_type) return;
+            pattern_usage_count[pattern_type] = (pattern_usage_count[pattern_type] || 0) + 1;
+        });
+
+        var singleton_pattern_types = {};
+        // Merge patterns that only appear on one building into a single "其他" slice.
+        Object.keys(pattern_usage_count).forEach(function (type) {
+            if (pattern_usage_count[type] === 1) {
+                singleton_pattern_types[type] = true;
+            }
+        });
+
+        var visible_pattern_data = pattern_total_data.slice()
+            .sort(function (a, b) { return (+a.pattern) - (+b.pattern); })
+            .filter(function (d) { return !singleton_pattern_types[cleanText(d.type)]; });
+
         var pattern_palette = d3.scaleOrdinal()
-            .domain(pattern_total_data.map(function (d) { return +d.pattern; }))
+            .domain(visible_pattern_data.map(function (d) { return +d.pattern; }))
             .range(["#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0", "#E47C41", "#BD211B", "#82C3AA"]);
 
         var area_palette = [
@@ -174,28 +197,28 @@ function create_CCS_chart() {
 
         // Inner circle to outer links: pattern -> building.
         var character_data = building_per_pattern_data.map(function (d) {
+            var source_type = cleanText(d.type);
             return {
                 chapter: +d.building_id,
-                character: d.type
+                character: singleton_pattern_types[source_type] ? "其他" : source_type
             };
         });
         var cover_data = character_data.slice();
 
-        var pattern_usage_count = {};
+        var display_pattern_usage_count = {};
         character_data.forEach(function (d) {
-            pattern_usage_count[d.character] = (pattern_usage_count[d.character] || 0) + 1;
+            display_pattern_usage_count[d.character] = (display_pattern_usage_count[d.character] || 0) + 1;
         });
 
         // Inner circle: patterns.
-        var character_total_data = pattern_total_data.slice()
-            .sort(function (a, b) { return (+a.pattern) - (+b.pattern); })
+        var character_total_data = visible_pattern_data
             .map(function (d) {
                 return {
                     character: d.type,
                     full_name: d.type,
                     first_name: d.type,
                     last_name: "",
-                    num_chapters: pattern_usage_count[d.type] || 0,
+                    num_chapters: display_pattern_usage_count[d.type] || 0,
                     color: pattern_palette(+d.pattern),
                     type: d.popular_time,
                     area: "纹样",
@@ -205,12 +228,32 @@ function create_CCS_chart() {
                 };
             });
 
+        if (singleton_pattern_types && Object.keys(singleton_pattern_types).length > 0) {
+            character_total_data.push({
+                character: "其他",
+                full_name: "其他",
+                first_name: "其他",
+                last_name: "",
+                num_chapters: display_pattern_usage_count["其他"] || 0,
+                color: "#9A9A9A",
+                type: "其他",
+                area: "纹样",
+                time: "其他",
+                introduction: "只对应一个建筑的纹样已合并展示",
+                pattern_id: null
+            });
+        }
+
         // Inner one-to-one relations are suspended for now.
         var relation_data = [];
 
         var default_center_image = "img/white-square.jpg";
         var chapter_image_candidates = {};
         var pattern_image_candidates = {};
+        var singleton_pattern_names = pattern_total_data.slice()
+            .sort(function (a, b) { return (+a.pattern) - (+b.pattern); })
+            .map(function (d) { return cleanText(d.type); })
+            .filter(function (type) { return !!singleton_pattern_types[type]; });
         var building_image_extensions = [".jpg", ".jpeg", ".png", ".webp"];
         var pattern_image_extensions = [".jpg", ".jpeg", ".png", ".webp"];
         chapter_total_data.forEach(function (d) {
@@ -219,17 +262,19 @@ function create_CCS_chart() {
                 return "datas/imgs/buildings_img/" + building_name_encoded + ext;
             });
         });
-        character_total_data.forEach(function (d) {
-            var pattern_name_encoded = encodeURIComponent(d.character);
+        pattern_total_data.forEach(function (d) {
+            var pattern_type = cleanText(d.type);
+            if (!pattern_type) return;
+            var pattern_name_encoded = encodeURIComponent(pattern_type);
             var candidates = pattern_image_extensions.map(function (ext) {
                 return "datas/imgs/patterns_img/" + pattern_name_encoded + ext;
             });
-            if (d.pattern_id !== undefined && d.pattern_id !== null) {
+            if (d.pattern !== undefined && d.pattern !== null) {
                 candidates = candidates.concat(pattern_image_extensions.map(function (ext) {
-                    return "datas/imgs/patterns_img/" + d.pattern_id + ext;
+                    return "datas/imgs/patterns_img/" + d.pattern + ext;
                 }));
             }
-            pattern_image_candidates[d.character] = candidates;
+            pattern_image_candidates[pattern_type] = candidates;
         });
         var color_data = [];
         chapter_total_data.forEach(function (d) {
@@ -491,6 +536,61 @@ function create_CCS_chart() {
                 return;
             }
             load_candidate(0);
+        }
+
+        // "其他" slideshow timing (seconds) can be adjusted here.
+        var merged_pattern_show_seconds = 0.6;//展示秒数
+        var merged_pattern_fade_seconds = 0.2;//淡入淡出秒数
+        var merged_pattern_cycle_timer = null;
+        var merged_pattern_cycle_index = 0;
+
+        function stop_merged_pattern_cycle() {
+            if (merged_pattern_cycle_timer) {
+                clearTimeout(merged_pattern_cycle_timer);
+                merged_pattern_cycle_timer = null;
+            }
+            if (cover_circle) {
+                cover_circle.interrupt().style("opacity", 1);
+            }
+        }
+
+        function start_merged_pattern_cycle() {
+            stop_merged_pattern_cycle();
+
+            if (!singleton_pattern_names.length) {
+                show_default_center_image();
+                return;
+            }
+
+            var show_ms = Math.max(400, merged_pattern_show_seconds * 1000);
+            var fade_ms = Math.max(120, merged_pattern_fade_seconds * 1000);
+            merged_pattern_cycle_index = 0;
+
+            function render_current_pattern() {
+                var pattern_name = singleton_pattern_names[merged_pattern_cycle_index];
+                show_center_image_for_pattern(pattern_name);
+                cover_circle
+                    .style("fill", "url(#cover-image)")
+                    .interrupt()
+                    .transition()
+                    .duration(fade_ms)
+                    .style("opacity", 1);
+
+                merged_pattern_cycle_timer = setTimeout(function () {
+                    cover_circle
+                        .interrupt()
+                        .transition()
+                        .duration(fade_ms)
+                        .style("opacity", 0)
+                        .on("end", function () {
+                            merged_pattern_cycle_index = (merged_pattern_cycle_index + 1) % singleton_pattern_names.length;
+                            render_current_pattern();
+                        });
+                }, show_ms);
+            }
+
+            cover_circle.style("opacity", 0);
+            render_current_pattern();
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -766,6 +866,8 @@ function create_CCS_chart() {
             d3.event.stopPropagation();
             mouse_over_in_action = true;
 
+            stop_merged_pattern_cycle();
+
             //Show the chosen lines
             ctx.clearRect(-width/2, -height/2, width, height);
             ctx.globalAlpha = 0.8;
@@ -792,9 +894,13 @@ function create_CCS_chart() {
                 .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
                 .style("fill", char_color);
 
-            //Show the character image in the center
-            show_center_image_for_pattern(d.character);
-            cover_circle.style("fill", "url(#cover-image)");
+            //Show the character image in the center.
+            if (d.character === "其他") {
+                start_merged_pattern_cycle();
+            } else {
+                show_center_image_for_pattern(d.character);
+                cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
+            }
 
             //Show the hover circle
             hover_circle.filter(function(c) { return d.character === c.character; })
@@ -930,6 +1036,7 @@ function create_CCS_chart() {
         function mouse_over_chapter(d,i) {
             d3.event.stopPropagation();
             mouse_over_in_action = true;
+            stop_merged_pattern_cycle();
 
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.lineWidth = 4 * size_factor;
@@ -965,7 +1072,7 @@ function create_CCS_chart() {
 
             //Show the cover image in the center
             show_center_image_for_chapter(d.chapter);
-            cover_circle.style("fill", "url(#cover-image)");
+            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
         }//function mouse_over_chapter
 
         //////////////////////////////////////////////////////////////
@@ -1094,6 +1201,7 @@ function create_CCS_chart() {
         function mouse_over_cover(d,i) {
             d3.event.stopPropagation();
             mouse_over_in_action = true;
+            stop_merged_pattern_cycle();
 
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.lineWidth = 4 * size_factor;
@@ -1127,7 +1235,7 @@ function create_CCS_chart() {
 
             //Show the cover image in the center
             show_center_image_for_chapter(d.chapter);
-            cover_circle.style("fill", "url(#cover-image)");
+            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
 
             //Show the circle around the color chapter group
             color_hover_circle
@@ -1147,6 +1255,7 @@ function create_CCS_chart() {
             //Only run this if there was a mouseover before
             if(!mouse_over_in_action) return;
             mouse_over_in_action = false;
+            stop_merged_pattern_cycle();
 
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.globalAlpha = cover_alpha;

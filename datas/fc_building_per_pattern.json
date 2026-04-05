@@ -49,6 +49,13 @@
         "area":  "外朝中路（礼制核心区）"
     },
     {
+        "pattern":  10,
+        "type":  "一马三箭",
+        "building":  "体仁阁",
+        "building_id":  18,
+        "area":  "外朝中路（礼制核心区）"
+    },
+    {
         "pattern":  1,
         "type":  "三交六椀菱花",
         "building":  "文华殿",
@@ -354,6 +361,13 @@
         "type":  "步步锦",
         "building":  "阅是楼",
         "building_id":  85,
+        "area":  "御花园及园林建筑"
+    },
+    {
+        "pattern":  9,
+        "type":  "灯笼框",
+        "building":  "延晖阁",
+        "building_id":  86,
         "area":  "御花园及园林建筑"
     }
 ]

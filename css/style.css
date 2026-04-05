@@ -20,6 +20,177 @@ body {
     background: #ffffff;
 }
 
+body.landing-active {
+    overflow: hidden;
+}
+
+.landing-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(128deg, #fdf8e7 0%, #f6e8d7 34%, #e5eef5 72%, #faf7ef 100%);
+    transition: opacity 0.72s ease 0.45s, visibility 0s linear 1.17s;
+}
+
+
+.landing-screen.is-leaving {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.landing-screen.is-hidden {
+    display: none;
+}
+
+.landing-content {
+    position: relative;
+    z-index: 2;
+    width: min(90vw, 920px);
+    padding: 24px;
+    text-align: center;
+}
+
+.landing-title-main {
+    margin: 0;
+    display: inline-flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: clamp(0.14em, 1.15vw, 0.26em);
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: clamp(4.2rem, 12.8vw, 8.9rem);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 0.96;
+    color: #5e3a20;
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    -webkit-text-stroke: 1.05px rgba(104, 66, 34, 0.56);
+    text-shadow:
+        0 1px 0 rgba(248, 236, 211, 0.78),
+        0 8px 18px rgba(74, 45, 23, 0.34),
+        0 15px 30px rgba(48, 28, 13, 0.2);
+}
+
+.title-char {
+    display: inline-block;
+}
+
+.title-char:nth-child(1) {
+    transform: translateY(-0.18em) rotate(-8deg);
+}
+
+.title-char:nth-child(2) {
+    transform: translateY(0.02em) rotate(-2deg);
+}
+
+.title-char:nth-child(3) {
+    transform: translateY(-0.26em) rotate(5deg);
+}
+
+.title-char:nth-child(4) {
+    transform: translateY(0.09em) rotate(8deg);
+}
+
+.landing-title-sub {
+    margin: clamp(14px, 2.4vw, 22px) 0 0;
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: clamp(1.44rem, 3.2vw, 2.24rem);
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    line-height: 1.44;
+    color: rgba(94, 42, 25, 0.95);
+    text-shadow:
+        0 1px 0 rgba(255, 251, 245, 0.8),
+        0 6px 14px rgba(150, 96, 57, 0.2);
+}
+
+.start-button {
+    margin-top: clamp(24px, 5vw, 42px);
+    padding: 12px 34px;
+    border: 1px solid rgba(89, 63, 33, 0.7);
+    border-radius: 999px;
+    background: rgba(255, 250, 242, 0.9);
+    color: #4a2f19;
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: clamp(1.16rem, 2vw, 1.4rem);
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.start-button:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 250, 242, 1);
+    box-shadow: 0 12px 24px rgba(107, 77, 44, 0.16);
+}
+
+.start-button:focus-visible {
+    outline: 2px solid rgba(113, 80, 46, 0.8);
+    outline-offset: 3px;
+}
+
+.landing-ripple {
+    position: absolute;
+    z-index: 2;
+    inset: auto;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.02);
+    transform-origin: center center;
+    border: 2.3px solid rgba(255, 255, 255, 0.9);
+    box-shadow:
+        0 0 0 1px rgba(242, 250, 255, 0.75) inset,
+        0 0 22px rgba(255, 255, 255, 0.72);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0.16) 42%, rgba(255, 255, 255, 0.02) 70%, rgba(255, 255, 255, 0) 100%);
+}/*三层波纹涟漪*/
+
+.landing-ripple::before,
+.landing-ripple::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 2px solid rgba(255, 255, 255, 0.86);
+    opacity: 0;
+    transform: scale(0.02);
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.62);
+}
+
+.landing-ripple.animate {
+    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.98);
+}
+
+.landing-ripple.animate::before {
+    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.98) 0.14s;
+}
+
+.landing-ripple.animate::after {
+    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.98) 0.28s;
+}
+
+@keyframes landing-ripple-expand {
+    0% {
+        opacity: 0.95;
+        transform: scale(0);
+    }
+    55% {
+        opacity: 0.64;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.05);
+        box-shadow:
+            0 0 0 26px rgba(255, 255, 255, 0),
+            0 0 6px rgba(255, 255, 255, 0);
+    }
+}
+
 #chart-container {
     position: relative;
     width: 100%;
@@ -92,5 +263,56 @@ canvas {
     #chart-container {
         padding-top: 8px;
         padding-bottom: 12px;
+    }
+
+    .landing-content {
+        padding: 16px;
+    }
+
+    .landing-title-main {
+        gap: clamp(0.04em, 1.8vw, 0.14em);
+        font-size: clamp(3.35rem, 16.2vw, 5.2rem);
+    }
+
+    .title-char:nth-child(1) {
+        transform: translateY(-0.14em) rotate(-6deg);
+    }
+
+    .title-char:nth-child(2) {
+        transform: translateY(0.01em) rotate(-1deg);
+    }
+
+    .title-char:nth-child(3) {
+        transform: translateY(-0.19em) rotate(4deg);
+    }
+
+    .title-char:nth-child(4) {
+        transform: translateY(0.07em) rotate(6deg);
+    }
+
+    .landing-title-sub {
+        margin-top: clamp(10px, 2.2vw, 14px);
+        letter-spacing: 0.12em;
+        font-size: clamp(1.08rem, 5.15vw, 1.42rem);
+        line-height: 1.4;
+    }
+
+    .start-button {
+        margin-top: 22px;
+        padding: 10px 26px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-screen,
+    .start-button,
+    .landing-ripple {
+        transition: none;
+        animation: none;
+    }
+
+    .landing-ripple::before,
+    .landing-ripple::after {
+        animation: none;
     }
 }

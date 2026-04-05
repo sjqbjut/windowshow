@@ -13,18 +13,6 @@
                 "focus": false,
                 "panel": "shared"
             }
-        },
-        {
-            "label": "stop-server",
-            "type": "shell",
-            "command": "taskkill",
-            "args": ["/IM", "python.exe", "/F"],
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared"
-            }
         }
     ]
 }

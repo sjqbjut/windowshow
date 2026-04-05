@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Concentric Circle Visualization</title>
+    <title>纹落紫禁：故宫窗棂纹样分布数据可视化</title>
 
     <link rel="stylesheet" href="css/style.css">
 
@@ -14,6 +14,20 @@
     <script src="js/main.js"></script>
 </head>
 <body>
+    <div id="landing-screen" class="landing-screen">
+        <div class="landing-content">
+            <h1 class="landing-title-main" aria-label="纹落紫禁">
+                <span class="title-char">纹</span>
+                <span class="title-char">落</span>
+                <span class="title-char">紫</span>
+                <span class="title-char">禁</span>
+            </h1>
+            <p class="landing-title-sub">故宫窗棂纹样分布数据可视化</p>
+            <button id="start-visualization" class="start-button" type="button">开始</button>
+        </div>
+        <span id="landing-ripple" class="landing-ripple" aria-hidden="true"></span>
+    </div>
+
     <div id="chart-container">
         <div id="chart"></div>
     </div>
@@ -44,6 +58,42 @@
                 }
             }
         });
+
+        (function setupLandingTransition() {
+            var landingScreen = document.getElementById("landing-screen");
+            var startButton = document.getElementById("start-visualization");
+            var landingRipple = document.getElementById("landing-ripple");
+            if (!landingScreen || !startButton || !landingRipple) return;
+
+            document.body.classList.add("landing-active");
+
+            startButton.addEventListener("click", function() {
+                if (landingScreen.classList.contains("is-leaving")) return;
+
+                var buttonRect = startButton.getBoundingClientRect();
+                var centerX = buttonRect.left + buttonRect.width / 2;
+                var centerY = buttonRect.top + buttonRect.height / 2;
+                var maxX = Math.max(centerX, window.innerWidth - centerX);
+                var maxY = Math.max(centerY, window.innerHeight - centerY);
+                var rippleRadius = Math.hypot(maxX, maxY);
+                var diameter = rippleRadius * 2;
+
+                landingRipple.style.width = diameter + "px";
+                landingRipple.style.height = diameter + "px";
+                landingRipple.style.left = (centerX - rippleRadius) + "px";
+                landingRipple.style.top = (centerY - rippleRadius) + "px";
+
+                landingRipple.classList.remove("animate");
+                void landingRipple.offsetWidth;
+                landingRipple.classList.add("animate");
+                landingScreen.classList.add("is-leaving");
+
+                window.setTimeout(function() {
+                    landingScreen.classList.add("is-hidden");
+                    document.body.classList.remove("landing-active");
+                }, 1400);
+            });
+        })();
     </script>
 </body>
 </html>

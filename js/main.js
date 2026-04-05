@@ -654,7 +654,7 @@ function create_CCS_chart() {
                     + "translate(" + rad_name + ")"
                     + (finalAngle > 0 & finalAngle < Math.PI ? "" : "rotate(180)");
             })
-            .style("font-size", (20*size_factor)+"px")//内圈纹样名字体大小
+            .style("font-size", (22*size_factor)+"px")//内圈纹样名字体大小
             .text(function (d, i) { return character_total_data[i].first_name; });
 
         //Add the smaller last name (if available) below
@@ -877,7 +877,7 @@ function create_CCS_chart() {
             line_label_path.attr("d", label_arc(characterByName[d.character].name_angle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("buildings using pattern " + d.character);
+            line_label.text("多建筑共用窗棂纹样：" + d.character);
 
             //Highlight the chapters this character appears in
             var char_chapters = character_data
@@ -1047,7 +1047,7 @@ function create_CCS_chart() {
             line_label_path.attr("d", label_arc(d.centerAngle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("patterns used in building " + d.data.type);
+            line_label.text("采用窗棂纹样的建筑：" + d.data.type);
 
             //Highlight the characters that appear in this chapter
             var char_chapters = character_data
@@ -1212,7 +1212,7 @@ function create_CCS_chart() {
             line_label_path.attr("d", label_arc(d.centerAngle));
             //Update the label text
             clearTimeout(remove_text_timer);
-            line_label.text("patterns linked to building " + d.data.type);
+            line_label.text("采用窗棂纹样的建筑：" + d.data.type);
 
             //Highlight the characters that appear in this chapter
             var char_chapters = cover_data
@@ -1317,7 +1317,7 @@ function create_CCS_chart() {
                     + (d.centerAngle > 0 & d.centerAngle < Math.PI ? "" : "rotate(180)");
             })
             .style("text-anchor", function (d) { return d.centerAngle > 0 & d.centerAngle < Math.PI ? "start" : "end"; })
-            .style("font-size", (22 * size_factor) + "px")//外圈建筑名字体大小
+            .style("font-size", (18 * size_factor) + "px")//外圈建筑名字体大小
             .text(function (d, i) { return d.card_captured; });
 
         //////////////////////////////////////////////////////////////
@@ -1672,12 +1672,12 @@ function create_CCS_chart() {
             .style("display", "none");
 
         //Create the label text
-        var default_label_text = "currently, these lines show links between inner patterns and outer buildings";
+        var default_label_text = "彩色连线展示了建筑与窗棂纹样之间的关系";
         var line_label = line_label_group.append("text")
             .attr("class", "line-label")
             .attr("dy", "0.35em")
             .style("text-anchor", "middle")
-            .style("font-size", (14 * size_factor) + "px")
+            .style("font-size", (22 * size_factor) + "px")
             .append("textPath")
             .attr("xlink:href", "#line-label-path")
             .attr("startOffset", "50%")

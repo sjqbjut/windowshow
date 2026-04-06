@@ -17,7 +17,7 @@ html {
 body {
     margin: 0;
     font-family: "Barlow Semi Condensed", sans-serif;
-    background: #ffffff;
+    background: #f8f6f3;/*主界面背景色，淡米白色*/
 }
 
 body.landing-active {
@@ -110,16 +110,27 @@ body.landing-active {
 }
 
 .start-button {
-    margin-top: clamp(24px, 5vw, 42px);
-    padding: 12px 34px;
-    border: 1px solid rgba(89, 63, 33, 0.7);
-    border-radius: 999px;
-    background: rgba(255, 250, 242, 0.9);
-    color: #4a2f19;
-    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
-    font-size: clamp(1.16rem, 2vw, 1.4rem);
-    letter-spacing: 0.14em;
-    cursor: pointer;
+    /* 按钮上方的间距，自动适配屏幕大小 */
+    margin-top: clamp(35px, 9vw, 60px);    
+    /* 按钮内边距（文字和边框的距离）：上下20px 左右48px */
+    padding: 20px 48px;  
+    /* 按钮边框：浅棕色半透明 */
+    border: 2px solid rgba(89, 63, 33, 0.7);   
+    /* 圆角拉满 → 胶囊形状 */
+    border-radius: 999px;  
+    /* 背景：米白色半透明 */
+    background: rgba(255, 250, 242, 0.9);  
+    /* 文字颜色：深棕色 */
+    color: #4a2f19;   
+    /* 字体：系统自带的楷体（中文书法字体） */
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;  
+    /* 文字大小，自动适配屏幕，不会太大太小 */
+    font-size: clamp(1.6rem, 2.8vw, 2.24rem);  
+    /* 文字字间距（更美观） */
+    letter-spacing: 0.21em; 
+    /* 鼠标放上去变成小手 */
+    cursor: pointer; 
+    /*  hover 动画：缩放、阴影、背景色 平滑过渡 */
     transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
 }
 
@@ -297,6 +308,237 @@ body.landing-active {
 .mini-map-panel.mini-map-debug .mini-map-caption {
     display: block;
 }
+
+/* 侧边栏主容器：
+   - 宽高由 JS 写入的 CSS 变量控制
+   - 如需手动固定尺寸，可直接改 width/height 的变量默认值 */
+.building-info-panel {
+    /* 花纹主色：想更深/更浅可直接改这个 rgba */
+    --building-info-border-color: rgba(133, 98, 61, 0.5);
+    /* 花纹辅色：用于雕刻层次感 */
+    --building-info-border-soft: rgba(133, 98, 61, 0.26);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 9;
+    width: var(--building-info-width, 220px);
+    height: var(--building-info-height, 33vh);
+    max-width: calc(100vw - 16px);
+    overflow: hidden;
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(250, 246, 238, 0.88), rgba(245, 238, 227, 0.82));
+    opacity: 0;
+    pointer-events: none;
+    /* 位置入口：--building-info-left-offset 控制侧边栏整体左右位置 */
+    transform: translate(calc(var(--building-info-left-offset, 420px) + 8px), -50%);
+    transition: opacity 0.24s ease, transform 0.24s ease;
+}
+/* 常改变量说明：
+   --building-info-width: 信息栏宽度
+   --building-info-left-offset: 信息栏相对中心的水平偏移
+   --building-info-height: 信息栏高度
+   --building-info-font-scale: 信息栏字体整体倍率 */
+
+.building-info-panel::before,
+.building-info-panel::after {
+    pointer-events: none;
+}
+
+.building-info-panel::before {
+    inset: 0;
+    border: 1px solid var(--building-info-border-color);
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 40%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 8px 24px rgba(69, 47, 26, 0.14);
+}
+
+.building-info-panel::after {
+    inset: 8px;
+    border: 1px solid rgba(148, 112, 74, 0.28);
+    border-radius: 7px;
+    box-shadow: inset 0 0 0 1px rgba(148, 112, 74, 0.1);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 35%);
+    opacity: 1;
+}
+
+.building-info-panel.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(var(--building-info-left-offset, 420px), -50%);
+}
+
+.building-info-inner {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-left: 16px;
+    padding: 8px 0;
+}
+
+.building-info-inner::before,
+.building-info-inner::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 18px;
+    height: 1px;
+    background: rgba(145, 110, 73, 0.5);
+}
+
+.building-info-inner::before {
+    top: 0;
+}
+
+.building-info-inner::after {
+    bottom: 0;
+}
+
+.building-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-left: 9px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(132, 100, 66, 0.26);
+}
+
+.building-info-title {
+    color: #5a3f25;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    /* 标题字号 = 基准值 * 字体倍率变量 */
+    font-size: calc(14px * var(--building-info-font-scale, 1));
+    font-weight: 600;
+    letter-spacing: 0.11em;
+}
+
+.building-info-close {
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(126, 88, 52, 0.45);
+    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(255, 250, 241, 0.95), rgba(242, 228, 207, 0.95));
+    color: #6b4728;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 1px 2px rgba(92, 63, 35, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.building-info-close:hover {
+    color: #4f3219;
+    background: linear-gradient(180deg, rgba(255, 247, 233, 1), rgba(236, 217, 191, 1));
+    box-shadow:
+        0 2px 5px rgba(92, 63, 35, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+}
+
+.building-info-close:active {
+    transform: translateY(0);
+}
+.building-info-close:focus-visible {
+    outline: 2px solid rgba(180, 120, 66, 0.55);
+    outline-offset: 2px;
+}
+.building-info-grid {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 9px;
+    padding-left: 9px;
+    padding-right: 7px;
+    /* 文字溢出时在信息栏内部滚动 */
+    overflow-y: auto;
+    /* 保留滚动条占位，避免出现滚动条时文本左右跳动 */
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(133, 97, 59, 0.42) rgba(196, 175, 146, 0.18);
+    /* iOS/移动端下滑更顺滑 */
+    -webkit-overflow-scrolling: touch;
+}
+
+.building-info-row {
+    display: grid;
+    /* 左列标签宽度 + 右列内容宽度入口 */
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 9px;
+}
+
+.building-info-row.is-introduction {
+    grid-template-columns: 1fr;
+    row-gap: 5px;
+    margin-top: 1px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(146, 112, 74, 0.38);
+}
+
+.building-info-key {
+    color: #7e5a36;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    /* 字段名字号 = 基准值 * 字体倍率变量 */
+    font-size: calc(12.5px * var(--building-info-font-scale, 1));
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.building-info-value {
+    color: #4a3624;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    /* 内容字号 = 基准值 * 字体倍率变量 */
+    font-size: calc(13px * var(--building-info-font-scale, 1));
+    line-height: 1.62;
+}
+
+.building-info-row.is-introduction .building-info-value {
+    /* 溢出滚动统一交给 .building-info-grid，避免内外双滚动 */
+    max-height: none;
+    overflow: visible;
+    padding-right: 3px;
+}
+
+.building-info-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.building-info-grid::-webkit-scrollbar-thumb {
+    background: rgba(133, 97, 59, 0.42);
+    border-radius: 999px;
+}
+
+.building-info-grid::-webkit-scrollbar-track {
+    background: rgba(196, 175, 146, 0.18);
+}
+
+/* 窄屏/空间不足时改为下方堆叠布局，避免覆盖主图 */
+#chart-container.building-info-stack-layout.building-info-visible {
+    padding-bottom: calc(var(--building-info-height, 33vh) + 24px);
+}
+
+#chart-container.building-info-stack-layout .building-info-panel {
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, 12px);
+}
+
+#chart-container.building-info-stack-layout .building-info-panel.is-visible {
+    transform: translate(-50%, 0);
+}
+
 #chart svg {
     position: absolute;
     top: 0;
@@ -362,6 +604,30 @@ canvas {
         width: min(clamp(229px, 65vw, 304px), calc(100vw - 20px));
     }/*调整小地图在小屏幕上的大小*/
 
+    .building-info-panel {
+        width: min(94vw, 360px);
+    }
+
+    /* 手机端堆叠布局底部留白入口 */
+    #chart-container.building-info-stack-layout.building-info-visible {
+        padding-bottom: calc(var(--building-info-height, 33vh) + 28px);
+    }
+
+    .building-info-inner {
+        margin-left: 10px;
+    }
+
+    .building-info-title {
+        /* 手机端标题字号基准值（仍受字体倍率变量影响） */
+        font-size: calc(13px * var(--building-info-font-scale, 1));
+    }
+
+    .building-info-row {
+        /* 手机端列宽入口 */
+        grid-template-columns: 50px minmax(0, 1fr);
+        column-gap: 6px;
+    }
+
     .landing-content {
         padding: 16px;
     }
@@ -413,3 +679,4 @@ canvas {
         animation: none;
     }
 }
+

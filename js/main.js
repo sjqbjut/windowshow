@@ -26,6 +26,13 @@ function create_CCS_chart() {
     var container = d3.select("#chart");
     var chart_container = d3.select("#chart-container");
     var mini_map_debug_mode = /(?:^|[?&])mapDebug=1(?:&|$)/.test(window.location.search);
+    var building_info_field_defs = [
+        { key: "area", label: "区域" },
+        { key: "architecture", label: "建筑" },
+        { key: "time", label: "时代" },
+        { key: "pattern", label: "纹样" },
+        { key: "introduction_details", label: "详细介绍" }
+    ];
 
     // Ensure mini-map shell exists once; overlay content is rebuilt per render.
     var mini_map_panel = chart_container.select("#mini-map-panel");
@@ -52,6 +59,51 @@ function create_CCS_chart() {
     }
     mini_map_panel.classed("mini-map-debug", mini_map_debug_mode);
 
+    // 建筑详情侧边栏容器（点击建筑后显示）。
+    var building_info_panel = chart_container.select("#building-info-panel");
+    if (building_info_panel.empty()) {
+        building_info_panel = chart_container.append("aside")
+            .attr("id", "building-info-panel")
+            .attr("class", "building-info-panel")
+            .attr("aria-hidden", "true");
+
+        var building_info_inner = building_info_panel.append("div")
+            .attr("class", "building-info-inner");
+        var building_info_header = building_info_inner.append("div")
+            .attr("class", "building-info-header");
+
+        building_info_header.append("div")
+            .attr("class", "building-info-title")
+            .text("建筑介绍");
+        building_info_header.append("button")
+            .attr("type", "button")
+            .attr("class", "building-info-close")
+            .attr("aria-label", "关闭建筑介绍")
+            .text("×");
+
+        var building_info_grid = building_info_inner.append("div")
+            .attr("class", "building-info-grid");
+        var building_info_row = building_info_grid.selectAll(".building-info-row")
+            .data(building_info_field_defs)
+            .enter().append("div")
+            .attr("class", function (d) {
+                return "building-info-row" + (d.key === "introduction_details" ? " is-introduction" : "");
+            });
+
+        building_info_row.append("div")
+            .attr("class", "building-info-key")
+            .text(function (d) { return d.label; });
+        building_info_row.append("div")
+            .attr("class", "building-info-value")
+            .attr("data-field", function (d) { return d.key; })
+            .text("—");
+    }
+    building_info_panel
+        .classed("is-visible", false)
+        .attr("aria-hidden", "true");
+    building_info_panel.selectAll(".building-info-value").text("—");
+    chart_container.classed("building-info-visible", false);
+
     // Remove the previous chart before re-rendering
     container.selectAll("svg, canvas").remove();
     container.style("height", null);
@@ -60,11 +112,42 @@ function create_CCS_chart() {
     var base_width = 1600;
     var ww = window.innerWidth;
     var width_too_small = ww < 500;
-
     // Keep the visualization responsive while focusing on the chart only
     var width = Math.round(Math.min(base_width, Math.max(320, ww * 0.96)));
     var height = width;
     var size_factor = width / base_width;
+
+    // ===== 右侧信息栏常用调参区（推荐优先改这里） =====
+    var building_info_outer_ring_ratio = 0.4;   // 最外圈半径比例（与 rad_card_label 保持一致时建议 0.4）
+    var building_info_side_gap_ratio = 0.15;    // 右侧可用区两侧留白比例（0.15 = 两端各留 15%）
+    var building_info_height_ratio = 0.55;      // 信息栏高度占视口比例
+    var building_info_min_height = 220;         // 信息栏最小高度
+    var building_info_max_height = 550;         // 信息栏最大高度
+    var building_info_min_readable_width = 140; // 低于该宽度时改为下方堆叠布局
+    var building_info_font_scale = 1.8;           // 字体整体倍率（例如 1.15 / 1.25）
+
+    // 信息栏简化规则：
+    // 1) 可用区 = 外圈最右点 到 页面最右边；
+    // 2) 两端各留 side_gap_ratio 比例空隙，中间放信息栏。
+    var outer_ring_right = width * building_info_outer_ring_ratio;
+    var right_space_span = Math.max(0, ww / 2 - outer_ring_right);
+    var side_gap = right_space_span * building_info_side_gap_ratio;
+    var building_info_width = Math.round(Math.max(0, right_space_span - side_gap * 2));
+    var building_info_left_offset = Math.round(outer_ring_right + side_gap);
+    var building_info_height = Math.round(
+        Math.max(building_info_min_height, Math.min(building_info_max_height, window.innerHeight * building_info_height_ratio))
+    );
+    // 右侧可用区太窄时自动改为下方堆叠，避免压缩到不可读。
+    var use_right_sidebar_layout = building_info_width >= building_info_min_readable_width;
+
+    chart_container.classed("building-info-stack-layout", !use_right_sidebar_layout);
+    // 这 4 个 CSS 变量对应位置/尺寸/字体：
+    // --building-info-width / --building-info-left-offset / --building-info-height / --building-info-font-scale
+    chart_container
+        .style("--building-info-width", building_info_width + "px")
+        .style("--building-info-left-offset", building_info_left_offset + "px")
+        .style("--building-info-height", building_info_height + "px")
+        .style("--building-info-font-scale", building_info_font_scale);
 
     container.style("height", height + "px");
 
@@ -168,14 +251,32 @@ function create_CCS_chart() {
         .defer(d3.json, "datas/fc_building_per_pattern.json")
         .defer(d3.json, "datas/fc_building_total.json")
         .defer(d3.json, "datas/map_layout.json")
+        .defer(d3.csv, "datas/buildings.csv")
         .await(draw);
 
-    function draw(error, pattern_total_data, building_per_pattern_data, building_total_data, map_layout_data) {
+    function draw(error, pattern_total_data, building_per_pattern_data, building_total_data, map_layout_data, buildings_csv_data) {
 
         if (error) throw error;
 
         function cleanText(value) {
             return value === undefined || value === null ? "" : String(value).trim();
+        }
+
+        function normalizePatternText(value) {
+            return cleanText(value)
+                .replace(/，/g, ",")
+                .split(",")
+                .map(cleanText)
+                .filter(function (token) { return token.length > 0; })
+                .join("、");
+        }
+
+        function pickFirstText(values) {
+            for (var i = 0; i < values.length; i++) {
+                var text = cleanText(values[i]);
+                if (text) return text;
+            }
+            return "";
         }
 
         // 统计每个纹样被多少建筑使用，用于：
@@ -235,12 +336,51 @@ function create_CCS_chart() {
                     card_captured: d.building,
                     popular_time: d.time,
                     introduction: d.introduction,
+                    patterns: Array.isArray(d.patterns) ? d.patterns.slice() : [],
                     meaning: d.area,
                     area: d.area
                 };
             });
         num_chapters = chapter_total_data.length;
         num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
+
+        var csv_rows = Array.isArray(buildings_csv_data) ? buildings_csv_data : [];
+        var building_csv_by_id = {};
+        var building_csv_by_name = {};
+        csv_rows.forEach(function (row) {
+            var chapter_id = +row.label;
+            var architecture_name = cleanText(row.architecture);
+            if (isFinite(chapter_id)) {
+                building_csv_by_id[chapter_id] = row;
+            }
+            if (architecture_name) {
+                building_csv_by_name[architecture_name] = row;
+            }
+        });
+
+        var building_sidebar_data_by_chapter = {};
+        chapter_total_data.forEach(function (chapter_meta) {
+            var csv_row = building_csv_by_id[chapter_meta.chapter] || building_csv_by_name[chapter_meta.card_captured] || {};
+            var pattern_text = normalizePatternText(csv_row.pattern);
+            if (!pattern_text && chapter_meta.patterns.length) {
+                pattern_text = chapter_meta.patterns.map(cleanText).filter(function (token) { return !!token; }).join("、");
+            }
+
+            building_sidebar_data_by_chapter[chapter_meta.chapter] = {
+                area: pickFirstText([csv_row.area, chapter_meta.area]),
+                architecture: pickFirstText([csv_row.architecture, chapter_meta.card_captured]),
+                time: pickFirstText([csv_row.time, chapter_meta.popular_time]),
+                pattern: pickFirstText([pattern_text]),
+                introduction_details: pickFirstText([
+                    csv_row.introduction_details,
+                    csv_row.introduction,
+                    chapter_meta.introduction
+                ])
+            };
+        });
+
+        var chapter_focus_locked = false;
+        var locked_chapter_id = null;
 
         var chapter_area_by_id = {};
         var area_chapters_map = {};
@@ -1026,6 +1166,7 @@ function create_CCS_chart() {
         var annotation_relation_group = chart.append("g").attr("class", "annotation-relation-group");
 
         function mouse_over_relation(d,i) {
+            if (chapter_focus_locked) return;
             d3.event.stopPropagation();
             mouse_over_in_action = true;
 
@@ -1100,6 +1241,7 @@ function create_CCS_chart() {
             .on("mouseout", mouse_out);
 
         function mouse_over_character(d) {
+            if (chapter_focus_locked) return;
             d3.event.stopPropagation();
             mouse_over_in_action = true;
 
@@ -1260,7 +1402,12 @@ function create_CCS_chart() {
             .attr("r", chapter_dot_rad)
             .style("fill", "#c4c4c4")
             .style("stroke", "white")
-            .style("stroke-width", chapter_dot_rad * 0.5);
+            .style("stroke-width", chapter_dot_rad * 0.5)
+            .style("cursor", "pointer")
+            .on("click", function (d) {
+                d3.event.stopPropagation();
+                toggle_chapter_focus(d, false, "chapter");
+            });
 
         ///////////////////////////////////////////////////////////////////////////
         ///////////////////// Create hidden chapter hover areas ///////////////////
@@ -1279,7 +1426,12 @@ function create_CCS_chart() {
             .attr("d", arc_chapter_hover)
             .style("fill", "none")
             .style("pointer-events", "all")
+            .style("cursor", "pointer")
             .on("mouseover", mouse_over_chapter)
+            .on("click", function (d) {
+                d3.event.stopPropagation();
+                toggle_chapter_focus(d, false, "chapter");
+            })
             .on("mouseout", mouse_out);
 
         var arc_area_hover = d3.arc()
@@ -1297,7 +1449,144 @@ function create_CCS_chart() {
             .on("mouseover", mouse_over_area)
             .on("mouseout", mouse_out);
 
+        function update_building_info_sidebar(chapter_id) {
+            var sidebar_data = building_sidebar_data_by_chapter[chapter_id] || {};
+            // 统一按字段配置写入，后续增删字段时无需改这里。
+            building_info_field_defs.forEach(function (field) {
+                var value = cleanText(sidebar_data[field.key]);
+                building_info_panel.select('[data-field="' + field.key + '"]').text(value || "—");
+            });
+        }
+
+        function show_building_info_sidebar(chapter_id) {
+            update_building_info_sidebar(chapter_id);
+            chart_container.classed("building-info-visible", true);
+            building_info_panel
+                .classed("is-visible", true)
+                .attr("aria-hidden", "false");
+        }
+
+        function hide_building_info_sidebar() {
+            chart_container.classed("building-info-visible", false);
+            building_info_panel
+                .classed("is-visible", false)
+                .attr("aria-hidden", "true");
+        }
+
+        function apply_chapter_focus(d, show_cover_ring, line_mode) {
+            var current_line_mode = line_mode === "character" ? "character" : "chapter";
+            var current_link_data = current_line_mode === "character" ? cover_data : character_data;
+            mouse_over_in_action = true;
+            stop_merged_pattern_cycle();
+
+            ctx.clearRect(-width / 2, -height / 2, width, height);
+            ctx.lineWidth = 4 * size_factor;
+            ctx.globalAlpha = 1;
+            create_lines(current_line_mode, current_link_data.filter(function (c) { return c.chapter === d.chapter; }));
+
+            line_label_path.attr("d", label_arc(d.centerAngle));
+            clearTimeout(remove_text_timer);
+            line_label.text("采用窗棂纹样的建筑：" + d.data.type);
+
+            var chapter_patterns = current_link_data
+                .filter(function (c) { return c.chapter === d.chapter; })
+                .map(function (c) { return c.character; });
+
+            names.style("opacity", null);
+            name_dot.style("opacity", null);
+            names.filter(function (c) { return chapter_patterns.indexOf(c.character) < 0; })
+                .style("opacity", 0.2);
+            name_dot.filter(function (c) { return chapter_patterns.indexOf(c.character) < 0; })
+                .style("opacity", 0.2);
+
+            chapter_hover_slice.style("fill", "none").style("stroke", "none");
+            chapter_hover_slice.style("stroke-width", 1.5 * size_factor);
+            chapter_number.style("fill", null);
+            chapter_dot
+                .attr("r", chapter_dot_rad)
+                .style("stroke-width", chapter_dot_rad * 0.5)
+                .style("fill", "#c4c4c4");
+
+            var active_chapter_slice = chapter_hover_slice
+                .filter(function (c) { return c.chapter === d.chapter; });
+            if (show_cover_ring) {
+                active_chapter_slice
+                    .style("fill", "none")
+                    .style("stroke", color_sakura)
+                    .style("stroke-width", chapter_dot_rad * 0.5 * 1.5);
+            } else {
+                active_chapter_slice
+                    .style("fill", color_sakura)
+                    .style("stroke", color_sakura);
+                chapter_number
+                    .filter(function (c) { return c.chapter === d.chapter; })
+                    .style("fill", "white");
+            }
+            chapter_dot
+                .filter(function (c) { return c.chapter === d.chapter; })
+                .attr("r", chapter_dot_rad * 1.5)
+                .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
+                .style("fill", color_sakura);
+
+            show_center_image_for_chapter(d.chapter);
+            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
+
+            hover_circle.style("opacity", 0);
+            if (show_cover_ring) {
+                color_hover_circle
+                    .attr("cx", rad_color * Math.cos(d.centerAngle - pi1_2))
+                    .attr("cy", rad_color * Math.sin(d.centerAngle - pi1_2))
+                    .style("opacity", 1);
+            } else {
+                color_hover_circle.style("opacity", 0);
+            }
+
+            relation_lines.style("opacity", 0.7);
+            annotation_relation_group.selectAll(".annotation").remove();
+
+            update_mini_map({
+                buildings: [d.chapter],
+                areas: [chapter_area_by_id[d.chapter]],
+                caption: "建筑定位：" + d.data.type
+            });
+        }
+
+        function lock_chapter_focus(d, show_cover_ring, line_mode) {
+            chapter_focus_locked = true;
+            locked_chapter_id = +d.chapter;
+            apply_chapter_focus(d, show_cover_ring, line_mode);
+            show_building_info_sidebar(d.chapter);
+        }
+
+        function unlock_chapter_focus() {
+            chapter_focus_locked = false;
+            locked_chapter_id = null;
+            reset_to_default_view();
+        }
+
+        function toggle_chapter_focus(d, show_cover_ring, line_mode) {
+            if (!d || !isFinite(+d.chapter)) return;
+            if (chapter_focus_locked && locked_chapter_id === +d.chapter) {
+                unlock_chapter_focus();
+                return;
+            }
+            lock_chapter_focus(d, show_cover_ring, line_mode);
+        }
+
+        building_info_panel.select(".building-info-close").on("click", function () {
+            if (d3.event) {
+                d3.event.preventDefault();
+                d3.event.stopPropagation();
+            }
+            if (!chapter_focus_locked) {
+                hide_building_info_sidebar();
+                return;
+            }
+            unlock_chapter_focus();
+        });
+
         function mouse_over_area(d) {
+            if (chapter_focus_locked) return;
             d3.event.stopPropagation();
             mouse_over_in_action = true;
             stop_merged_pattern_cycle();
@@ -1344,51 +1633,9 @@ function create_CCS_chart() {
 
         // 悬浮建筑扇区：仅显示该建筑与纹样的连线。
         function mouse_over_chapter(d,i) {
+            if (chapter_focus_locked) return;
             d3.event.stopPropagation();
-            mouse_over_in_action = true;
-            stop_merged_pattern_cycle();
-
-            ctx.clearRect(-width / 2, -height / 2, width, height);
-            ctx.lineWidth = 4 * size_factor;
-            ctx.globalAlpha = 1;
-            create_lines("chapter", character_data.filter(function (c) { return c.chapter === d.chapter; }));
-            
-            //Update label path
-            line_label_path.attr("d", label_arc(d.centerAngle));
-            //Update the label text
-            clearTimeout(remove_text_timer);
-            line_label.text("采用窗棂纹样的建筑：" + d.data.type);
-
-            // 淡化无关纹样标签与圆点，突出关联关系。
-            var char_chapters = character_data
-                .filter(function(c) { return c.chapter === d.chapter; })
-                .map(function(c) { return c.character; });
-
-            names.filter(function(c) { return char_chapters.indexOf(c.character) < 0; })
-                .style("opacity", 0.2);
-            name_dot.filter(function(c) { return char_chapters.indexOf(c.character) < 0; })
-                .style("opacity", 0.2);
-
-            //Highlight the chapter donut slice
-            chapter_hover_slice.filter(function (c, j) { return i === j; })
-                .style("fill", color_sakura)
-                .style("stroke", color_sakura);
-            chapter_number.filter(function (c, j) { return i === j; })
-                .style("fill", "white");
-            chapter_dot.filter(function (c, j) { return i === j; })
-                .attr("r", chapter_dot_rad * 1.5)
-                .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
-                .style("fill", color_sakura);
-
-            //Show the cover image in the center
-            show_center_image_for_chapter(d.chapter);
-            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
-
-            update_mini_map({
-                buildings: [d.chapter],
-                areas: [chapter_area_by_id[d.chapter]],
-                caption: "建筑定位：" + d.data.type
-            });
+            apply_chapter_focus(d, false, "chapter");
         }//function mouse_over_chapter
 
         //////////////////////////////////////////////////////////////
@@ -1510,60 +1757,19 @@ function create_CCS_chart() {
             .attr("d", arc_cover_hover)
             .style("fill", "none")
             .style("pointer-events", "all")
+            .style("cursor", "pointer")
             .on("mouseover", mouse_over_cover)
+            .on("click", function (d) {
+                d3.event.stopPropagation();
+                toggle_chapter_focus(d, true, "character");
+            })
             .on("mouseout", mouse_out);
 
         // 悬浮封面环逻辑与建筑悬浮类似，额外显示颜色点聚焦圈。
         function mouse_over_cover(d,i) {
+            if (chapter_focus_locked) return;
             d3.event.stopPropagation();
-            mouse_over_in_action = true;
-            stop_merged_pattern_cycle();
-
-            ctx.clearRect(-width / 2, -height / 2, width, height);
-            ctx.lineWidth = 4 * size_factor;
-            ctx.globalAlpha = 1;
-            create_lines("character", cover_data.filter(function (c) { return c.chapter === d.chapter; }));
-            
-            //Update label path
-            line_label_path.attr("d", label_arc(d.centerAngle));
-            //Update the label text
-            clearTimeout(remove_text_timer);
-            line_label.text("采用窗棂纹样的建筑：" + d.data.type);
-
-            //Highlight the characters that appear in this chapter
-            var char_chapters = cover_data
-                .filter(function(c) { return c.chapter === d.chapter; })
-                .map(function(c) { return c.character; });
-
-            names.filter(function(c) { return char_chapters.indexOf(c.character) < 0; })
-                .style("opacity", 0.2);
-            name_dot.filter(function(c) { return char_chapters.indexOf(c.character) < 0; })
-                .style("opacity", 0.2);
-
-            //Highlight the chapter donut slice
-            chapter_hover_slice.filter(function (c, j) { return i === j; })
-                .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
-                .style("stroke", color_sakura);
-            chapter_dot.filter(function (c, j) { return i === j; })
-                .attr("r", chapter_dot_rad * 1.5)
-                .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
-                .style("fill", color_sakura);
-
-            //Show the cover image in the center
-            show_center_image_for_chapter(d.chapter);
-            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
-
-            //Show the circle around the color chapter group
-            color_hover_circle
-                .attr("cx", rad_color * Math.cos(d.centerAngle - pi1_2))
-                .attr("cy", rad_color * Math.sin(d.centerAngle - pi1_2))
-                .style("opacity", 1);
-
-            update_mini_map({
-                buildings: [d.chapter],
-                areas: [chapter_area_by_id[d.chapter]],
-                caption: "建筑定位：" + d.data.type
-            });
+            apply_chapter_focus(d, true, "character");
         }//function mouse_over_cover
 
         ///////////////////////////////////////////////////////////////////////////
@@ -1572,12 +1778,10 @@ function create_CCS_chart() {
 
         container.on("mouseout", mouse_out);
 
-        // 所有悬浮出口统一走该重置逻辑。
-        function mouse_out() {
-            //Only run this if there was a mouseover before
-            if(!mouse_over_in_action) return;
+        function reset_to_default_view() {
             mouse_over_in_action = false;
             stop_merged_pattern_cycle();
+            hide_building_info_sidebar();
 
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.globalAlpha = cover_alpha;
@@ -1618,6 +1822,14 @@ function create_CCS_chart() {
             annotation_relation_group.selectAll(".annotation").remove();
 
             update_mini_map();
+        }//function reset_to_default_view
+
+        // 所有悬浮出口统一走该重置逻辑。
+        function mouse_out() {
+            if (chapter_focus_locked) return;
+            //Only run this if there was a mouseover before
+            if(!mouse_over_in_action) return;
+            reset_to_default_view();
         }//function mouse_out
 
         ///////////////////////////////////////////////////////////////////////////

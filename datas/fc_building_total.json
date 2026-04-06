@@ -198,6 +198,20 @@
         "introduction":  "清代雍正后皇帝日常理政与寝宫，集政务、居住、祭祀功能于一体"
     },
     {
+        "building_id":  35,
+        "area":  "内廷后三宫",
+        "building":  "斋宫",
+        "time":  "清雍正九年（1731）",
+        "patterns":  [
+                         "步步锦"
+                     ],
+        "pattern_ids":  [
+                            6
+                        ],
+        "num_patterns":  1,
+        "introduction":  "东六宫之南，清代皇帝祭天祀地前进行斋戒的场所"
+    },
+    {
         "building_id":  41,
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "景仁宫",

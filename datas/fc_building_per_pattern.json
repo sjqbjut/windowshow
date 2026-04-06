@@ -105,6 +105,13 @@
         "area":  "内廷后三宫"
     },
     {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "斋宫",
+        "building_id":  35,
+        "area":  "内廷后三宫"
+    },
+    {
         "pattern":  5,
         "type":  "双交四椀菱花",
         "building":  "景仁宫",

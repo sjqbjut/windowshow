@@ -73,6 +73,7 @@
     { "building_id": 32, "x": 168, "y": 104 },
     { "building_id": 33, "x": 168, "y": 92 },
     { "building_id": 34, "x": 126, "y": 138 },
+    { "building_id": 35, "x": 203, "y": 149 },
 
     { "building_id": 41, "x": 200, "y": 119 },
     { "building_id": 42, "x": 200, "y": 77 },

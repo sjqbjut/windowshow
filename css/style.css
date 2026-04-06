@@ -233,9 +233,9 @@ body.landing-active {
     width: 100%;
     aspect-ratio: 335 / 551;
     border-radius: 0;
-    overflow: hidden;
+    overflow: show;
     background: transparent;
-}/*小地图的容器，保持特定的宽高比，并且隐藏溢出的内容*/
+}/*小地图的容器，保持特定的宽高比，并且显示溢出的内容*/
 
 .mini-map-image,
 .mini-map-overlay {

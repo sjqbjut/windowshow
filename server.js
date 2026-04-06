@@ -24,7 +24,6 @@ function addFile(urlPath, relativeFilePath) {
   '/datas/buildings.csv',
   '/datas/patterns.csv',
   '/datas/fc_building_per_pattern.json',
-  '/datas/fc_building_relations.json',
   '/datas/fc_building_total.json',
   '/datas/fc_pattern_hierarchy.json',
   '/datas/fc_pattern_total.json',

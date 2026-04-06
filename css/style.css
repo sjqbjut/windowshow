@@ -471,6 +471,58 @@ body.landing-active {
     -webkit-overflow-scrolling: touch;
 }
 
+/* “其他”纹样二级选择区：默认隐藏，仅在点击“其他”时显示 */
+.building-info-extra {
+    display: none;
+    margin: 8px 9px 2px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(146, 112, 74, 0.38);
+}
+
+.building-info-extra.is-visible {
+    display: block;
+}
+
+.building-info-extra-title {
+    color: #7b5733;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(12px * var(--building-info-font-scale, 1));
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.building-info-extra-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 92px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(133, 97, 59, 0.35) rgba(196, 175, 146, 0.14);
+}
+
+.building-info-extra-item {
+    border: 1px solid rgba(133, 98, 61, 0.35);
+    background: rgba(248, 241, 229, 0.78);
+    color: #5f3f24;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(11.5px * var(--building-info-font-scale, 1));
+    line-height: 1.35;
+    border-radius: 999px;
+    padding: 3px 9px;
+    cursor: pointer;
+}
+
+.building-info-extra-item:hover {
+    background: rgba(244, 231, 212, 0.9);
+}
+
+.building-info-extra-item.is-active {
+    border-color: rgba(133, 98, 61, 0.65);
+    background: rgba(236, 216, 187, 0.92);
+}
+
 .building-info-row {
     display: grid;
     /* 左列标签宽度 + 右列内容宽度入口 */
@@ -679,4 +731,3 @@ canvas {
         animation: none;
     }
 }
-

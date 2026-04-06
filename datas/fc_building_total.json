@@ -1,6 +1,6 @@
-﻿[
+[
     {
-        "building_id":  11,
+        "building_id":  "1_1",
         "area":  "外朝中路（礼制核心区）",
         "building":  "午门",
         "time":  "明永乐十八年（1420），清顺治四年（1647）重修",
@@ -14,7 +14,7 @@
         "introduction":  "紫禁城正门，最高等级礼制建筑，窗棂形制匹配帝王正门等级"
     },
     {
-        "building_id":  12,
+        "building_id":  "1_2",
         "area":  "外朝中路（礼制核心区）",
         "building":  "太和殿",
         "time":  "明永乐十八年（1420），清康熙三十四年（1695）重建",
@@ -28,7 +28,7 @@
         "introduction":  "紫禁城核心礼制大殿，故宫窗棂最高等级形制，菱花为水生纹样，暗含防火的文化寓意"
     },
     {
-        "building_id":  13,
+        "building_id":  "1_3",
         "area":  "外朝中路（礼制核心区）",
         "building":  "中和殿",
         "time":  "明永乐十八年（1420），清顺治三年（1646）重修",
@@ -42,10 +42,10 @@
         "introduction":  "三大殿之一，皇帝大典前休憩、阅视之所故宫博物院"
     },
     {
-        "building_id":  14,
+        "building_id":  "1_4",
         "area":  "外朝中路（礼制核心区）",
         "building":  "保和殿",
-        "time":  "明永乐十八年（1420），清顺治三年（1646）重修",
+        "time":  "明永乐十八年（1420），明嘉靖重修",
         "patterns":  [
                          "三交六椀菱花"
                      ],
@@ -56,7 +56,7 @@
         "introduction":  "三大殿之一，清代殿试举办地故宫博物院"
     },
     {
-        "building_id":  15,
+        "building_id":  "1_5",
         "area":  "外朝中路（礼制核心区）",
         "building":  "协和门",
         "time":  "明永乐十八年（1420），明清多次灾后重修",
@@ -70,7 +70,7 @@
         "introduction":  "太和殿东侧礼制通道门，外朝与内廷过渡建筑"
     },
     {
-        "building_id":  16,
+        "building_id":  "1_6",
         "area":  "外朝中路（礼制核心区）",
         "building":  "乾清门",
         "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
@@ -84,7 +84,7 @@
         "introduction":  "内廷正门，清代御门听政之所"
     },
     {
-        "building_id":  17,
+        "building_id":  "1_7",
         "area":  "外朝中路（礼制核心区）",
         "building":  "熙和门",
         "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
@@ -98,21 +98,39 @@
         "introduction":  "太和殿西侧礼制通道门，外朝与内廷过渡建筑"
     },
     {
-        "building_id":  18,
+        "building_id":  "1_8",
         "area":  "外朝中路（礼制核心区）",
         "building":  "体仁阁",
         "time":  "清乾隆三十七年（1772）",
         "patterns":  [
-                         "一马三箭"
+                         "一马三箭",
+                         "斜方格"
                      ],
         "pattern_ids":  [
-                            10
+                            10,
+                            7
                         ],
-        "num_patterns":  1,
+        "num_patterns":  2,
         "introduction":  "太和殿东侧的礼制配阁，与西侧弘义阁遥相呼应"
     },
     {
-        "building_id":  21,
+        "building_id":  "1_9",
+        "area":  "外朝中路（礼制核心区）",
+        "building":  "弘义阁",
+        "time":  "明永乐十八年（1420）",
+        "patterns":  [
+                         "一马三箭",
+                         "斜方格"
+                     ],
+        "pattern_ids":  [
+                            10,
+                            7
+                        ],
+        "num_patterns":  2,
+        "introduction":  "太和殿西侧的礼制配阁，与东侧体仁阁遥相呼应"
+    },
+    {
+        "building_id":  "2_1",
         "area":  "外朝两翼",
         "building":  "文华殿",
         "time":  "明永乐十八年（1420），清康熙二十二年（1683）重建",
@@ -126,7 +144,7 @@
         "introduction":  "外朝东路核心建筑，明清帝王经筵之所，太子曾摄事于此故宫博物院"
     },
     {
-        "building_id":  22,
+        "building_id":  "2_2",
         "area":  "外朝两翼",
         "building":  "武英殿",
         "time":  "明永乐十八年（1420），清顺治年间重修",
@@ -140,7 +158,21 @@
         "introduction":  "外朝西路核心建筑，明末李自成曾在此称帝，清代为皇家刻书之所"
     },
     {
-        "building_id":  31,
+        "building_id":  "2_3",
+        "area":  "外朝两翼",
+        "building":  "文渊阁",
+        "time":  "清乾隆四十一年（1776年）",
+        "patterns":  [
+                         "三交六椀菱花"
+                     ],
+        "pattern_ids":  [
+                            1
+                        ],
+        "num_patterns":  1,
+        "introduction":  "内廷藏书阁，存放《四库全书》"
+    },
+    {
+        "building_id":  "3_1",
         "area":  "内廷后三宫",
         "building":  "乾清宫",
         "time":  "明永乐十八年（1420），清嘉庆二年（1797）重建",
@@ -154,7 +186,7 @@
         "introduction":  "内廷正殿，明清皇帝寝宫 / 日常理政之所，窗棂为内廷最高等级"
     },
     {
-        "building_id":  32,
+        "building_id":  "3_2",
         "area":  "内廷后三宫",
         "building":  "交泰殿",
         "time":  "明嘉靖年间始建，清嘉庆二年（1797）重建",
@@ -168,37 +200,45 @@
         "introduction":  "后三宫之中，皇后大典、接受朝贺之所，存放二十五宝玺故宫博物院"
     },
     {
-        "building_id":  33,
+        "building_id":  "3_3",
         "area":  "内廷后三宫",
         "building":  "坤宁宫",
         "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
         "patterns":  [
-                         "双交四椀菱花"
+                         "双交四椀菱花",
+                         "一马三箭"
                      ],
         "pattern_ids":  [
-                            5
+                            5,
+                            10
                         ],
-        "num_patterns":  1,
+        "num_patterns":  2,
         "introduction":  "皇后正宫，清代改为萨满祭祀场所，保留满族关外窗纸糊在外的形制故宫博物院"
     },
     {
-        "building_id":  34,
+        "building_id":  "3_4",
         "area":  "内廷后三宫",
         "building":  "养心殿",
         "time":  "明嘉靖十六年（1537），清雍正年间大规模重修",
         "patterns":  [
                          "轱辘钱",
-                         "步步锦"
+                         "步步锦",
+                         "三交六椀菱花",
+                         "玻璃心屉",
+                         "正方格"
                      ],
         "pattern_ids":  [
                             2,
-                            6
+                            6,
+                            1,
+                            11,
+                            3
                         ],
-        "num_patterns":  2,
+        "num_patterns":  5,
         "introduction":  "清代雍正后皇帝日常理政与寝宫，集政务、居住、祭祀功能于一体"
     },
     {
-        "building_id":  35,
+        "building_id":  "3_5",
         "area":  "内廷后三宫",
         "building":  "斋宫",
         "time":  "清雍正九年（1731）",
@@ -212,87 +252,107 @@
         "introduction":  "东六宫之南，清代皇帝祭天祀地前进行斋戒的场所"
     },
     {
-        "building_id":  41,
+        "building_id":  "4_1",
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "景仁宫",
         "time":  "明永乐十八年（1420），明清多次修缮",
         "patterns":  [
-                         "双交四椀菱花",
-                         "正方格"
+                         "三交六椀菱花",
+                         "正方格",
+                         "步步锦"
                      ],
         "pattern_ids":  [
-                            5,
-                            3
+                            1,
+                            3,
+                            6
                         ],
-        "num_patterns":  2,
+        "num_patterns":  3,
         "introduction":  "东六宫之首，康熙皇帝出生地，光绪珍妃曾居于此"
     },
     {
-        "building_id":  42,
+        "building_id":  "4_2",
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "钟粹宫",
         "time":  "明永乐十八年（1420），明嘉靖十四年更名，清多次修缮",
         "patterns":  [
                          "冰裂纹",
-                         "步步锦"
+                         "步步锦",
+                         "玻璃心屉",
+                         "正方格",
+                         "万字纹"
                      ],
         "pattern_ids":  [
                             4,
-                            6
+                            6,
+                            11,
+                            3,
+                            8
                         ],
-        "num_patterns":  2,
+        "num_patterns":  5,
         "introduction":  "明清妃嫔居所，咸丰皇帝幼年曾居于此"
     },
     {
-        "building_id":  43,
+        "building_id":  "4_3",
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "承乾宫",
         "time":  "明永乐十八年（1420），明清多次修缮",
         "patterns":  [
                          "双交四椀菱花",
-                         "步步锦"
+                         "步步锦",
+                         "正方格",
+                         "一马三箭"
                      ],
         "pattern_ids":  [
                             5,
-                            6
+                            6,
+                            3,
+                            10
                         ],
-        "num_patterns":  2,
+        "num_patterns":  4,
         "introduction":  "明清贵妃居所，顺治董鄂妃曾居于此"
     },
     {
-        "building_id":  44,
+        "building_id":  "4_4",
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "景阳宫",
         "time":  "明永乐十八年（1420），清康熙二十五年（1686）重修",
         "patterns":  [
                          "双交四椀菱花",
-                         "正方格"
+                         "正方格",
+                         "斜方格",
+                         "拐子纹",
+                         "套方式"
                      ],
         "pattern_ids":  [
                             5,
-                            3
+                            3,
+                            7,
+                            12,
+                            13
                         ],
-        "num_patterns":  2,
+        "num_patterns":  5,
         "introduction":  "清代皇家藏书之所，东六宫最北侧建筑"
     },
     {
-        "building_id":  45,
+        "building_id":  "4_5",
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "永和宫",
         "time":  "明永乐十八年（1420），清康熙二十五年（1686）重修",
         "patterns":  [
                          "步步锦",
-                         "万字纹"
+                         "万字纹",
+                         "玻璃心屉"
                      ],
         "pattern_ids":  [
                             6,
-                            8
+                            8,
+                            11
                         ],
-        "num_patterns":  2,
+        "num_patterns":  3,
         "introduction":  "明清妃嫔居所，光绪隆裕皇后曾居于此"
     },
     {
-        "building_id":  46,
+        "building_id":  "4_6",
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "延禧宫",
         "time":  "明永乐十八年（1420），清宣统元年（1909）改建灵沼轩",
@@ -308,23 +368,25 @@
         "introduction":  "明清妃嫔居所，清末火毁后改建为西洋水殿，为故宫唯一西洋式建筑"
     },
     {
-        "building_id":  51,
+        "building_id":  "5_1",
         "area":  "内廷西六宫（妃嫔居所）",
         "building":  "翊坤宫",
         "time":  "明永乐十八年（1420），明嘉靖十四年更名，清多次修缮",
         "patterns":  [
                          "步步锦",
-                         "万字纹"
+                         "万字纹",
+                         "玻璃心屉"
                      ],
         "pattern_ids":  [
                             6,
-                            8
+                            8,
+                            11
                         ],
-        "num_patterns":  2,
+        "num_patterns":  3,
         "introduction":  "明清妃嫔居所，慈禧太后曾居于此，清末与储秀宫打通形成四进院"
     },
     {
-        "building_id":  52,
+        "building_id":  "5_2",
         "area":  "内廷西六宫（妃嫔居所）",
         "building":  "储秀宫",
         "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
@@ -338,67 +400,77 @@
         "introduction":  "慈禧太后长期居所，同治皇帝出生于此"
     },
     {
-        "building_id":  53,
+        "building_id":  "5_3",
         "area":  "内廷西六宫（妃嫔居所）",
         "building":  "永寿宫",
         "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
         "patterns":  [
-                         "双交四椀菱花"
+                         "双交四椀菱花",
+                         "一马三箭"
                      ],
         "pattern_ids":  [
-                            5
+                            5,
+                            10
                         ],
-        "num_patterns":  1,
+        "num_patterns":  2,
         "introduction":  "明清妃嫔居所，曾作为乾隆孝贤皇后居所、慈禧太后六十大寿贺礼处所"
     },
     {
-        "building_id":  54,
+        "building_id":  "5_4",
         "area":  "内廷西六宫（妃嫔居所）",
         "building":  "长春宫",
         "time":  "明永乐十八年（1420），清康熙二十二年（1683）重修",
         "patterns":  [
                          "步步锦",
-                         "万字纹"
+                         "万字纹",
+                         "玻璃心屉"
                      ],
         "pattern_ids":  [
                             6,
-                            8
+                            8,
+                            11
                         ],
-        "num_patterns":  2,
+        "num_patterns":  3,
         "introduction":  "明清妃嫔居所，慈禧太后、乾隆孝贤皇后曾居于此"
     },
     {
-        "building_id":  55,
+        "building_id":  "5_5",
         "area":  "内廷西六宫（妃嫔居所）",
         "building":  "咸福宫",
         "time":  "明永乐十八年（1420），清康熙二十二年（1683）重修",
         "patterns":  [
                          "双交四椀菱花",
-                         "步步锦"
+                         "步步锦",
+                         "斜方格"
                      ],
         "pattern_ids":  [
                             5,
-                            6
+                            6,
+                            7
                         ],
-        "num_patterns":  2,
+        "num_patterns":  3,
         "introduction":  "明清妃嫔居所，乾隆皇帝、嘉庆皇帝曾居于此"
     },
     {
-        "building_id":  56,
+        "building_id":  "5_6",
         "area":  "内廷西六宫（妃嫔居所）",
         "building":  "启祥宫",
         "time":  "明永乐十八年（1420），明嘉靖十四年更名，清多次修缮",
         "patterns":  [
-                         "步步锦"
+                         "步步锦",
+                         "万字纹",
+                         "玻璃心屉"
                      ],
         "pattern_ids":  [
-                            6
+                            6,
+                            8,
+                            11
                         ],
-        "num_patterns":  1,
+        "num_patterns":  3,
         "introduction":  "明清妃嫔居所，清末与长春宫打通，慈禧太后曾居于此"
     },
     {
-        "building_id":  61,
+        "building_id":  "6_1",
         "area":  "太后 / 太妃宫区",
         "building":  "慈宁宫",
         "time":  "明嘉靖十五年（1536），万历年间重建，清顺治十年（1653）重修",
@@ -412,21 +484,23 @@
         "introduction":  "太皇太后、皇太后居所，孝庄文皇后曾居于此故宫博物院"
     },
     {
-        "building_id":  62,
+        "building_id":  "6_2",
         "area":  "太后 / 太妃宫区",
         "building":  "寿康宫",
         "time":  "清雍正十三年（1735）始建，乾隆元年（1736）建成",
         "patterns":  [
-                         "三交六椀菱花"
+                         "三交六椀菱花",
+                         "一马三箭"
                      ],
         "pattern_ids":  [
-                            1
+                            1,
+                            10
                         ],
-        "num_patterns":  1,
+        "num_patterns":  2,
         "introduction":  "皇太后居所，乾隆生母孝圣宪皇后（甄嬛原型）长期居所"
     },
     {
-        "building_id":  63,
+        "building_id":  "6_3",
         "area":  "太后 / 太妃宫区",
         "building":  "寿安宫",
         "time":  "明永乐十八年（1420），清乾隆十六年（1751）改建",
@@ -442,7 +516,7 @@
         "introduction":  "太妃、太嫔居所，乾隆为母亲孝圣宪皇后六十大寿改建"
     },
     {
-        "building_id":  64,
+        "building_id":  "6_4",
         "area":  "太后 / 太妃宫区",
         "building":  "临溪亭",
         "time":  "明万历十一年（1583）始建，清多次修缮",
@@ -456,7 +530,7 @@
         "introduction":  "御花园内临水建筑，皇家赏花观鱼之所"
     },
     {
-        "building_id":  71,
+        "building_id":  "7_1",
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
         "building":  "皇极殿",
         "time":  "清康熙二十八年（1689）始建，乾隆三十七年（1772）重建",
@@ -470,21 +544,25 @@
         "introduction":  "宁寿宫区正殿，乾隆归政后举办典礼之所，仿太和殿形制建造"
     },
     {
-        "building_id":  72,
+        "building_id":  "7_2",
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
         "building":  "宁寿宫",
         "time":  "清康熙二十八年（1689）始建，乾隆三十七年（1772）重建",
         "patterns":  [
-                         "双交四椀菱花"
+                         "双交四椀菱花",
+                         "一马三箭",
+                         "步步锦"
                      ],
         "pattern_ids":  [
-                            5
+                            5,
+                            10,
+                            6
                         ],
-        "num_patterns":  1,
+        "num_patterns":  3,
         "introduction":  "仿坤宁宫形制，清代萨满祭祀之所，乾隆归政后寝宫故宫博物院"
     },
     {
-        "building_id":  73,
+        "building_id":  "7_3",
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
         "building":  "倦勤斋",
         "time":  "清乾隆三十七年（1772）始建，乾隆四十一年（1776）建成",
@@ -498,7 +576,7 @@
         "introduction":  "乾隆太上皇休憩之所，故宫内装饰最奢华的建筑之一"
     },
     {
-        "building_id":  74,
+        "building_id":  "7_4",
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
         "building":  "萃赏楼",
         "time":  "清乾隆三十七年（1772）始建",
@@ -512,7 +590,7 @@
         "introduction":  "宁寿宫花园（乾隆花园）核心建筑，乾隆藏书赏玩之所故宫博物院"
     },
     {
-        "building_id":  75,
+        "building_id":  "7_5",
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
         "building":  "符望阁",
         "time":  "清乾隆三十七年（1772）始建，乾隆四十一年（1776）建成",
@@ -526,21 +604,39 @@
         "introduction":  "宁寿宫花园最高大建筑，室内装修以漆纱、掐丝珐琅为特色，俗称 “迷楼”"
     },
     {
-        "building_id":  76,
+        "building_id":  "7_6",
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
         "building":  "阅是楼",
         "time":  "清乾隆三十七年（1772）始建，清光绪十七年（1891）重修",
         "patterns":  [
-                         "步步锦"
+                         "步步锦",
+                         "玻璃心屉"
                      ],
         "pattern_ids":  [
-                            6
+                            6,
+                            11
                         ],
-        "num_patterns":  1,
+        "num_patterns":  2,
         "introduction":  "宁寿宫区畅音阁对面，皇家观戏楼故宫博物院故宫博物院"
     },
     {
-        "building_id":  80,
+        "building_id":  "7_7",
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）",
+        "building":  "养性殿",
+        "time":  "清乾隆三十七年（1772）",
+        "patterns":  [
+                         "正方格",
+                         "玻璃心屉"
+                     ],
+        "pattern_ids":  [
+                            3,
+                            11
+                        ],
+        "num_patterns":  2,
+        "introduction":  "宁寿宫区寝宫，仿养心殿形制建造"
+    },
+    {
+        "building_id":  "8_1",
         "area":  "御花园及园林建筑",
         "building":  "万春亭",
         "time":  "明嘉靖十五年（1536）始建，清多次修缮",
@@ -554,7 +650,7 @@
         "introduction":  "御花园内对称建造的标志性建筑"
     },
     {
-        "building_id":  81,
+        "building_id":  "8_2",
         "area":  "御花园及园林建筑",
         "building":  "千秋亭",
         "time":  "明嘉靖十五年（1536）始建，清多次修缮",
@@ -568,7 +664,7 @@
         "introduction":  "御花园内对称建造的标志性建筑，与万春亭造型完全一致，仅彩画有细微差别"
     },
     {
-        "building_id":  82,
+        "building_id":  "8_3",
         "area":  "御花园及园林建筑",
         "building":  "绛雪轩",
         "time":  "明永乐十八年（1420），清多次修缮",
@@ -582,7 +678,23 @@
         "introduction":  "御花园东侧建筑，乾隆御题 “绛雪轩”，为皇家赏景休憩之所"
     },
     {
-        "building_id":  84,
+        "building_id":  "8_4",
+        "area":  "御花园及园林建筑",
+        "building":  "钦安殿",
+        "time":  "明嘉靖十四年（1535年）",
+        "patterns":  [
+                         "三交六椀菱花",
+                         "斜方格"
+                     ],
+        "pattern_ids":  [
+                            1,
+                            7
+                        ],
+        "num_patterns":  2,
+        "introduction":  "御花园核心建筑，供奉道教玄天上帝"
+    },
+    {
+        "building_id":  "8_5",
         "area":  "御花园及园林建筑",
         "building":  "养性斋",
         "time":  "明永乐十八年（1420），清嘉庆十九年（1814）改建",
@@ -598,7 +710,7 @@
         "introduction":  "御花园西侧建筑，清末溥仪英文老师庄士敦曾居于此"
     },
     {
-        "building_id":  86,
+        "building_id":  "8_6",
         "area":  "御花园及园林建筑",
         "building":  "延晖阁",
         "time":  "明永乐十八年（1420）",

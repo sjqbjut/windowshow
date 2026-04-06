@@ -317,6 +317,38 @@ function create_CCS_chart() {
             return "";
         }
 
+        function normalizeBuildingId(value) {
+            var text = cleanText(value);
+            if (!text) return "";
+            if (/^\d+_\d+$/.test(text)) return text;
+            if (/^\d+$/.test(text) && text.length >= 2) {
+                return text.slice(0, 1) + "_" + text.slice(1);
+            }
+            return text;
+        }
+
+        function getBuildingIdSortTuple(value) {
+            var id = normalizeBuildingId(value);
+            var matches = id.match(/^(\d+)_(\d+)$/);
+            if (matches) {
+                return { major: +matches[1], minor: +matches[2], raw: id };
+            }
+            if (/^\d+$/.test(id)) {
+                return { major: +id, minor: 0, raw: id };
+            }
+            return { major: Number.MAX_SAFE_INTEGER, minor: Number.MAX_SAFE_INTEGER, raw: id };
+        }
+
+        function compareBuildingIds(a, b) {
+            var ka = getBuildingIdSortTuple(a);
+            var kb = getBuildingIdSortTuple(b);
+            if (ka.major !== kb.major) return ka.major - kb.major;
+            if (ka.minor !== kb.minor) return ka.minor - kb.minor;
+            if (ka.raw < kb.raw) return -1;
+            if (ka.raw > kb.raw) return 1;
+            return 0;
+        }
+
         // 根据字段定义重建信息栏行结构（建筑/纹样共用同一套 DOM）。
         function render_info_sidebar_schema(field_defs, title_text) {
             building_info_title.text(title_text || "建筑介绍");
@@ -438,11 +470,12 @@ function create_CCS_chart() {
 
         // 外圈数据模型（建筑）。
         // volume 是区域索引，用于按区域聚类建筑。
-        var chapter_total_data = building_total_data.slice()
-            .sort(function (a, b) { return (+a.building_id) - (+b.building_id); })
+        var chapter_total_data = building_total_data
             .map(function (d) {
+                var chapter_id = normalizeBuildingId(d.building_id);
+                if (!chapter_id) return null;
                 return {
-                    chapter: +d.building_id,
+                    chapter: chapter_id,
                     volume: building_area_index[d.area] || 1,
                     card_captured: d.building,
                     popular_time: d.time,
@@ -451,7 +484,9 @@ function create_CCS_chart() {
                     meaning: d.area,
                     area: d.area
                 };
-            });
+            })
+            .filter(function (d) { return d !== null; })
+            .sort(function (a, b) { return compareBuildingIds(a.chapter, b.chapter); });
         num_chapters = chapter_total_data.length;
         num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
 
@@ -459,9 +494,9 @@ function create_CCS_chart() {
         var building_csv_by_id = {};
         var building_csv_by_name = {};
         csv_rows.forEach(function (row) {
-            var chapter_id = +row.label;
+            var chapter_id = normalizeBuildingId(row.building_id || row.label);
             var architecture_name = cleanText(row.architecture);
-            if (isFinite(chapter_id)) {
+            if (chapter_id) {
                 building_csv_by_id[chapter_id] = row;
             }
             if (architecture_name) {
@@ -597,10 +632,10 @@ function create_CCS_chart() {
 
         var mini_map_building_data = map_layout_buildings
             .map(function (item) {
-                var chapter_id = +item.building_id;
+                var chapter_id = normalizeBuildingId(item.building_id);
                 var x = +item.x;
                 var y = +item.y;
-                if (!isFinite(chapter_id) || !isFinite(x) || !isFinite(y)) return null;
+                if (!chapter_id || !isFinite(x) || !isFinite(y)) return null;
                 var meta = chapter_meta_by_id_for_map[chapter_id];
                 if (!meta) return null;
                 var label_dx = 6;
@@ -660,7 +695,10 @@ function create_CCS_chart() {
 
             var active_building_set = {};
             active_buildings.forEach(function (chapter_id) {
-                active_building_set[+chapter_id] = true;
+                var chapter_key = normalizeBuildingId(chapter_id);
+                if (chapter_key) {
+                    active_building_set[chapter_key] = true;
+                }
             });
             var active_area_set = {};
             active_areas.forEach(function (area_name) {
@@ -700,9 +738,11 @@ function create_CCS_chart() {
         var character_data = building_per_pattern_data.map(function (d) {
             var source_type = cleanText(d.type);
             return {
-                chapter: +d.building_id,
+                chapter: normalizeBuildingId(d.building_id),
                 character: singleton_pattern_types[source_type] ? "其他" : source_type
             };
+        }).filter(function (d) {
+            return !!d.chapter && !!d.character;
         });
         var cover_data = character_data.slice();
 
@@ -839,7 +879,7 @@ function create_CCS_chart() {
             valid_chapter_ids[d.chapter] = true;
         });
         chapter_hierarchy_data = chapter_hierarchy_data.filter(function (d) {
-            return d.name === hierarchy_root_name || d.num === null || !!valid_chapter_ids[+d.num];
+            return d.name === hierarchy_root_name || d.num === null || !!valid_chapter_ids[normalizeBuildingId(d.num)];
         });
         //Based on typical hierarchical clustering example
         var root = d3.stratify()
@@ -854,7 +894,7 @@ function create_CCS_chart() {
         cluster(root);
         var chapter_location_data = root.leaves()
         chapter_location_data.forEach(function (d, i) {
-            d.chapter = +d.data.num;
+            d.chapter = normalizeBuildingId(d.data.num);
             d.centerAngle = d.x * Math.PI / 180;
         });
         var chapterById = {};
@@ -1771,7 +1811,7 @@ function create_CCS_chart() {
         function lock_chapter_focus(d, show_cover_ring, line_mode) {
             info_focus_locked = true;
             locked_focus_type = "chapter";
-            locked_chapter_id = +d.chapter;
+            locked_chapter_id = normalizeBuildingId(d.chapter);
             locked_pattern_name = "";
             locked_other_pattern_type = "";
             apply_chapter_focus(d, show_cover_ring, line_mode);
@@ -1804,8 +1844,9 @@ function create_CCS_chart() {
         }
 
         function toggle_chapter_focus(d, show_cover_ring, line_mode) {
-            if (!d || !isFinite(+d.chapter)) return;
-            if (info_focus_locked && locked_focus_type === "chapter" && locked_chapter_id === +d.chapter) {
+            var chapter_id = d ? normalizeBuildingId(d.chapter) : "";
+            if (!chapter_id) return;
+            if (info_focus_locked && locked_focus_type === "chapter" && locked_chapter_id === chapter_id) {
                 unlock_info_focus();
                 return;
             }

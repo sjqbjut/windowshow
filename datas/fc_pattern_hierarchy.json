@@ -1,4 +1,4 @@
-﻿[
+[
     {
         "name":  "FORBIDDEN_CITY_PATTERNS",
         "parent":  "",
@@ -8,7 +8,7 @@
         "name":  "era_1",
         "parent":  "FORBIDDEN_CITY_PATTERNS",
         "num":  null,
-        "era":  "清康熙",
+        "era":  "明永乐",
         "era_num":  1
     },
     {
@@ -22,29 +22,36 @@
         "name":  "era_3",
         "parent":  "FORBIDDEN_CITY_PATTERNS",
         "num":  null,
-        "era":  "明永乐",
+        "era":  "清乾隆",
         "era_num":  3
     },
     {
         "name":  "era_4",
         "parent":  "FORBIDDEN_CITY_PATTERNS",
         "num":  null,
-        "era":  "清乾隆",
+        "era":  "明万历",
         "era_num":  4
     },
     {
         "name":  "era_5",
         "parent":  "FORBIDDEN_CITY_PATTERNS",
         "num":  null,
-        "era":  "明万历",
+        "era":  "清咸丰",
         "era_num":  5
     },
     {
         "name":  "era_6",
         "parent":  "FORBIDDEN_CITY_PATTERNS",
         "num":  null,
-        "era":  "延晖阁",
+        "era":  "清雍正",
         "era_num":  6
+    },
+    {
+        "name":  "era_7",
+        "parent":  "FORBIDDEN_CITY_PATTERNS",
+        "num":  null,
+        "era":  "清康熙",
+        "era_num":  7
     },
     {
         "name":  "pattern_1",
@@ -60,50 +67,68 @@
     },
     {
         "name":  "pattern_3",
-        "parent":  "era_3",
+        "parent":  "era_1",
         "num":  3,
         "type":  "正方格"
     },
     {
         "name":  "pattern_4",
-        "parent":  "era_2",
+        "parent":  "era_3",
         "num":  4,
         "type":  "冰裂纹"
     },
     {
         "name":  "pattern_5",
-        "parent":  "era_3",
+        "parent":  "era_1",
         "num":  5,
         "type":  "双交四椀菱花"
     },
     {
         "name":  "pattern_6",
-        "parent":  "era_4",
+        "parent":  "era_3",
         "num":  6,
         "type":  "步步锦"
     },
     {
         "name":  "pattern_7",
-        "parent":  "era_5",
+        "parent":  "era_4",
         "num":  7,
         "type":  "斜方格"
     },
     {
         "name":  "pattern_8",
-        "parent":  "era_4",
+        "parent":  "era_3",
         "num":  8,
         "type":  "万字纹"
     },
     {
         "name":  "pattern_9",
-        "parent":  "era_6",
+        "parent":  "era_3",
         "num":  9,
         "type":  "灯笼框"
     },
     {
         "name":  "pattern_10",
-        "parent":  "era_4",
+        "parent":  "era_3",
         "num":  10,
         "type":  "一马三箭"
+    },
+    {
+        "name":  "pattern_11",
+        "parent":  "era_5",
+        "num":  11,
+        "type":  "玻璃心屉"
+    },
+    {
+        "name":  "pattern_12",
+        "parent":  "era_6",
+        "num":  12,
+        "type":  "拐子纹"
+    },
+    {
+        "name":  "pattern_13",
+        "parent":  "era_7",
+        "num":  13,
+        "type":  "套方式"
     }
 ]

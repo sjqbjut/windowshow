@@ -24,6 +24,33 @@ function create_CCS_chart() {
     ////////////////////////////////////////////////////////////// 
     
     var container = d3.select("#chart");
+    var chart_container = d3.select("#chart-container");
+    var mini_map_debug_mode = /(?:^|[?&])mapDebug=1(?:&|$)/.test(window.location.search);
+
+    // Ensure mini-map shell exists once; overlay content is rebuilt per render.
+    var mini_map_panel = chart_container.select("#mini-map-panel");
+    if (mini_map_panel.empty()) {
+        mini_map_panel = chart_container.append("div")
+            .attr("id", "mini-map-panel")
+            .attr("class", "mini-map-panel");
+
+        var mini_map_frame = mini_map_panel.append("div")
+            .attr("class", "mini-map-frame");
+
+        mini_map_frame.append("img")
+            .attr("class", "mini-map-image")
+            .attr("src", "datas/imgs/map/map.png")
+            .attr("alt", "故宫建筑分区小地图");
+
+        mini_map_frame.append("svg")
+            .attr("class", "mini-map-overlay")
+            .attr("aria-hidden", "true");
+
+        mini_map_panel.append("div")
+            .attr("class", "mini-map-caption")
+            .text("小地图定位：移动到建筑或区域查看对应位置");
+    }
+    mini_map_panel.classed("mini-map-debug", mini_map_debug_mode);
 
     // Remove the previous chart before re-rendering
     container.selectAll("svg, canvas").remove();
@@ -140,9 +167,10 @@ function create_CCS_chart() {
         .defer(d3.json, "datas/fc_pattern_total.json")
         .defer(d3.json, "datas/fc_building_per_pattern.json")
         .defer(d3.json, "datas/fc_building_total.json")
+        .defer(d3.json, "datas/map_layout.json")
         .await(draw);
 
-    function draw(error, pattern_total_data, building_per_pattern_data, building_total_data) {
+    function draw(error, pattern_total_data, building_per_pattern_data, building_total_data, map_layout_data) {
 
         if (error) throw error;
 
@@ -213,6 +241,191 @@ function create_CCS_chart() {
             });
         num_chapters = chapter_total_data.length;
         num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
+
+        var chapter_area_by_id = {};
+        var area_chapters_map = {};
+        chapter_total_data.forEach(function (d) {
+            chapter_area_by_id[d.chapter] = d.area;
+            if (!area_chapters_map[d.area]) area_chapters_map[d.area] = [];
+            area_chapters_map[d.area].push(d.chapter);
+        });
+
+        ///////////////////////////////////////////////////////////////////////////
+        //////////////////////////// Build mini-map layer //////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
+
+        var map_layout = map_layout_data && typeof map_layout_data === "object" ? map_layout_data : {};
+        var map_image_width = +((map_layout.image && map_layout.image.width) || 335);
+        var map_image_height = +((map_layout.image && map_layout.image.height) || 551);
+        var map_layout_areas = Array.isArray(map_layout.areas) ? map_layout.areas : [];
+        var map_layout_buildings = Array.isArray(map_layout.buildings) ? map_layout.buildings : [];
+
+        var mini_map_overlay = d3.select("#mini-map-panel .mini-map-overlay")
+            .attr("viewBox", "0 0 " + map_image_width + " " + map_image_height)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+        mini_map_overlay.selectAll("*").remove();
+        mini_map_overlay.on("click", null);
+
+        var mini_map_caption = d3.select("#mini-map-panel .mini-map-caption");
+        if (mini_map_debug_mode) {
+            mini_map_overlay.on("click", function () {
+                var point = d3.mouse(this);
+                var x = Math.round(point[0]);
+                var y = Math.round(point[1]);
+                mini_map_caption.text("调试坐标 x:" + x + " y:" + y + "（写入 datas/map_layout.json）");
+                if (window.console && window.console.log) {
+                    window.console.log("[mini-map-debug] x=" + x + ", y=" + y);
+                }
+            });
+        }
+
+        function parsePolygonCollection(area_item) {
+            var polygons = [];
+            if (Array.isArray(area_item.polygons)) {
+                polygons = polygons.concat(area_item.polygons);
+            }
+            if (Array.isArray(area_item.polygon)) {
+                polygons.push(area_item.polygon);
+            }
+            return polygons
+                .map(function (poly) {
+                    return (Array.isArray(poly) ? poly : [])
+                        .map(function (point) {
+                            if (!Array.isArray(point) || point.length < 2) return null;
+                            var x = +point[0];
+                            var y = +point[1];
+                            if (!isFinite(x) || !isFinite(y)) return null;
+                            return [x, y];
+                        })
+                        .filter(function (point) { return point !== null; });
+                })
+                .filter(function (poly) { return poly.length >= 3; });
+        }
+
+        function polygonCollectionToPath(polygons) {
+            var segments = polygons.map(function (poly) {
+                return "M" + poly.map(function (point) { return point[0] + "," + point[1]; }).join("L") + "Z";
+            });
+            return segments.join("");
+        }
+
+        var mini_map_area_data = map_layout_areas
+            .map(function (area_item) {
+                var area_name = cleanText(area_item.area);
+                var polygons = parsePolygonCollection(area_item);
+                if (!area_name || !polygons.length) return null;
+                return {
+                    area: area_name,
+                    polygons: polygons,
+                    path: polygonCollectionToPath(polygons)
+                };
+            })
+            .filter(function (d) { return d !== null; });
+
+        var chapter_meta_by_id_for_map = {};
+        chapter_total_data.forEach(function (d) {
+            chapter_meta_by_id_for_map[d.chapter] = d;
+        });
+
+        var mini_map_building_data = map_layout_buildings
+            .map(function (item) {
+                var chapter_id = +item.building_id;
+                var x = +item.x;
+                var y = +item.y;
+                if (!isFinite(chapter_id) || !isFinite(x) || !isFinite(y)) return null;
+                var meta = chapter_meta_by_id_for_map[chapter_id];
+                if (!meta) return null;
+                var label_dx = 6;
+                var label_dy = -6;
+                if (Array.isArray(item.label_offset) && item.label_offset.length >= 2) {
+                    if (isFinite(+item.label_offset[0])) label_dx = +item.label_offset[0];
+                    if (isFinite(+item.label_offset[1])) label_dy = +item.label_offset[1];
+                }
+                if (isFinite(+item.label_dx)) label_dx = +item.label_dx;
+                if (isFinite(+item.label_dy)) label_dy = +item.label_dy;
+                return {
+                    building_id: chapter_id,
+                    x: x,
+                    y: y,
+                    area: meta.area,
+                    building: meta.card_captured,
+                    label_dx: label_dx,
+                    label_dy: label_dy
+                };
+            })
+            .filter(function (d) { return d !== null; });
+
+        var mini_map_area_group = mini_map_overlay.append("g").attr("class", "mini-map-area-group");
+        var mini_map_marker_group = mini_map_overlay.append("g").attr("class", "mini-map-marker-group");
+
+        var mini_map_area_path = mini_map_area_group.selectAll(".mini-map-area")
+            .data(mini_map_area_data)
+            .enter().append("path")
+            .attr("class", "mini-map-area")
+            .attr("d", function (d) { return d.path; })
+            .style("fill", function (d) { return area_color(d.area) || "#2f2f2f"; })
+            .style("opacity", 0);
+
+        var mini_map_marker = mini_map_marker_group.selectAll(".mini-map-building-dot")
+            .data(mini_map_building_data)
+            .enter().append("circle")
+            .attr("class", "mini-map-building-dot")
+            .attr("cx", function (d) { return d.x; })
+            .attr("cy", function (d) { return d.y; })
+            .attr("r", 2.5)
+            .style("opacity", 0.45);
+
+        var mini_map_label = mini_map_marker_group.selectAll(".mini-map-building-label")
+            .data(mini_map_building_data)
+            .enter().append("text")
+            .attr("class", "mini-map-building-label")
+            .attr("x", function (d) { return d.x + d.label_dx; })
+            .attr("y", function (d) { return d.y + d.label_dy; })
+            .style("opacity", 0)
+            .text(function (d) { return d.building; });
+
+        function update_mini_map(options) {
+            var opts = options || {};
+            var active_buildings = Array.isArray(opts.buildings) ? opts.buildings : [];
+            var active_areas = Array.isArray(opts.areas) ? opts.areas : [];
+            var status_text = cleanText(opts.caption);
+
+            var active_building_set = {};
+            active_buildings.forEach(function (chapter_id) {
+                active_building_set[+chapter_id] = true;
+            });
+            var active_area_set = {};
+            active_areas.forEach(function (area_name) {
+                active_area_set[area_name] = true;
+            });
+
+            mini_map_area_path
+                .style("opacity", function (d) { return active_area_set[d.area] ? 0.5 : 0; });/*地图area框显示透明度*/
+
+            mini_map_marker
+                .attr("r", function (d) { return active_building_set[d.building_id] ? 4 : 2.5; })
+                .style("opacity", function (d) {
+                    if (active_building_set[d.building_id]) return 1;
+                    if (!active_buildings.length) return 0.45;
+                    return 0.2;
+                });
+
+            mini_map_label
+                .style("opacity", function (d) { return active_building_set[d.building_id] ? 1 : 0; });
+
+            if (mini_map_caption.empty()) return;
+            if (!mini_map_building_data.length) {
+                mini_map_caption.text("小地图定位：请在 datas/map_layout.json 补充建筑坐标");
+                return;
+            }
+            if (status_text) {
+                mini_map_caption.text(status_text);
+            } else {
+                mini_map_caption.text("小地图定位：移动到建筑或区域查看对应位置");
+            }
+        }
+
+        update_mini_map();
 
         // 连线数据模型（纹样 -> 建筑）。
         // 单次出现纹样会被重映射到聚合节点“其他”。
@@ -907,6 +1120,13 @@ function create_CCS_chart() {
             var char_chapters = character_data
                 .filter(function(c) { return c.character === d.character; })
                 .map(function(c) { return c.chapter; });
+            var char_areas = [];
+            char_chapters.forEach(function (chapter_id) {
+                var area_name = chapter_area_by_id[chapter_id];
+                if (area_name && char_areas.indexOf(area_name) < 0) {
+                    char_areas.push(area_name);
+                }
+            });
             var char_color = characterByName[d.character].color;
             chapter_hover_slice.filter(function(c,j) { return char_chapters.indexOf(c.chapter) >= 0; })
                 .style("fill", char_color)
@@ -929,6 +1149,12 @@ function create_CCS_chart() {
             //Show the hover circle
             hover_circle.filter(function(c) { return d.character === c.character; })
                 .style("opacity", 1);
+
+            update_mini_map({
+                buildings: char_chapters,
+                areas: char_areas,
+                caption: "纹样关联建筑：" + d.character
+            });
 
         }//function mouse_over_character
 
@@ -1056,6 +1282,66 @@ function create_CCS_chart() {
             .on("mouseover", mouse_over_chapter)
             .on("mouseout", mouse_out);
 
+        var arc_area_hover = d3.arc()
+            .outerRadius(rad_chapter_outer + 10 * size_factor)
+            .innerRadius(rad_chapter_outer + 2 * size_factor);
+
+        var area_hover_group = chart.append("g").attr("class", "area-hover-group");
+        var area_hover = area_hover_group.selectAll(".area-hover-arc")
+            .data(area_ring_data)
+            .enter().append("path")
+            .attr("class", "area-hover-arc")
+            .attr("d", arc_area_hover)
+            .style("fill", "none")
+            .style("pointer-events", "all")
+            .on("mouseover", mouse_over_area)
+            .on("mouseout", mouse_out);
+
+        function mouse_over_area(d) {
+            d3.event.stopPropagation();
+            mouse_over_in_action = true;
+            stop_merged_pattern_cycle();
+
+            var area_chapters = area_chapters_map[d.area] ? area_chapters_map[d.area].slice() : [];
+            var current_area_color = area_color(d.area);
+            var area_center_angle = (d.startAngle + d.endAngle) / 2;
+
+            ctx.clearRect(-width / 2, -height / 2, width, height);
+            ctx.lineWidth = 4 * size_factor;
+            ctx.globalAlpha = 0.95;
+            create_lines("chapter", character_data.filter(function (c) { return area_chapters.indexOf(c.chapter) >= 0; }));
+
+            line_label_path.attr("d", label_arc(area_center_angle));
+            clearTimeout(remove_text_timer);
+            line_label.text("区域建筑分布：" + d.area);
+
+            chapter_hover_slice
+                .filter(function (c) { return area_chapters.indexOf(c.chapter) >= 0; })
+                .style("fill", current_area_color)
+                .style("stroke", current_area_color);
+            chapter_number
+                .filter(function (c) { return area_chapters.indexOf(c.chapter) >= 0; })
+                .style("fill", "white");
+            chapter_dot
+                .filter(function (c) { return area_chapters.indexOf(c.chapter) >= 0; })
+                .attr("r", chapter_dot_rad * 1.5)
+                .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
+                .style("fill", current_area_color);
+
+            names.style("opacity", null);
+            name_dot.style("opacity", null);
+            cover_circle.style("fill", "none");
+            hover_circle.style("opacity", 0);
+            color_hover_circle.style("opacity", 0);
+            show_default_center_image();
+
+            update_mini_map({
+                buildings: area_chapters,
+                areas: [d.area],
+                caption: "区域定位：" + d.area
+            });
+        }//function mouse_over_area
+
         // 悬浮建筑扇区：仅显示该建筑与纹样的连线。
         function mouse_over_chapter(d,i) {
             d3.event.stopPropagation();
@@ -1097,6 +1383,12 @@ function create_CCS_chart() {
             //Show the cover image in the center
             show_center_image_for_chapter(d.chapter);
             cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
+
+            update_mini_map({
+                buildings: [d.chapter],
+                areas: [chapter_area_by_id[d.chapter]],
+                caption: "建筑定位：" + d.data.type
+            });
         }//function mouse_over_chapter
 
         //////////////////////////////////////////////////////////////
@@ -1266,6 +1558,12 @@ function create_CCS_chart() {
                 .attr("cx", rad_color * Math.cos(d.centerAngle - pi1_2))
                 .attr("cy", rad_color * Math.sin(d.centerAngle - pi1_2))
                 .style("opacity", 1);
+
+            update_mini_map({
+                buildings: [d.chapter],
+                areas: [chapter_area_by_id[d.chapter]],
+                caption: "建筑定位：" + d.data.type
+            });
         }//function mouse_over_cover
 
         ///////////////////////////////////////////////////////////////////////////
@@ -1318,6 +1616,8 @@ function create_CCS_chart() {
             relation_lines.style("opacity", 0.7);
             //Remove relationship annotation
             annotation_relation_group.selectAll(".annotation").remove();
+
+            update_mini_map();
         }//function mouse_out
 
         ///////////////////////////////////////////////////////////////////////////

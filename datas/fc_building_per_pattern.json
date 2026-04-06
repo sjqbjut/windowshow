@@ -74,35 +74,35 @@
         "type":  "三交六椀菱花",
         "building":  "乾清宫",
         "building_id":  31,
-        "area":  "内廷后三宫（帝后核心生活区）"
+        "area":  "内廷后三宫"
     },
     {
         "pattern":  1,
         "type":  "三交六椀菱花",
         "building":  "交泰殿",
         "building_id":  32,
-        "area":  "内廷后三宫（帝后核心生活区）"
+        "area":  "内廷后三宫"
     },
     {
         "pattern":  5,
         "type":  "双交四椀菱花",
         "building":  "坤宁宫",
         "building_id":  33,
-        "area":  "内廷后三宫（帝后核心生活区）"
+        "area":  "内廷后三宫"
     },
     {
         "pattern":  2,
         "type":  "轱辘钱",
         "building":  "养心殿",
         "building_id":  34,
-        "area":  "内廷后三宫（帝后核心生活区）"
+        "area":  "内廷后三宫"
     },
     {
         "pattern":  6,
         "type":  "步步锦",
         "building":  "养心殿",
         "building_id":  34,
-        "area":  "内廷后三宫（帝后核心生活区）"
+        "area":  "内廷后三宫"
     },
     {
         "pattern":  5,
@@ -280,6 +280,13 @@
         "area":  "太后 / 太妃宫区"
     },
     {
+        "pattern":  7,
+        "type":  "斜方格",
+        "building":  "临溪亭",
+        "building_id":  64,
+        "area":  "太后 / 太妃宫区"
+    },   
+    {
         "pattern":  1,
         "type":  "三交六椀菱花",
         "building":  "皇极殿",
@@ -315,6 +322,13 @@
         "area":  "宁寿宫区（乾隆太上皇宫殿区）"
     },
     {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "阅是楼",
+        "building_id":  76,
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）"
+    },
+    {
         "pattern":  1,
         "type":  "三交六椀菱花",
         "building":  "万春亭",
@@ -336,13 +350,6 @@
         "area":  "御花园及园林建筑"
     },
     {
-        "pattern":  7,
-        "type":  "斜方格",
-        "building":  "临溪亭",
-        "building_id":  83,
-        "area":  "御花园及园林建筑"
-    },
-    {
         "pattern":  4,
         "type":  "冰裂纹",
         "building":  "养性斋",
@@ -354,13 +361,6 @@
         "type":  "步步锦",
         "building":  "养性斋",
         "building_id":  84,
-        "area":  "御花园及园林建筑"
-    },
-    {
-        "pattern":  6,
-        "type":  "步步锦",
-        "building":  "阅是楼",
-        "building_id":  85,
         "area":  "御花园及园林建筑"
     },
     {

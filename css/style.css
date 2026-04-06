@@ -206,6 +206,97 @@ body.landing-active {
     position: relative;
 }
 
+.mini-map-panel {
+    position: fixed;
+    top: 16px;
+    left: 16px;/*调整小地图画布中心在屏幕上的位置*/
+    z-index: 8;
+    width: clamp(261px, 35vw, 424px);/*调整小地图在大屏幕上的大小*/
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    opacity: 0.86;/*调整小地图的整体透明度*/
+    mix-blend-mode: multiply;
+    transition: opacity 0.25s ease;
+    pointer-events: none;/*初始状态下小地图面板不响应鼠标事件，只有在调试模式下才启用交互*/
+}
+
+.mini-map-panel.mini-map-debug {
+    opacity: 0.95;
+    pointer-events: auto;
+}/*在调试模式下，小地图面板启用鼠标事件，允许用户与小地图进行交互*/
+
+.mini-map-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 335 / 551;
+    border-radius: 0;
+    overflow: hidden;
+    background: transparent;
+}/*小地图的容器，保持特定的宽高比，并且隐藏溢出的内容*/
+
+.mini-map-image,
+.mini-map-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}/*小地图的背景图像和SVG覆盖层都绝对定位，填满整个小地图容器*/
+
+.mini-map-image {
+    opacity: 0.86;
+    filter: saturate(0.88) contrast(0.94);
+    object-fit: contain;
+}/*调整小地图底图的透明度等效果*/
+
+.mini-map-overlay {
+    overflow: visible;
+}/*小地图上的SVG覆盖层，用于显示区域边界、建筑物位置和名称等信息*/
+
+.mini-map-panel.mini-map-debug .mini-map-overlay {
+    cursor: crosshair;
+}/*在调试模式下，小地图覆盖层显示为十字准星，方便定位和调试*/
+
+.mini-map-area {
+    stroke: rgba(255, 255, 255, 0.9);
+    stroke-width: 1.3;
+    vector-effect: non-scaling-stroke;
+}/*小地图上区域边界的样式，使用描边效果提高可见性*/
+
+.mini-map-building-dot {
+    fill: #f8f3e8;
+    stroke: rgba(42, 42, 42, 0.75);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+}/*小地图上建筑物位置的样式，使用描边效果提高可见性*/
+
+.mini-map-building-label {
+    fill: #2f2f2f;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 16px;/*调整小地图建筑定位的字体大小*/
+    font-weight: 600;
+    paint-order: stroke;
+    stroke: rgba(255, 255, 255, 0.9);
+    stroke-width: 2.4;
+    vector-effect: non-scaling-stroke;
+}/*小地图上建筑物名称的样式，使用描边效果提高可读性*/
+
+.mini-map-caption {
+    display: none;
+    margin-top: 4px;
+    color: #3f3f3f;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: clamp(10px, 1vw, 11px);
+    line-height: 1.35;
+    text-align: left;
+}/*小地图标题，位于小地图下方，提供简要说明或提示*/
+
+.mini-map-panel.mini-map-debug .mini-map-caption {
+    display: block;
+}
 #chart svg {
     position: absolute;
     top: 0;
@@ -264,6 +355,12 @@ canvas {
         padding-top: 8px;
         padding-bottom: 12px;
     }
+
+    .mini-map-panel {
+        top: 10px;
+        left: 10px;
+        width: min(clamp(229px, 65vw, 304px), calc(100vw - 20px));
+    }/*调整小地图在小屏幕上的大小*/
 
     .landing-content {
         padding: 16px;

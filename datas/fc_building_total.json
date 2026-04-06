@@ -141,7 +141,7 @@
     },
     {
         "building_id":  31,
-        "area":  "内廷后三宫（帝后核心生活区）",
+        "area":  "内廷后三宫",
         "building":  "乾清宫",
         "time":  "明永乐十八年（1420），清嘉庆二年（1797）重建",
         "patterns":  [
@@ -155,7 +155,7 @@
     },
     {
         "building_id":  32,
-        "area":  "内廷后三宫（帝后核心生活区）",
+        "area":  "内廷后三宫",
         "building":  "交泰殿",
         "time":  "明嘉靖年间始建，清嘉庆二年（1797）重建",
         "patterns":  [
@@ -169,7 +169,7 @@
     },
     {
         "building_id":  33,
-        "area":  "内廷后三宫（帝后核心生活区）",
+        "area":  "内廷后三宫",
         "building":  "坤宁宫",
         "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
         "patterns":  [
@@ -183,7 +183,7 @@
     },
     {
         "building_id":  34,
-        "area":  "内廷后三宫（帝后核心生活区）",
+        "area":  "内廷后三宫",
         "building":  "养心殿",
         "time":  "明嘉靖十六年（1537），清雍正年间大规模重修",
         "patterns":  [
@@ -428,6 +428,20 @@
         "introduction":  "太妃、太嫔居所，乾隆为母亲孝圣宪皇后六十大寿改建"
     },
     {
+        "building_id":  64,
+        "area":  "太后 / 太妃宫区",
+        "building":  "临溪亭",
+        "time":  "明万历十一年（1583）始建，清多次修缮",
+        "patterns":  [
+                         "斜方格"
+                     ],
+        "pattern_ids":  [
+                            7
+                        ],
+        "num_patterns":  1,
+        "introduction":  "御花园内临水建筑，皇家赏花观鱼之所"
+    },
+    {
         "building_id":  71,
         "area":  "宁寿宫区（乾隆太上皇宫殿区）",
         "building":  "皇极殿",
@@ -498,6 +512,20 @@
         "introduction":  "宁寿宫花园最高大建筑，室内装修以漆纱、掐丝珐琅为特色，俗称 “迷楼”"
     },
     {
+        "building_id":  76,
+        "area":  "宁寿宫区（乾隆太上皇宫殿区）",
+        "building":  "阅是楼",
+        "time":  "清乾隆三十七年（1772）始建，清光绪十七年（1891）重修",
+        "patterns":  [
+                         "步步锦"
+                     ],
+        "pattern_ids":  [
+                            6
+                        ],
+        "num_patterns":  1,
+        "introduction":  "宁寿宫区畅音阁对面，皇家观戏楼故宫博物院故宫博物院"
+    },
+    {
         "building_id":  80,
         "area":  "御花园及园林建筑",
         "building":  "万春亭",
@@ -540,20 +568,6 @@
         "introduction":  "御花园东侧建筑，乾隆御题 “绛雪轩”，为皇家赏景休憩之所"
     },
     {
-        "building_id":  83,
-        "area":  "御花园及园林建筑",
-        "building":  "临溪亭",
-        "time":  "明万历十一年（1583）始建，清多次修缮",
-        "patterns":  [
-                         "斜方格"
-                     ],
-        "pattern_ids":  [
-                            7
-                        ],
-        "num_patterns":  1,
-        "introduction":  "御花园内临水建筑，皇家赏花观鱼之所"
-    },
-    {
         "building_id":  84,
         "area":  "御花园及园林建筑",
         "building":  "养性斋",
@@ -568,20 +582,6 @@
                         ],
         "num_patterns":  2,
         "introduction":  "御花园西侧建筑，清末溥仪英文老师庄士敦曾居于此"
-    },
-    {
-        "building_id":  85,
-        "area":  "御花园及园林建筑",
-        "building":  "阅是楼",
-        "time":  "清乾隆三十七年（1772）始建，清光绪十七年（1891）重修",
-        "patterns":  [
-                         "步步锦"
-                     ],
-        "pattern_ids":  [
-                            6
-                        ],
-        "num_patterns":  1,
-        "introduction":  "宁寿宫区畅音阁对面，皇家观戏楼故宫博物院故宫博物院"
     },
     {
         "building_id":  86,

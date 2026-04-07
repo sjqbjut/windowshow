@@ -74,6 +74,7 @@
     { "building_id": "3_3", "x": 168, "y": 92 },
     { "building_id": "3_4", "x": 126, "y": 138 },
     { "building_id": "3_5", "x": 203, "y": 149 },
+    { "building_id": "3_6", "x": 168, "y": 79 },
     { "building_id": "4_1", "x": 200, "y": 119 },
     { "building_id": "4_2", "x": 200, "y": 77 },
     { "building_id": "4_3", "x": 200, "y": 96 },
@@ -102,6 +103,8 @@
     { "building_id": "8_3", "x": 185, "y": 69 },
     { "building_id": "8_4", "x": 168, "y": 54 },
     { "building_id": "8_5", "x": 146, "y": 69 },
-    { "building_id": "8_6", "x": 154, "y": 46 }
+    { "building_id": "8_6", "x": 154, "y": 46 },
+    { "building_id": "8_7", "x": 146, "y": 46 },
+    { "building_id": "8_8", "x": 168, "y": 32 }
   ]
 }

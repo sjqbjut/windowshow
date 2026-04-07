@@ -252,6 +252,24 @@
         "introduction":  "东六宫之南，清代皇帝祭天祀地前进行斋戒的场所"
     },
     {
+        "building_id":  "3_6",
+        "area":  "内廷后三宫",
+        "building":  "坤宁门",
+        "time":  "明永乐十八年（1420），清顺治十二年（1655）重修",
+        "patterns":  [
+                         "步步锦",
+                         "斜方格",
+                         "正方格"
+                     ],
+        "pattern_ids":  [
+                            6,
+                            7,
+                            3
+                        ],
+        "num_patterns":  3,
+        "introduction":  "内廷后三宫通往御花园的北门，连接后三宫与御花园的重要通道"
+    },
+    {
         "building_id":  "4_1",
         "area":  "内廷东六宫（妃嫔居所）",
         "building":  "景仁宫",
@@ -722,5 +740,33 @@
                         ],
         "num_patterns":  1,
         "introduction":  "御花园西北隅的休憩楼阁，清代选秀女时的阅选场所"
+    },
+    {
+        "building_id":  "8_7",
+        "area":  "御花园及园林建筑",
+        "building":  "位育斋",
+        "time":  "明永乐十八年始建,清雍正年间改名",
+        "patterns":  [
+                         "步步锦"
+                     ],
+        "pattern_ids":  [
+                            6
+                        ],
+        "num_patterns":  1,
+        "introduction":  "御花园西北部的书斋式建筑，清代曾作为皇帝或皇子读书休憩之所"
+    },
+    {
+        "building_id":  "8_8",
+        "area":  "御花园及园林建筑",
+        "building":  "神武门",
+        "time":  "明永乐十八年（1420），清顺治四年（1647）重修",
+        "patterns":  [
+                         "三交六椀菱花"
+                     ],
+        "pattern_ids":  [
+                            1
+                        ],
+        "num_patterns":  1,
+        "introduction":  "紫禁城北门，皇家日常出入及选秀女的通道"
     }
 ]

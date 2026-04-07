@@ -112,6 +112,13 @@
         "area":  "御花园及园林建筑"
     },
     {
+        "pattern":  1,
+        "type":  "三交六椀菱花",
+        "building":  "神武门",
+        "building_id":  "8_8",
+        "area":  "御花园及园林建筑"
+    },
+    {
         "pattern":  2,
         "type":  "轱辘钱",
         "building":  "养心殿",
@@ -144,6 +151,13 @@
         "type":  "正方格",
         "building":  "养心殿",
         "building_id":  "3_4",
+        "area":  "内廷后三宫"
+    },
+    {
+        "pattern":  3,
+        "type":  "正方格",
+        "building":  "坤宁门",
+        "building_id":  "3_6",
         "area":  "内廷后三宫"
     },
     {
@@ -282,6 +296,13 @@
     {
         "pattern":  6,
         "type":  "步步锦",
+        "building":  "坤宁门",
+        "building_id":  "3_6",
+        "area":  "内廷后三宫"
+    },
+    {
+        "pattern":  6,
+        "type":  "步步锦",
         "building":  "景仁宫",
         "building_id":  "4_1",
         "area":  "内廷东六宫（妃嫔居所）"
@@ -392,6 +413,13 @@
         "area":  "御花园及园林建筑"
     },
     {
+        "pattern":  6,
+        "type":  "步步锦",
+        "building":  "位育斋",
+        "building_id":  "8_7",
+        "area":  "御花园及园林建筑"
+    },
+    {
         "pattern":  7,
         "type":  "斜方格",
         "building":  "体仁阁",
@@ -404,6 +432,13 @@
         "building":  "弘义阁",
         "building_id":  "1_9",
         "area":  "外朝中路（礼制核心区）"
+    },
+    {
+        "pattern":  7,
+        "type":  "斜方格",
+        "building":  "坤宁门",
+        "building_id":  "3_6",
+        "area":  "内廷后三宫"
     },
     {
         "pattern":  7,

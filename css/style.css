@@ -309,7 +309,228 @@ body.landing-active {
     display: block;
 }
 
-/* 侧边栏主容器：
+/* 左下角区域介绍栏（悬浮展示，贴合背景，不做弹窗感） */
+.area-info-panel {
+    --area-info-accent-rgb: 133, 98, 61;
+    position: fixed;
+    left: var(--area-info-left, 16px);
+    bottom: var(--area-info-bottom, 16px);
+    z-index: 7;
+    width: var(--area-info-width, 320px);
+    min-height: var(--area-info-min-height, 120px);
+    max-height: var(--area-info-max-height, 248px);
+    max-width: min(calc(100vw - 20px), 420px);
+    border: 1px solid rgba(var(--area-info-accent-rgb), 0.34);
+    border-radius: 10px;
+    background: linear-gradient(162deg, rgba(249, 245, 238, 0.7), rgba(242, 235, 224, 0.58));
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.36),
+        inset 0 -1px 0 rgba(var(--area-info-accent-rgb), 0.14);
+    backdrop-filter: blur(1.2px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(9px);
+    transition:
+        opacity 0.22s ease,
+        transform 0.22s ease,
+        border-color 0.24s ease,
+        background 0.24s ease;
+}
+
+.area-info-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, rgba(var(--area-info-accent-rgb), 0.2), rgba(var(--area-info-accent-rgb), 0.03) 42%, rgba(255, 255, 255, 0) 100%);
+}
+
+.area-info-panel.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.area-info-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 7px;
+    height: 100%;
+    padding: 12px 14px;
+}
+
+.area-info-badge {
+    justify-self: start;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(var(--area-info-accent-rgb), 0.36);
+    color: rgba(var(--area-info-accent-rgb), 0.9);
+    background: rgba(255, 255, 255, 0.42);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(11px * var(--area-info-font-scale, 1));
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.area-info-title {
+    margin: 0;
+    color: rgba(62, 46, 31, 0.95);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(16px * var(--area-info-font-scale, 1));
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.28;
+}
+
+.area-info-description {
+    margin: 0;
+    padding-right: 2px;
+    color: rgba(64, 49, 35, 0.88);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(13px * var(--area-info-font-scale, 1));
+    line-height: 1.62;
+    /* 文字溢出时在信息栏内部滚动 */
+    overflow-y: auto;
+    /* 保留滚动条占位，避免出现滚动条时文本左右跳动 */
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(133, 97, 59, 0.42) rgba(196, 175, 146, 0.18);
+    /* iOS/移动端下滑更顺滑 */
+    -webkit-overflow-scrolling: touch;
+}
+
+.area-info-description::-webkit-scrollbar {
+    width: 6px;
+}
+
+.area-info-description::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(var(--area-info-accent-rgb), 0.38);
+}
+
+.area-info-description::-webkit-scrollbar-track {
+    background: rgba(var(--area-info-accent-rgb), 0.08);
+}
+/*左下角扇形图区域介绍的样式，包含标题、描述和图例等信息，设计为半透明背景，边框和阴影增强层次感，并且在内容溢出时提供滚动功能*/
+.pattern-area-panel {
+    min-height: 182px;
+    max-width: min(calc(100vw - 20px), 420px);
+    border-color: rgba(var(--area-info-accent-rgb), 0.4);
+    background:
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0) 48%),
+        linear-gradient(162deg, rgba(248, 243, 234, 0.82), rgba(241, 233, 220, 0.74));
+}
+
+.pattern-area-panel::before {
+    background:
+        linear-gradient(92deg, rgba(var(--area-info-accent-rgb), 0.16), rgba(var(--area-info-accent-rgb), 0.03) 40%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0.76;
+}
+
+.pattern-area-inner {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    padding: 8px 10px 10px;
+}
+
+.pattern-area-svg {
+    width: 100%;
+    max-width: 500px;/*调整扇形图在信息栏中最大宽度*/
+    height: auto;
+    display: block;
+}
+
+.pattern-area-bg-ring {
+    fill: rgba(255, 255, 255, 0.56);
+    stroke: rgba(var(--area-info-accent-rgb), 0.22);
+    stroke-width: 1.2;
+}
+
+.pattern-area-hole {
+    fill: rgba(255, 255, 255, 0.85);
+    stroke: rgba(var(--area-info-accent-rgb), 0.2);
+    stroke-width: 1.1;
+}
+/* 扇形图的中心纹样名，使用半透明的白色填充和淡棕色描边，增强层次感和视觉分离 */
+.pattern-area-center {
+    fill: rgba(74, 55, 36, 0.94);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(8.5px * var(--area-info-font-scale, 1));
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+/* 扇形图区域名的样式，使用深棕色填充和较大字号，增强可读性和视觉冲击力 */
+.pattern-area-label {
+    fill: rgba(73, 54, 36, 0.95);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(6.5px * var(--area-info-font-scale, 1));
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    paint-order: stroke;
+    stroke: rgba(255, 255, 255, 0.84);
+    stroke-width: 2.3;
+    stroke-linejoin: round;
+}
+/* 扇形图上方表名的样式，使用描边效果提高可读性，并且根据字体倍率变量自动调整字号 */
+.pattern-area-title {
+    width: 100%;
+    text-align: center;
+    color: rgba(64, 47, 31, 0.94);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(13.5px * var(--area-info-font-scale, 1));
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1.25;
+    margin-top: 1px;
+}
+
+.pattern-area-legend {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px 6px;
+    max-height: 64px;
+    overflow-y: auto;
+    padding: 0 1px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--area-info-accent-rgb), 0.32) rgba(var(--area-info-accent-rgb), 0.08);
+}
+
+.pattern-area-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgba(var(--area-info-accent-rgb), 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.45);
+    padding: 2px 7px;
+}
+
+.pattern-area-legend-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+}
+/* 扇形图下方图例的样式，使用圆形设计和白色描边增强可见性 */
+.pattern-area-legend-text {
+    color: rgba(73, 56, 38, 0.9);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: calc(10.7px * var(--area-info-font-scale, 1));
+    line-height: 1.3;
+}
+
+/* 右侧边栏主容器：
    - 宽高由 JS 写入的 CSS 变量控制
    - 如需手动固定尺寸，可直接改 width/height 的变量默认值 */
 .building-info-panel {
@@ -546,6 +767,7 @@ body.landing-active {
     font-size: calc(12.5px * var(--building-info-font-scale, 1));
     font-weight: 600;
     letter-spacing: 0.03em;
+    white-space: nowrap;
 }
 
 .building-info-value {
@@ -658,6 +880,46 @@ canvas {
 
     .building-info-panel {
         width: min(94vw, 360px);
+    }
+
+    .area-info-panel {
+        width: min(var(--area-info-width, 320px), calc(100vw - 20px));
+        left: 10px;
+        bottom: 10px;
+    }
+
+    .area-info-inner {
+        padding: 10px 11px;
+        gap: 6px;
+    }
+
+    .area-info-title {
+        font-size: calc(14px * var(--area-info-font-scale, 1));
+    }
+
+    .area-info-description {
+        font-size: calc(12px * var(--area-info-font-scale, 1));
+        line-height: 1.56;
+    }
+/* 手机端扇形图区域介绍调整：整体缩小，标题和标签字号微调，图例行高微调，避免过高导致单行显示 */
+    .pattern-area-svg {
+        max-width: 260px;
+    }
+
+    .pattern-area-title {
+        font-size: calc(12px * var(--area-info-font-scale, 1));
+    }
+
+    .pattern-area-label {
+        font-size: calc(9.5px * var(--area-info-font-scale, 1));
+    }
+
+    .pattern-area-legend {
+        max-height: 56px;
+    }
+
+    .pattern-area-legend-text {
+        font-size: calc(10px * var(--area-info-font-scale, 1));
     }
 
     /* 手机端堆叠布局底部留白入口 */

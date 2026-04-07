@@ -35,9 +35,9 @@ function create_CCS_chart() {
     ];
     var pattern_info_field_defs = [
         { key: "type", label: "纹样" },
-        { key: "populartime", label: "流行时代" },
-        { key: "intruductions", label: "详细介绍" },
-        { key: "meanings", label: "寓意" }
+        { key: "populartime", label: "流行年代" },
+        { key: "meanings", label: "寓意" },
+        { key: "intruductions", label: "详细介绍" }
     ];
 
     // 信息栏中需要占整行显示的长文本字段（建筑/纹样共用）。
@@ -141,6 +141,80 @@ function create_CCS_chart() {
     var building_info_extra_list = building_info_panel.select(".building-info-extra-list");
     building_info_extra.classed("is-visible", false);
 
+    // 区域介绍栏（悬浮区域/建筑时显示）。
+    var area_info_panel = chart_container.select("#area-info-panel");
+    if (area_info_panel.empty()) {
+        area_info_panel = chart_container.append("aside")
+            .attr("id", "area-info-panel")
+            .attr("class", "area-info-panel")
+            .attr("aria-hidden", "true");
+
+        var area_info_inner = area_info_panel.append("div")
+            .attr("class", "area-info-inner");
+        area_info_inner.append("div")
+            .attr("class", "area-info-badge")
+            .text("区域介绍");
+        area_info_inner.append("h3")
+            .attr("class", "area-info-title")
+            .text("区域");
+        area_info_inner.append("p")
+            .attr("class", "area-info-description")
+            .text("移动到区域或建筑图标查看介绍");
+    }
+    area_info_panel
+        .classed("is-visible", false)
+        .attr("aria-hidden", "true");
+    var area_info_badge = area_info_panel.select(".area-info-badge");
+    var area_info_title = area_info_panel.select(".area-info-title");
+    var area_info_description = area_info_panel.select(".area-info-description");
+
+    // 纹样 -> 区域分布扇形图（悬浮/锁定纹样时显示）。
+    var pattern_area_panel = chart_container.select("#pattern-area-panel");
+    if (pattern_area_panel.empty()) {
+        pattern_area_panel = chart_container.append("aside")
+            .attr("id", "pattern-area-panel")
+            .attr("class", "area-info-panel pattern-area-panel")
+            .attr("aria-hidden", "true");
+
+        var pattern_area_inner = pattern_area_panel.append("div")
+            .attr("class", "pattern-area-inner");
+        pattern_area_inner.append("div")
+            .attr("class", "pattern-area-title")
+            .text("纹样区域分布");
+        var pattern_area_svg = pattern_area_inner.append("svg")
+            .attr("class", "pattern-area-svg")
+            .attr("viewBox", "0 0 220 180")
+            .attr("aria-hidden", "true");
+        var pattern_area_root = pattern_area_svg.append("g")
+            .attr("class", "pattern-area-root")
+            .attr("transform", "translate(110,92)");
+        pattern_area_root.append("circle")
+            .attr("class", "pattern-area-bg-ring")
+            .attr("r", 90);//扇形白色背景半径
+        pattern_area_root.append("circle")
+            .attr("class", "pattern-area-hole")
+            .attr("r", 40);//扇形内空白区域半径
+        pattern_area_root.append("g").attr("class", "pattern-area-slices");
+        pattern_area_root.append("g").attr("class", "pattern-area-labels");
+        pattern_area_root.append("text")//中心纹样名文本
+            .attr("class", "pattern-area-center")
+            .attr("text-anchor", "middle")
+            .text("纹样");
+        pattern_area_inner.append("div")
+            .attr("class", "pattern-area-legend");
+    }
+    pattern_area_panel
+        .classed("is-visible", false)
+        .attr("aria-hidden", "true");
+    var pattern_area_slices_group = pattern_area_panel.select(".pattern-area-slices");
+    var pattern_area_labels_group = pattern_area_panel.select(".pattern-area-labels");
+    var pattern_area_center_text = pattern_area_panel.select(".pattern-area-center");
+    var pattern_area_legend = pattern_area_panel.select(".pattern-area-legend");
+    pattern_area_slices_group.selectAll(".pattern-area-slice").remove();
+    pattern_area_labels_group.selectAll(".pattern-area-label").remove();
+    pattern_area_center_text.text("纹样");
+    pattern_area_legend.selectAll(".pattern-area-legend-item").remove();
+
     // Remove the previous chart before re-rendering
     container.selectAll("svg, canvas").remove();
     container.style("height", null);
@@ -163,6 +237,15 @@ function create_CCS_chart() {
     var building_info_min_readable_width = 140; // 低于该宽度时改为下方堆叠布局
     var building_info_font_scale = 1.8;           // 字体整体倍率（例如 1.15 / 1.25）
 
+    // ===== 左下角区域介绍栏调参区 =====
+    // 以下变量可直接用于调节区域介绍栏的尺寸/位置/字号倍率。
+    var area_info_width = Math.round(Math.max(236, Math.min(400, ww * 0.35)));
+    var area_info_min_height = Math.round(Math.max(116, Math.min(148, window.innerHeight * 0.16)));
+    var area_info_max_height = Math.round(Math.max(area_info_min_height + 28, Math.min(500, window.innerHeight * 0.45)));
+    var area_info_left = width_too_small ? 10 : 40;
+    var area_info_bottom = width_too_small ? 10 : 200;
+    var area_info_font_scale = width_too_small ? 0.92 : 1.6;
+
     // 信息栏简化规则：
     // 1) 可用区 = 外圈最右点 到 页面最右边；
     // 2) 两端各留 side_gap_ratio 比例空隙，中间放信息栏。
@@ -184,7 +267,17 @@ function create_CCS_chart() {
         .style("--building-info-width", building_info_width + "px")
         .style("--building-info-left-offset", building_info_left_offset + "px")
         .style("--building-info-height", building_info_height + "px")
-        .style("--building-info-font-scale", building_info_font_scale);
+        .style("--building-info-font-scale", building_info_font_scale)
+        .style("--area-info-width", area_info_width + "px")
+        .style("--area-info-min-height", area_info_min_height + "px")
+        .style("--area-info-max-height", area_info_max_height + "px")
+        .style("--area-info-left", area_info_left + "px")
+        .style("--area-info-bottom", area_info_bottom + "px")
+        .style("--area-info-font-scale", area_info_font_scale);
+
+    area_info_badge.text("区域介绍");
+    area_info_title.text("区域");
+    area_info_description.text("移动到区域或建筑图标查看介绍");
 
     container.style("height", height + "px");
 
@@ -290,9 +383,10 @@ function create_CCS_chart() {
         .defer(d3.json, "datas/map_layout.json")
         .defer(d3.csv, "datas/buildings.csv")
         .defer(d3.csv, "datas/patterns.csv")
+        .defer(d3.csv, "datas/area_introduction.csv")
         .await(draw);
 
-    function draw(error, pattern_total_data, building_per_pattern_data, building_total_data, map_layout_data, buildings_csv_data, patterns_csv_data) {
+    function draw(error, pattern_total_data, building_per_pattern_data, building_total_data, map_layout_data, buildings_csv_data, patterns_csv_data, area_intro_csv_data) {
 
         if (error) throw error;
 
@@ -307,6 +401,19 @@ function create_CCS_chart() {
                 .map(cleanText)
                 .filter(function (token) { return token.length > 0; })
                 .join("、");
+        }
+
+        function simplifyAreaText(value) {
+            return cleanText(value)
+                .replace(/[（(][^）)]*[）)]/g, "")
+                .replace(/\s*\/\s*/g, "/")
+                .trim();
+        }
+
+        function normalizeAreaKey(value) {
+            return simplifyAreaText(value)
+                .replace(/[\/、，,\-\s]/g, "")
+                .toLowerCase();
         }
 
         function pickFirstText(values) {
@@ -489,6 +596,57 @@ function create_CCS_chart() {
             .sort(function (a, b) { return compareBuildingIds(a.chapter, b.chapter); });
         num_chapters = chapter_total_data.length;
         num_volume = d3.max(chapter_total_data, function (d) { return d.volume; }) || 0;
+
+        var default_area_intro_text = "该区域介绍暂未收录。";
+        var area_intro_rows = Array.isArray(area_intro_csv_data) ? area_intro_csv_data : [];
+        var area_intro_by_key = {};
+        area_intro_rows.forEach(function (row) {
+            var area_name = pickFirstText([row["区域"], row["\ufeff区域"], row.area, row.Area, row["area"]]);
+            var introduction_text = pickFirstText([row["介绍"], row.introduction, row.description, row.desc]);
+            var area_key = normalizeAreaKey(area_name);
+            if (!area_key) return;
+            area_intro_by_key[area_key] = {
+                area: area_name,
+                introduction: introduction_text
+            };
+        });
+
+        var area_intro_data_by_area = {};
+        building_area_names.forEach(function (area_name) {
+            var area_key = normalizeAreaKey(area_name);
+            var intro_meta = area_intro_by_key[area_key];
+            area_intro_data_by_area[area_name] = {
+                area: pickFirstText([intro_meta && intro_meta.area, simplifyAreaText(area_name), area_name]),
+                introduction: pickFirstText([intro_meta && intro_meta.introduction, default_area_intro_text])
+            };
+        });
+
+        function resolve_area_intro_data(area_name) {
+            var normalized_area = cleanText(area_name);
+            if (!normalized_area) {
+                return {
+                    area: "区域",
+                    introduction: default_area_intro_text
+                };
+            }
+
+            if (area_intro_data_by_area[normalized_area]) {
+                return area_intro_data_by_area[normalized_area];
+            }
+
+            var by_key = area_intro_by_key[normalizeAreaKey(normalized_area)];
+            if (by_key) {
+                return {
+                    area: pickFirstText([by_key.area, simplifyAreaText(normalized_area), normalized_area]),
+                    introduction: pickFirstText([by_key.introduction, default_area_intro_text])
+                };
+            }
+
+            return {
+                area: pickFirstText([simplifyAreaText(normalized_area), normalized_area]),
+                introduction: default_area_intro_text
+            };
+        }
 
         var csv_rows = Array.isArray(buildings_csv_data) ? buildings_csv_data : [];
         var building_csv_by_id = {};
@@ -743,6 +901,16 @@ function create_CCS_chart() {
             };
         }).filter(function (d) {
             return !!d.chapter && !!d.character;
+        });
+        var source_pattern_chapters_map = {};
+        building_per_pattern_data.forEach(function (d) {
+            var source_type = cleanText(d.type);
+            var chapter_id = normalizeBuildingId(d.building_id);
+            if (!source_type || !chapter_id) return;
+            if (!source_pattern_chapters_map[source_type]) {
+                source_pattern_chapters_map[source_type] = [];
+            }
+            source_pattern_chapters_map[source_type].push(chapter_id);
         });
         var cover_data = character_data.slice();
 
@@ -1434,6 +1602,8 @@ function create_CCS_chart() {
             mouse_over_in_action = true;
 
             stop_merged_pattern_cycle();
+            hide_area_info_panel();
+            show_pattern_area_panel(d.character, locked_other_pattern_type);
 
             // 仅绘制当前纹样相关连线。
             ctx.clearRect(-width/2, -height/2, width, height);
@@ -1642,6 +1812,204 @@ function create_CCS_chart() {
             .on("mouseover", mouse_over_area)
             .on("mouseout", mouse_out);
 
+        function hide_area_info_panel() {
+            area_info_panel
+                .classed("is-visible", false)
+                .attr("aria-hidden", "true");
+        }
+
+        function show_area_info_panel(area_name, accent_color) {
+            var area_intro_data = resolve_area_intro_data(area_name);
+            var area_rgb = d3.rgb(accent_color || area_color(area_name) || "#9A8473");
+
+            area_info_title.text(area_intro_data.area || "区域");
+            area_info_description.text(area_intro_data.introduction || default_area_intro_text);
+            area_info_panel
+                .style("--area-info-accent-rgb", area_rgb.r + "," + area_rgb.g + "," + area_rgb.b)
+                .classed("is-visible", true)
+                .attr("aria-hidden", "false");
+        }
+// 左下角纹样扇形分布图样式
+        function hide_pattern_area_panel() {
+            pattern_area_panel
+                .classed("is-visible", false)
+                .attr("aria-hidden", "true");
+        }
+
+        function unique_list(values) {
+            var value_set = {};
+            var list = [];
+            (Array.isArray(values) ? values : []).forEach(function (value) {
+                var text = cleanText(value);
+                if (!text || value_set[text]) return;
+                value_set[text] = true;
+                list.push(text);
+            });
+            return list;
+        }
+
+        function build_pattern_center_lines(pattern_name) {
+            var text = cleanText(pattern_name) || "纹样";
+            if (text.length <= 4) return [text];
+            if (text.length <= 8) return [text.slice(0, 4), text.slice(4)];
+            return [text.slice(0, 4), text.slice(4, 8)];
+        }
+
+        function truncate_area_label(area_name) {
+            var label = simplifyAreaText(area_name);
+            if (label.length <= 6) return label;
+            return label.slice(0, 6) + "…";
+        }
+
+        function get_pattern_distribution_state(pattern_name, preferred_other_type) {
+            var normalized_pattern = cleanText(pattern_name);
+            var display_pattern_name = normalized_pattern || "纹样";
+            var chapter_ids = [];
+
+            if (!normalized_pattern) {
+                chapter_ids = [];
+            } else if (normalized_pattern === "其他") {
+                var selected_type = cleanText(preferred_other_type);
+                if (!selected_type) {
+                    selected_type = resolve_other_pattern_type(locked_other_pattern_type);
+                }
+                if (selected_type) {
+                    display_pattern_name = selected_type;
+                    chapter_ids = source_pattern_chapters_map[selected_type] || [];
+                } else {
+                    chapter_ids = character_data
+                        .filter(function (item) { return item.character === "其他"; })
+                        .map(function (item) { return item.chapter; });
+                    display_pattern_name = "其他（聚合）";
+                }
+            } else {
+                chapter_ids = character_data
+                    .filter(function (item) { return item.character === normalized_pattern; })
+                    .map(function (item) { return item.chapter; });
+            }
+
+            chapter_ids = unique_list(chapter_ids);
+
+            var area_counter = {};
+            chapter_ids.forEach(function (chapter_id) {
+                var area_name = chapter_area_by_id[chapter_id];
+                if (!area_name) return;
+                area_counter[area_name] = (area_counter[area_name] || 0) + 1;
+            });
+
+            var distribution = building_area_names
+                .filter(function (area_name) { return !!area_counter[area_name]; })
+                .map(function (area_name) {
+                    return {
+                        area: area_name,
+                        area_label: simplifyAreaText(area_name),
+                        value: area_counter[area_name],
+                        color: area_color(area_name) || "#9A8473"
+                    };
+                });
+
+            return {
+                pattern_name: display_pattern_name,
+                total: chapter_ids.length,
+                segments: distribution
+            };
+        }
+
+        function show_pattern_area_panel(pattern_name, preferred_other_type) {
+            var distribution_state = get_pattern_distribution_state(pattern_name, preferred_other_type);
+            var segments = distribution_state.segments;
+            var total_count = distribution_state.total;
+            var sorted_segments = segments.slice().sort(function (a, b) { return b.value - a.value; });
+            var fallback_color = d3.rgb("#9A8473");
+            var accent_color = sorted_segments.length ? d3.rgb(sorted_segments[0].color) : fallback_color;
+            pattern_area_panel
+                .style("--area-info-accent-rgb", accent_color.r + "," + accent_color.g + "," + accent_color.b)
+                .classed("is-visible", true)
+                .attr("aria-hidden", "false");
+
+            var pie_generator = d3.pie()
+                .sort(null)
+                .padAngle(segments.length > 1 ? 0.016 : 0)
+                .value(function (d) { return d.value; });
+            var pie_source = segments.length ? segments : [{ area: "暂无数据", area_label: "暂无", value: 1, color: "#D4CABD" }];
+            var pie_data = pie_generator(pie_source);
+            var arc_generator = d3.arc().innerRadius(45).outerRadius(85).cornerRadius(6);//左下角扇形内外圈半径和圆角
+            var label_arc_generator = d3.arc().innerRadius(52).outerRadius(52);
+
+            var slice_paths = pattern_area_slices_group.selectAll(".pattern-area-slice")
+                .data(pie_data, function (d) { return d.data.area; });
+
+            slice_paths.exit().remove();
+
+            slice_paths.enter()//每个扇形的样式
+                .append("path")
+                .attr("class", "pattern-area-slice")
+                .merge(slice_paths)
+                .attr("d", arc_generator)
+                .style("fill", function (d) {
+                    return d3.interpolateLab(d.data.color, "#f6efe2")(0.14);
+                })
+                .style("opacity", 0.7) 
+                .style("stroke", "rgba(255,255,255,0.9)")
+                .style("stroke-width", 1.3)
+                .style("stroke-linejoin", "round");
+
+            var label_data = pie_data.filter(function (d) {
+                return (d.endAngle - d.startAngle) >= 0.5 && !!d.data.area_label;
+            });
+            var slice_labels = pattern_area_labels_group.selectAll(".pattern-area-label")
+                .data(label_data, function (d) { return d.data.area; });
+            slice_labels.exit().remove();
+            slice_labels.enter()
+                .append("text")
+                .attr("class", "pattern-area-label")
+                .merge(slice_labels)
+                .attr("transform", function (d) {
+                    var pos = label_arc_generator.centroid(d);
+                    return "translate(" + pos[0] + "," + pos[1] + ")";
+                })
+                .text(function (d) { return truncate_area_label(d.data.area_label || d.data.area); });
+
+            var center_lines = build_pattern_center_lines(distribution_state.pattern_name);
+            var line_offsets = center_lines.length === 1 ? [0.35] : (center_lines.length === 2 ? [-0.2, 1.2] : [-0.85, 1, 1]);
+            pattern_area_center_text.text("");
+            var center_tspans = pattern_area_center_text.selectAll("tspan")
+                .data(center_lines);
+            center_tspans.exit().remove();
+            center_tspans.enter()
+                .append("tspan")
+                .merge(center_tspans)
+                .attr("x", 0)
+                .attr("dy", function (d, i) { return line_offsets[i] + "em"; })
+                .text(function (d) { return d; });
+
+            var legend_items = pattern_area_legend.selectAll(".pattern-area-legend-item")
+                .data(sorted_segments, function (d) { return d.area; });
+            legend_items.exit().remove();
+            var legend_enter = legend_items.enter()
+                .append("div")
+                .attr("class", "pattern-area-legend-item");
+            legend_enter.append("span").attr("class", "pattern-area-legend-swatch");
+            legend_enter.append("span").attr("class", "pattern-area-legend-text");
+            legend_enter.merge(legend_items).select(".pattern-area-legend-swatch")
+                .style("background-color", function (d) { return d.color; });
+            legend_enter.merge(legend_items).select(".pattern-area-legend-text")
+                .text(function (d) {
+                    var ratio = total_count > 0 ? Math.round(d.value * 100 / total_count) : 0;
+                    return d.area_label + " " + ratio + "%";
+                });
+
+            if (!sorted_segments.length) {
+                var empty_legend = pattern_area_legend.selectAll(".pattern-area-legend-item")
+                    .data([{ area: "empty", area_label: "暂无关联建筑", value: 0, color: "#D4CABD" }]);
+                var empty_enter = empty_legend.enter().append("div").attr("class", "pattern-area-legend-item");
+                empty_enter.append("span").attr("class", "pattern-area-legend-swatch");
+                empty_enter.append("span").attr("class", "pattern-area-legend-text");
+                empty_enter.merge(empty_legend).select(".pattern-area-legend-swatch").style("background-color", "#D4CABD");
+                empty_enter.merge(empty_legend).select(".pattern-area-legend-text").text("暂无关联建筑");
+            }
+        }
+
         function update_building_info_sidebar(chapter_id) {
             var sidebar_data = building_sidebar_data_by_chapter[chapter_id] || {};
             fill_info_sidebar_values(building_info_field_defs, sidebar_data, "建筑介绍");
@@ -1663,6 +2031,7 @@ function create_CCS_chart() {
 
             locked_other_pattern_type = resolved_type;
             update_pattern_info_sidebar("其他", resolved_type);
+            show_pattern_area_panel("其他", resolved_type);
 
             // 选中具体种类后，中心图固定到该纹样，避免继续自动轮播。
             stop_merged_pattern_cycle();
@@ -1735,6 +2104,7 @@ function create_CCS_chart() {
             var current_link_data = current_line_mode === "character" ? cover_data : character_data;
             mouse_over_in_action = true;
             stop_merged_pattern_cycle();
+            hide_pattern_area_panel();
 
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.lineWidth = 4 * size_factor;
@@ -1801,9 +2171,12 @@ function create_CCS_chart() {
             relation_lines.style("opacity", 0.7);
             annotation_relation_group.selectAll(".annotation").remove();
 
+            var chapter_area_name = chapter_area_by_id[d.chapter];
+            show_area_info_panel(chapter_area_name, chapter_area_name ? area_color(chapter_area_name) : null);
+
             update_mini_map({
                 buildings: [d.chapter],
-                areas: [chapter_area_by_id[d.chapter]],
+                areas: chapter_area_name ? [chapter_area_name] : [],
                 caption: "建筑定位：" + d.data.type
             });
         }
@@ -1883,6 +2256,7 @@ function create_CCS_chart() {
             d3.event.stopPropagation();
             mouse_over_in_action = true;
             stop_merged_pattern_cycle();
+            hide_pattern_area_panel();
 
             var area_chapters = area_chapters_map[d.area] ? area_chapters_map[d.area].slice() : [];
             var current_area_color = area_color(d.area);
@@ -1916,6 +2290,7 @@ function create_CCS_chart() {
             hover_circle.style("opacity", 0);
             color_hover_circle.style("opacity", 0);
             show_default_center_image();
+            show_area_info_panel(d.area, current_area_color);
 
             update_mini_map({
                 buildings: area_chapters,
@@ -2085,6 +2460,8 @@ function create_CCS_chart() {
             mouse_over_in_action = false;
             stop_merged_pattern_cycle();
             hide_building_info_sidebar();
+            hide_area_info_panel();
+            hide_pattern_area_panel();
 
             ctx.clearRect(-width / 2, -height / 2, width, height);
             ctx.globalAlpha = cover_alpha;

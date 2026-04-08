@@ -230,10 +230,10 @@ function create_CCS_chart() {
 
     // ===== 右侧信息栏常用调参区（推荐优先改这里） =====
     var building_info_outer_ring_ratio = 0.4;   // 最外圈半径比例（与 rad_card_label 保持一致时建议 0.4）
-    var building_info_side_gap_ratio = 0.15;    // 右侧可用区两侧留白比例（0.15 = 两端各留 15%）
-    var building_info_height_ratio = 0.55;      // 信息栏高度占视口比例
+    var building_info_side_gap_ratio = 0.20;    // 右侧可用区两侧留白比例（0.15 = 两端各留 15%）
+    var building_info_height_ratio = 0.65;      // 信息栏高度占视口比例
     var building_info_min_height = 220;         // 信息栏最小高度
-    var building_info_max_height = 550;         // 信息栏最大高度
+    var building_info_max_height = 650;         // 信息栏最大高度
     var building_info_min_readable_width = 140; // 低于该宽度时改为下方堆叠布局
     var building_info_font_scale = 1.8;           // 字体整体倍率（例如 1.15 / 1.25）
 

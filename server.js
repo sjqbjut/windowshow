@@ -23,10 +23,12 @@ function addFile(urlPath, relativeFilePath) {
   '/css/animeace2_reg.otf',
   '/datas/buildings.csv',
   '/datas/patterns.csv',
+  '/datas/area_introduction.csv',
   '/datas/fc_building_per_pattern.json',
   '/datas/fc_building_total.json',
   '/datas/fc_pattern_hierarchy.json',
   '/datas/fc_pattern_total.json',
+  '/datas/map_layout.json',
   '/js/main.js',
   '/plugins/d3.min.js',
   '/plugins/d3-annotation.min.js',
@@ -67,7 +69,16 @@ function addBuildingImages() {
     .filter((entry) => entry.isFile())
     .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
 }
+// 遍历目录并注册所有地图图片。
+function addMapImages() {
+  const urlPrefix = '/datas/imgs/map';
+  const absDir = path.join(__dirname, 'datas/imgs/map');
+  if (!fs.existsSync(absDir)) return;
 
+  fs.readdirSync(absDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
+}
 // 根据 datas/patterns.csv 中的纹样名注册纹样图片。
 // 这样服务端可访问资源与数据集保持一致。
 function addPatternImagesFromCsv() {
@@ -98,6 +109,7 @@ function addPatternImagesFromCsv() {
 }
 
 addBuildingImages();
+addMapImages();
 addPatternImagesFromCsv();
 files['/'] = files['/index.html'];
 

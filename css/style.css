@@ -32,7 +32,13 @@ body.landing-active {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: linear-gradient(128deg, #fdf8e7 0%, #f6e8d7 34%, #e5eef5 72%, #faf7ef 100%);
+    background-color: #f4efe2;
+    background-image:
+        linear-gradient(180deg, rgba(255, 250, 238, 0.32) 0%, rgba(252, 245, 230, 0.12) 36%, rgba(245, 236, 217, 0.1) 100%),
+        url("../datas/imgs/art_design/cover1.jpg");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
     transition: opacity 0.72s ease 0.45s, visibility 0s linear 1.17s;
 }
 
@@ -53,6 +59,75 @@ body.landing-active {
     width: min(90vw, 920px);
     padding: 24px;
     text-align: center;
+}
+
+.landing-cover-content {
+    width: min(94vw, 1360px);
+    min-height: min(92vh, 900px);
+    padding: 0;
+}
+
+.landing-cover-title {
+    position: absolute;
+    left: 50%;
+    top: -5%;/*标题位置，调整 top 的百分比可以微调标题在屏幕上的垂直位置*/
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: max-content;
+    max-width: min(92vw, 980px);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(6rem, 13.2vw, 10.5rem);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.02;
+    white-space: nowrap;
+    color: #a82b1f;
+    background: linear-gradient(180deg, #ff9a3c 0%, #ff6b2f 42%, #e64724 72%, #bf2a1f 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    text-shadow:
+        0 2px 0 rgba(253, 235, 188, 0.55),
+        0 5px 12px rgba(105, 32, 19, 0.26);
+}
+
+.landing-cover-subtitle {
+    position: absolute;
+    left: 50%;
+    top: 84%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 6px 18px;
+    width: max-content;
+    max-width: min(88vw, 980px);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(1.24rem, 2.45vw, 2.08rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.25;
+    white-space: nowrap;
+    color: rgba(111, 49, 30, 0.96);
+    text-shadow:
+        0 1px 0 rgba(255, 250, 241, 0.82),
+        0 6px 12px rgba(94, 56, 31, 0.2);
+    background: rgba(250, 243, 227, 0.42);
+    border: 1px solid rgba(176, 115, 73, 0.24);
+    border-radius: 999px;
+    backdrop-filter: blur(1px);
+}
+
+.landing-cover-content .start-button {
+    position: absolute;
+    left: 50%;
+    top: 92%;
+    transform: translate(-50%, -50%);
+    margin-top: 0;
+}
+
+.landing-cover-content .start-button:hover,
+.landing-cover-content .start-button:active {
+    transform: translate(-50%, -50%);
 }
 
 .landing-title-main {
@@ -200,6 +275,80 @@ body.landing-active {
             0 0 0 26px rgba(255, 255, 255, 0),
             0 0 6px rgba(255, 255, 255, 0);
     }
+}
+
+.lantern-nav {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 10001;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 20px;/*按钮之间的间距*/
+    max-width: calc(100vw - 20px);
+}
+
+.lantern-nav-button {
+    position: relative;
+    width: 165px;/*按钮的宽高，调整灯笼图标的大小*/
+    height: 196px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    background: transparent;
+}
+
+.lantern-nav-icon {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    mix-blend-mode: multiply;
+    opacity: 0.82;
+    filter: saturate(0.68) contrast(0.9) brightness(0.98) drop-shadow(0 2px 5px rgba(76, 50, 28, 0.16));
+    transition: transform 0.24s ease, filter 0.24s ease, opacity 0.24s ease;
+}
+
+.lantern-nav-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transform: translate(0, -18px); /* 左右0，向上10px */
+    pointer-events: none;
+    color: rgba(98, 61, 30, 0.92);
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 32px;/*调整灯笼标签的字体大小*/
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+    text-shadow:
+        0 1px 0 rgba(255, 250, 241, 0.88),
+        0 3px 6px rgba(100, 66, 37, 0.12);
+}
+
+
+.lantern-nav-button:hover .lantern-nav-icon {
+    transform: translateY(-2px) scale(1.03);
+    opacity: 0.75;
+    filter: saturate(0.78) contrast(0.94) brightness(1) drop-shadow(0 6px 10px rgba(76, 50, 28, 0.2));
+}
+
+.lantern-nav-button.is-active .lantern-nav-icon {
+    transform: scale(1.05);
+    opacity: 0.88;
+    filter: saturate(0.82) contrast(0.96) brightness(1.01) drop-shadow(0 8px 13px rgba(90, 57, 29, 0.22));
+}
+
+.lantern-nav-button:focus-visible {
+    outline: 2px solid rgba(151, 99, 52, 0.9);
+    outline-offset: 2px;
 }
 
 #chart-container {
@@ -978,12 +1127,56 @@ canvas {
         margin-top: 22px;
         padding: 10px 26px;
     }
+
+    .landing-cover-content {
+        width: min(96vw, 980px);
+        min-height: min(90vh, 680px);
+    }
+
+    .landing-cover-title {
+        top: 19%;
+        max-width: 90vw;
+        font-size: clamp(2.6rem, 11vw, 4.3rem);
+        letter-spacing: 0.11em;
+    }
+
+    .landing-cover-subtitle {
+        top: 82%;
+        max-width: 92vw;
+        padding: 5px 12px;
+        font-size: clamp(0.88rem, 3.2vw, 1.28rem);
+        letter-spacing: 0.05em;
+    }
+
+    .landing-cover-content .start-button {
+        top: 90%;
+        padding: 10px 28px;
+    }
+
+    .lantern-nav {
+        top: 8px;
+        right: 8px;
+        gap: 10px;/*手机端按钮间距调整*/
+        max-width: calc(100vw - 12px);
+    }
+
+    .lantern-nav-button {
+        width: 152px;
+        height: 181px;
+    }
+
+    .lantern-nav-label {
+        padding: 0 30px 0;
+        transform: translateY(-8px);
+        font-size: 25px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .landing-screen,
     .start-button,
-    .landing-ripple {
+    .landing-ripple,
+    .lantern-nav-icon {
         transition: none;
         animation: none;
     }

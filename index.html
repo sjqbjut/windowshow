@@ -15,18 +15,24 @@
 </head>
 <body>
     <div id="landing-screen" class="landing-screen">
-        <div class="landing-content">
-            <h1 class="landing-title-main" aria-label="纹落紫禁">
-                <span class="title-char">纹</span>
-                <span class="title-char">落</span>
-                <span class="title-char">紫</span>
-                <span class="title-char">禁</span>
-            </h1>
-            <p class="landing-title-sub">故宫窗棂纹样分布数据可视化</p>
+        <div class="landing-content landing-cover-content">
+            <h1 class="landing-cover-title">纹落紫禁</h1>
+            <p class="landing-cover-subtitle">北京故宫窗棂与裙板纹样分布数据可视化</p>
             <button id="start-visualization" class="start-button" type="button">开始</button>
         </div>
         <span id="landing-ripple" class="landing-ripple" aria-hidden="true"></span>
     </div>
+
+    <nav class="lantern-nav" aria-label="页面导航">
+        <button class="lantern-nav-button is-active" type="button" data-page="landing" aria-current="page">
+            <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
+            <span class="lantern-nav-label">引导页</span>
+        </button>
+        <button class="lantern-nav-button" type="button" data-page="chart">
+            <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
+            <span class="lantern-nav-label">图谱页</span>
+        </button>
+    </nav>
 
     <div id="chart-container">
         <div id="chart"></div>
@@ -69,11 +75,53 @@
             var landingScreen = document.getElementById("landing-screen");
             var startButton = document.getElementById("start-visualization");
             var landingRipple = document.getElementById("landing-ripple");
+            var navButtons = Array.prototype.slice.call(document.querySelectorAll(".lantern-nav-button"));
             if (!landingScreen || !startButton || !landingRipple) return;
 
-            document.body.classList.add("landing-active");
+            var hideLandingTimer = null;
 
-            startButton.addEventListener("click", function() {
+            function setActiveNav(page) {
+                navButtons.forEach(function(button) {
+                    var isActive = button.getAttribute("data-page") === page;
+                    button.classList.toggle("is-active", isActive);
+                    if (isActive) {
+                        button.setAttribute("aria-current", "page");
+                    } else {
+                        button.removeAttribute("aria-current");
+                    }
+                });
+            }
+
+            function showLandingPage() {
+                if (hideLandingTimer) {
+                    window.clearTimeout(hideLandingTimer);
+                    hideLandingTimer = null;
+                }
+                landingRipple.classList.remove("animate");
+                landingScreen.classList.remove("is-hidden", "is-leaving");
+                document.body.classList.add("landing-active");
+                setActiveNav("landing");
+            }
+
+            function hideLandingPage(withRipple) {
+                if (landingScreen.classList.contains("is-hidden")) {
+                    document.body.classList.remove("landing-active");
+                    setActiveNav("chart");
+                    return;
+                }
+
+                if (!withRipple) {
+                    if (hideLandingTimer) {
+                        window.clearTimeout(hideLandingTimer);
+                        hideLandingTimer = null;
+                    }
+                    landingScreen.classList.remove("is-leaving");
+                    landingScreen.classList.add("is-hidden");
+                    document.body.classList.remove("landing-active");
+                    setActiveNav("chart");
+                    return;
+                }
+
                 if (landingScreen.classList.contains("is-leaving")) return;
 
                 var buttonRect = startButton.getBoundingClientRect();
@@ -97,10 +145,29 @@
                 landingScreen.classList.add("is-leaving");
 
                 // 延时与 CSS 过渡/波纹时长保持一致。
-                window.setTimeout(function() {
+                hideLandingTimer = window.setTimeout(function() {
                     landingScreen.classList.add("is-hidden");
                     document.body.classList.remove("landing-active");
+                    setActiveNav("chart");
+                    hideLandingTimer = null;
                 }, 1400);
+            }
+
+            document.body.classList.add("landing-active");
+            setActiveNav("landing");
+
+            startButton.addEventListener("click", function() {
+                hideLandingPage(true);
+            });
+
+            navButtons.forEach(function(button) {
+                button.addEventListener("click", function() {
+                    if (button.getAttribute("data-page") === "landing") {
+                        showLandingPage();
+                    } else {
+                        hideLandingPage(false);
+                    }
+                });
             });
         })();
     </script>

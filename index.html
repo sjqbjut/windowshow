@@ -12,6 +12,7 @@
     <script src="plugins/d3-annotation.min.js"></script>
     <script src="plugins/webfont.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/lineage.js"></script>
 </head>
 <body>
     <div id="landing-screen" class="landing-screen">
@@ -30,13 +31,39 @@
         </button>
         <button class="lantern-nav-button" type="button" data-page="chart">
             <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
-            <span class="lantern-nav-label">图谱页</span>
+            <span class="lantern-nav-label">空间分布</span>
+        </button>
+        <button class="lantern-nav-button" type="button" data-page="lineage">
+            <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
+            <span class="lantern-nav-label">衍生谱系</span>
         </button>
     </nav>
 
     <div id="chart-container">
         <div id="chart"></div>
     </div>
+
+    <section id="lineage-container" class="lineage-container" aria-hidden="true">
+        <div class="lineage-content-wrap">
+            <div class="lineage-main">
+                <div class="lineage-stage">
+                    <div class="lineage-stage-backdrop" aria-hidden="true"></div>
+                    <div class="lineage-main-header">
+                        <h2 class="lineage-main-title">衍生图谱</h2>
+                    </div>
+                    <div id="lineage-graph" class="lineage-graph" role="img" aria-label="裙板衍生谱系图"></div>
+                </div>
+            </div>
+            <aside class="lineage-sidebar" aria-label="衍生谱系图片侧栏">
+                <div class="lineage-sidebar-header">
+                    <h2 class="lineage-sidebar-title">衍生谱系图录</h2>
+                    <p id="lineage-sidebar-focus" class="lineage-sidebar-focus">当前焦点：全部变体</p>
+                    <p class="lineage-sidebar-placeholder">点击节点可查看变体介绍、寓意与相关建筑</p>
+                </div>
+                <div id="lineage-gallery" class="lineage-gallery"></div>
+            </aside>
+        </div>
+    </section>
 
     <script>
         // 首次渲染前等待字体加载完成，减少文字跳动和重排。
@@ -48,7 +75,12 @@
                 families: ["Anime Ace"]
             },
             active: function() {
-                setTimeout(create_CCS_chart, 200);
+                setTimeout(function() {
+                    create_CCS_chart();
+                    if (typeof create_apron_lineage_graph === "function") {
+                        create_apron_lineage_graph();
+                    }
+                }, 200);
             }
         });
 
@@ -62,6 +94,9 @@
                     eventTimeout = setTimeout(function() {
                         eventTimeout = null;
                         create_CCS_chart();
+                        if (typeof create_apron_lineage_graph === "function") {
+                            create_apron_lineage_graph();
+                        }
                     }, 300);
                 }
             }
@@ -75,6 +110,8 @@
             var landingScreen = document.getElementById("landing-screen");
             var startButton = document.getElementById("start-visualization");
             var landingRipple = document.getElementById("landing-ripple");
+            var chartContainer = document.getElementById("chart-container");
+            var lineageContainer = document.getElementById("lineage-container");
             var navButtons = Array.prototype.slice.call(document.querySelectorAll(".lantern-nav-button"));
             if (!landingScreen || !startButton || !landingRipple) return;
 
@@ -92,6 +129,25 @@
                 });
             }
 
+            function setActiveContentPage(page) {
+                var targetPage = page || "chart";
+                var showChart = targetPage === "chart";
+                var showLineage = targetPage === "lineage";
+
+                if (chartContainer) {
+                    chartContainer.classList.toggle("page-hidden", !showChart);
+                }
+
+                if (lineageContainer) {
+                    lineageContainer.classList.toggle("is-active", showLineage);
+                    lineageContainer.setAttribute("aria-hidden", showLineage ? "false" : "true");
+                }
+
+                if (showLineage && typeof create_apron_lineage_graph === "function") {
+                    create_apron_lineage_graph();
+                }
+            }
+
             function showLandingPage() {
                 if (hideLandingTimer) {
                     window.clearTimeout(hideLandingTimer);
@@ -100,13 +156,17 @@
                 landingRipple.classList.remove("animate");
                 landingScreen.classList.remove("is-hidden", "is-leaving");
                 document.body.classList.add("landing-active");
+                setActiveContentPage("chart");
                 setActiveNav("landing");
             }
 
-            function hideLandingPage(withRipple) {
+            function hideLandingPage(withRipple, targetPage) {
+                var nextPage = targetPage || "chart";
+
                 if (landingScreen.classList.contains("is-hidden")) {
                     document.body.classList.remove("landing-active");
-                    setActiveNav("chart");
+                    setActiveContentPage(nextPage);
+                    setActiveNav(nextPage);
                     return;
                 }
 
@@ -118,7 +178,8 @@
                     landingScreen.classList.remove("is-leaving");
                     landingScreen.classList.add("is-hidden");
                     document.body.classList.remove("landing-active");
-                    setActiveNav("chart");
+                    setActiveContentPage(nextPage);
+                    setActiveNav(nextPage);
                     return;
                 }
 
@@ -148,24 +209,27 @@
                 hideLandingTimer = window.setTimeout(function() {
                     landingScreen.classList.add("is-hidden");
                     document.body.classList.remove("landing-active");
-                    setActiveNav("chart");
+                    setActiveContentPage(nextPage);
+                    setActiveNav(nextPage);
                     hideLandingTimer = null;
                 }, 1400);
             }
 
             document.body.classList.add("landing-active");
+            setActiveContentPage("chart");
             setActiveNav("landing");
 
             startButton.addEventListener("click", function() {
-                hideLandingPage(true);
+                hideLandingPage(true, "chart");
             });
 
             navButtons.forEach(function(button) {
                 button.addEventListener("click", function() {
-                    if (button.getAttribute("data-page") === "landing") {
+                    var targetPage = button.getAttribute("data-page");
+                    if (targetPage === "landing") {
                         showLandingPage();
                     } else {
-                        hideLandingPage(false);
+                        hideLandingPage(false, targetPage);
                     }
                 });
             });

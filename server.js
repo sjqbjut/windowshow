@@ -21,6 +21,8 @@ function addFile(urlPath, relativeFilePath) {
   '/index.html',
   '/css/style.css',
   '/css/animeace2_reg.otf',
+  '/datas/apron.csv',
+  '/datas/apron_variant.csv',
   '/datas/buildings.csv',
   '/datas/patterns.csv',
   '/datas/area_introduction.csv',
@@ -79,6 +81,26 @@ function addMapImages() {
     .filter((entry) => entry.isFile())
     .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
 }
+// 遍历目录并注册衍生谱系用到的裙板纹样图片。
+function addApronImages() {
+  const urlPrefix = '/datas/imgs/apron';
+  const absDir = path.join(__dirname, 'datas/imgs/apron');
+  if (!fs.existsSync(absDir)) return;
+
+  fs.readdirSync(absDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
+}
+// 注册页面装饰图（导航灯笼、封面等）。
+function addArtDesignImages() {
+  const urlPrefix = '/datas/imgs/art_design';
+  const absDir = path.join(__dirname, 'datas/imgs/art_design');
+  if (!fs.existsSync(absDir)) return;
+
+  fs.readdirSync(absDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
+}
 // 根据 datas/patterns.csv 中的纹样名注册纹样图片。
 // 这样服务端可访问资源与数据集保持一致。
 function addPatternImagesFromCsv() {
@@ -110,6 +132,8 @@ function addPatternImagesFromCsv() {
 
 addBuildingImages();
 addMapImages();
+addApronImages();
+addArtDesignImages();
 addPatternImagesFromCsv();
 files['/'] = files['/index.html'];
 

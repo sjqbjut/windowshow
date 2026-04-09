@@ -430,9 +430,9 @@ body.landing-active .lantern-nav {
     --lineage-stage-radius: 28px; /* 左侧图谱圆角 */
     --lineage-stage-inner-inset: 14px; /* 左侧图谱内层虚线边距 */
     --lineage-sidebar-width: 620px; /* 图录宽度 */
-    --lineage-sidebar-height: calc(100vh - 80px); /* 图录高度 */
+    --lineage-sidebar-height: 1050px; /* 图录高度 */
     --lineage-sidebar-offset-x: 0px; /* 图录左右位置：负左*/
-    --lineage-sidebar-offset-y: 10px; /* 图录上下位置：负上*/
+    --lineage-sidebar-offset-y: -40px; /* 图录上下位置：负上*/
     --lineage-sidebar-radius: 24px; /* 右侧图录圆角 */
     --lineage-sidebar-inner-inset: 14px; /* 右侧图录内层虚线边距 */
     --lineage-layout-gap: clamp(48px, 3.2vw, 48px); /* 左右两栏间距 */
@@ -471,16 +471,68 @@ body.landing-active .lantern-nav {
     flex: 1 1 auto;
     min-width: 0;
     display: flex;
-    justify-content: flex-end; /* 让图谱贴近右侧图录，减少中间留白 */
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
     padding-left: var(--lineage-stage-offset-x);
-    transform: translate(0,50px); /* 微调图谱整体位置，正值向下 */
+    transform: translate(0,-80px); /* 微调图谱整体位置，正值向下 */
 }
 
 .lineage-main-header {
+    width: var(--lineage-stage-width);
+    max-width: 100%;
     padding: 14px 16px 10px;
+    margin-bottom: 10px;
     border-bottom: 1px dashed rgba(149, 113, 77, 0.24);
     background:
         linear-gradient(180deg, rgba(255, 252, 247, 0.26), rgba(255, 252, 247, 0));
+}
+
+.lineage-view-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.lineage-view-button {
+    border: 2px solid rgba(143, 103, 65, 0.3);
+    border-radius: 999px;
+    padding: 8px 28px;
+    background: rgba(255, 250, 242, 0.65);
+    color: rgba(96, 67, 41, 0.86);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: clamp(1.9rem, 2.1vw, 2.2rem);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.lineage-view-button:hover {
+    border-color: rgba(161, 116, 73, 0.5);
+    background: rgba(255, 248, 235, 0.9);
+    color: rgba(85, 56, 31, 0.92);
+}
+
+.lineage-view-button:active {
+    transform: translateY(1px);
+}
+
+.lineage-view-button.is-active {
+    border-color: rgba(170, 118, 69, 0.68);
+    background: rgba(244, 228, 199, 0.94);
+    color: rgba(73, 45, 22, 0.95);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.62),
+        0 1px 4px rgba(109, 77, 46, 0.14);
+    cursor: default;
+}
+
+.lineage-view-button:focus-visible {
+    outline: 2px solid rgba(180, 123, 70, 0.58);
+    outline-offset: 2px;
 }
 
 .lineage-main-title {
@@ -490,6 +542,10 @@ body.landing-active .lantern-nav {
     font-size: clamp(1.8rem, 2.7vw, 2.29rem);
     letter-spacing: 0.08em;
     font-weight: 700;
+}
+
+.lineage-main-description {
+    margin: 8px 0 0;
 }
 
 .lineage-stage {
@@ -798,6 +854,7 @@ body.landing-active .lantern-nav {
     border-radius: 12px;
     border: 1px solid rgba(152, 112, 74, 0.2);
     background: rgba(252, 248, 241, 0.4);
+    cursor: pointer;
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
@@ -814,6 +871,11 @@ body.landing-active .lantern-nav {
 
 .lineage-card.is-hidden {
     display: none;
+}
+
+.lineage-card:focus-visible {
+    outline: 2px solid rgba(176, 125, 76, 0.7);
+    outline-offset: 2px;
 }
 
 .lineage-card-image-wrap {
@@ -881,6 +943,78 @@ body.landing-active .lantern-nav {
     font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
     font-size: calc(0.79rem * var(--lineage-card-font-scale));
     line-height: 1.42;
+}
+
+.lineage-preview-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(24px, 4vw, 54px);
+    background: rgba(30, 22, 14, 0.56);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.lineage-preview-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.lineage-preview-panel {
+    width: min(78vw, 1160px);
+    max-height: min(86vh, 920px);
+    overflow: auto;
+    border-radius: 18px;
+}
+
+.lineage-preview-panel .lineage-card {
+    --lineage-card-font-scale: 1.95;
+    grid-template-columns: minmax(280px, 38%) minmax(0, 1fr);
+    gap: 18px;
+    padding: 18px;
+    border-radius: 18px;
+    border-color: rgba(177, 127, 78, 0.5);
+    background: rgba(255, 248, 238, 0.97);
+    box-shadow:
+        0 14px 36px rgba(48, 33, 20, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    cursor: default;
+}
+
+.lineage-preview-panel .lineage-card-image-wrap {
+    border-radius: 14px;
+}
+
+.lineage-preview-panel .lineage-card-body {
+    max-height: min(74vh, 760px);
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(141, 103, 66, 0.45) rgba(206, 183, 152, 0.2);
+}
+
+.lineage-preview-panel .lineage-card-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.lineage-preview-panel .lineage-card-body::-webkit-scrollbar-thumb {
+    background: rgba(141, 103, 66, 0.45);
+    border-radius: 999px;
+}
+
+.lineage-preview-panel .lineage-card-body::-webkit-scrollbar-track {
+    background: rgba(206, 183, 152, 0.2);
+}
+
+.lineage-container.lineage-preview-open .lineage-content-wrap {
+    filter: blur(7px) saturate(0.86);
+    transform: translate(var(--lineage-pan-x), var(--lineage-pan-y)) scale(0.992);
+    transition: filter 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
 }
 
 .mini-map-panel {

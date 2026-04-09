@@ -6,7 +6,7 @@
     var DEFAULT_TUNING = {
         data: {
             csvPath: "datas/apron_variant.csv",
-            imagePath: "datas/imgs/apron/",
+            imagePath: "datas/imgs/variant/apron_variant/",
             imageExts: [".png", ".jpg", ".jpeg", ".webp"],
             minRenderWidth: 220,
             minRenderHeight: 220,
@@ -14,6 +14,42 @@
             renderRetryDelay: 120,
             variantLabelMaxLength: 10,
             missingImageSuffix: "（未找到对应图片）"
+        },
+        views: {
+            apron: {
+                csvPath: "datas/apron_variant.csv",
+                imagePath: "datas/imgs/variant/apron_variant/",
+                centerLabel: "裙板",
+                typeNodeLabelPrefix: "裙板属性类型：",
+                variantNodeLabelPrefix: "裙板变体：",
+                meaningPrefix: "寓意：",
+                meaningFallback: "暂无寓意",
+                graphAriaLabel: "裙板衍生谱系图",
+                typeKeys: ["apron", "aporn", "type", "apron_type", "属性", "类型"],
+                variantKeys: ["variant", "variant_name", "name", "变体", "变体名"],
+                introductionKeys: ["introduction", "intro", "description", "details", "介绍"],
+                meaningKeys: ["meaning", "meanings", "寓意"],
+                buildingsKeys: ["buildings", "building", "architecture", "建筑", "关联建筑"],
+                imageKeys: ["image", "img", "photo", "图片"],
+                imageAliasKeys: ["image_alias", "image_name", "图片名", "old_variant", "legacy_variant", "原始变体"]
+            },
+            pattern: {
+                csvPath: "datas/pattern_variant.csv",
+                imagePath: "datas/imgs/variant/patterns_variant/",
+                centerLabel: "窗棂",
+                typeNodeLabelPrefix: "窗棂纹样类型：",
+                variantNodeLabelPrefix: "窗棂变体：",
+                meaningPrefix: "风格：",
+                meaningFallback: "暂无风格",
+                graphAriaLabel: "窗棂衍生谱系图",
+                typeKeys: ["pattern", "type", "pattern_type", "属性", "类型", "母纹样", "纹样类型"],
+                variantKeys: ["variant", "variant_name", "name", "变体", "变体名"],
+                introductionKeys: ["introduction", "intro", "description", "details", "介绍"],
+                meaningKeys: ["style", "meaning", "meanings", "风格", "寓意"],
+                buildingsKeys: ["buildings", "building", "architecture", "建筑", "关联建筑"],
+                imageKeys: ["image", "img", "photo", "图片"],
+                imageAliasKeys: ["image_alias", "image_name", "图片名", "old_variant", "legacy_variant", "原始变体"]
+            }
         },
         text: {
             centerLabel: "裙板",
@@ -60,13 +96,17 @@
     };
 
     var lineageState = {
-        data: null,
-        loading: false,
-        sidebarReady: false,
+        dataByView: {},
+        loadingByView: {},
         sidebarCards: [],
         pinnedNodeId: "center",
         renderContext: null,
         pendingRenderTimer: null,
+        activeView: "apron",
+        toggleReady: false,
+        previewOverlay: null,
+        previewPanel: null,
+        previewCardId: "",
         tuning: buildTuning()
     };
 
@@ -102,6 +142,197 @@
         return element;
     }
 
+    function ensureCardPreviewOverlay() {
+        if (lineageState.previewOverlay && lineageState.previewPanel) return;
+
+        var overlay = createElement("div", "lineage-preview-overlay");
+        overlay.setAttribute("aria-hidden", "true");
+
+        var panel = createElement("div", "lineage-preview-panel");
+        panel.setAttribute("role", "dialog");
+        panel.setAttribute("aria-modal", "true");
+        panel.setAttribute("aria-label", "衍生图录放大预览");
+
+        overlay.appendChild(panel);
+        overlay.addEventListener("click", function () {
+            closeCardPreview();
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (!event || event.key !== "Escape") return;
+            closeCardPreview();
+        });
+
+        document.body.appendChild(overlay);
+        lineageState.previewOverlay = overlay;
+        lineageState.previewPanel = panel;
+    }
+
+    function closeCardPreview() {
+        if (!lineageState.previewOverlay || !lineageState.previewPanel) return;
+
+        var lineageContainer = document.getElementById("lineage-container");
+        if (lineageContainer) lineageContainer.classList.remove("lineage-preview-open");
+
+        lineageState.previewOverlay.classList.remove("is-visible");
+        lineageState.previewOverlay.setAttribute("aria-hidden", "true");
+        lineageState.previewPanel.innerHTML = "";
+        lineageState.previewCardId = "";
+    }
+
+    function openCardPreview(cardElement) {
+        if (!cardElement) return;
+        ensureCardPreviewOverlay();
+        if (!lineageState.previewOverlay || !lineageState.previewPanel) return;
+
+        var lineageContainer = document.getElementById("lineage-container");
+        if (lineageContainer) lineageContainer.classList.add("lineage-preview-open");
+
+        var previewCard = cardElement.cloneNode(true);
+        previewCard.classList.remove("is-hidden");
+        previewCard.classList.remove("is-active");
+        previewCard.classList.add("lineage-card-preview");
+
+        lineageState.previewPanel.innerHTML = "";
+        lineageState.previewPanel.appendChild(previewCard);
+        lineageState.previewOverlay.classList.add("is-visible");
+        lineageState.previewOverlay.setAttribute("aria-hidden", "false");
+        lineageState.previewCardId = cleanText(cardElement.getAttribute("data-variant-id"));
+    }
+
+    function toggleCardPreview(cardElement) {
+        if (!cardElement) return;
+        var cardId = cleanText(cardElement.getAttribute("data-variant-id"));
+        var overlayVisible = !!(lineageState.previewOverlay && lineageState.previewOverlay.classList.contains("is-visible"));
+
+        if (overlayVisible && cardId && cardId === lineageState.previewCardId) {
+            closeCardPreview();
+            return;
+        }
+
+        openCardPreview(cardElement);
+    }
+
+    function getViewConfig(viewKey) {
+        var tuning = lineageState.tuning;
+        var views = tuning.views || {};
+        var viewConfig = cloneValue(views[viewKey] || {});
+
+        // 兼容旧版仅通过 tuning.data / tuning.text 覆盖裙板数据源的写法
+        if (viewKey === "apron") {
+            if (!cleanText(viewConfig.csvPath)) viewConfig.csvPath = cleanText(tuning.data.csvPath);
+            if (!cleanText(viewConfig.imagePath)) viewConfig.imagePath = cleanText(tuning.data.imagePath);
+            if (!cleanText(viewConfig.centerLabel)) viewConfig.centerLabel = cleanText(tuning.text.centerLabel) || "裙板";
+            if (!cleanText(viewConfig.meaningPrefix)) viewConfig.meaningPrefix = cleanText(tuning.text.meaningPrefix) || "寓意：";
+            if (!cleanText(viewConfig.meaningFallback)) viewConfig.meaningFallback = cleanText(tuning.text.meaningFallback) || "暂无寓意";
+            if (!cleanText(viewConfig.graphAriaLabel)) viewConfig.graphAriaLabel = "裙板衍生谱系图";
+        }
+
+        return viewConfig;
+    }
+
+    function getActiveViewConfig() {
+        var views = lineageState.tuning.views || {};
+        if (!views[lineageState.activeView]) {
+            var firstView = Object.keys(views)[0];
+            lineageState.activeView = firstView || "apron";
+        }
+        return getViewConfig(lineageState.activeView);
+    }
+
+    function detectInitialViewFromDom() {
+        var activeButton = document.querySelector(".lineage-view-button.is-active[data-lineage-view]");
+        if (!activeButton) return;
+        var viewKey = cleanText(activeButton.getAttribute("data-lineage-view"));
+        if (!viewKey) return;
+        var views = lineageState.tuning.views || {};
+        if (views[viewKey]) lineageState.activeView = viewKey;
+    }
+
+    function updateViewToggleButtons() {
+        var buttons = document.querySelectorAll(".lineage-view-button[data-lineage-view]");
+        if (!buttons || !buttons.length) return;
+
+        Array.prototype.forEach.call(buttons, function (button) {
+            var viewKey = cleanText(button.getAttribute("data-lineage-view"));
+            var isActive = viewKey === lineageState.activeView;
+            button.classList.toggle("is-active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+            button.disabled = isActive;
+        });
+    }
+
+    function updateGraphAriaLabel() {
+        var viewConfig = getActiveViewConfig();
+        var graphElement = document.getElementById("lineage-graph");
+        if (!graphElement) return;
+
+        var ariaLabel = cleanText(viewConfig.graphAriaLabel);
+        if (!ariaLabel) {
+            var centerLabel = cleanText(viewConfig.centerLabel) || "衍生";
+            ariaLabel = centerLabel + "衍生谱系图";
+        }
+
+        graphElement.setAttribute("aria-label", ariaLabel);
+    }
+
+    function updateMainDescription() {
+        var viewConfig = getActiveViewConfig();
+        var descriptionElement = document.getElementById("lineage-main-description");
+        if (!descriptionElement) return;
+
+        var centerLabel = cleanText(viewConfig.centerLabel) || cleanText(lineageState.tuning.text.centerLabel) || "裙板";
+        descriptionElement.textContent = "下图以节点分支形式，展现" + centerLabel + "基础纹样衍生出各类变体的谱系脉络";
+    }
+
+    function bindViewSwitchButtons() {
+        if (lineageState.toggleReady) return;
+
+        var switchWrap = document.getElementById("lineage-view-switch");
+        if (!switchWrap) return;
+        detectInitialViewFromDom();
+
+        var buttons = switchWrap.querySelectorAll(".lineage-view-button[data-lineage-view]");
+        if (!buttons || !buttons.length) return;
+
+        Array.prototype.forEach.call(buttons, function (button) {
+            button.addEventListener("click", function () {
+                var viewKey = cleanText(button.getAttribute("data-lineage-view"));
+                if (!viewKey) return;
+                setLineageView(viewKey);
+            });
+        });
+
+        lineageState.toggleReady = true;
+        updateViewToggleButtons();
+        updateGraphAriaLabel();
+        updateMainDescription();
+    }
+
+    function setLineageView(viewKey, options) {
+        var targetView = cleanText(viewKey);
+        if (!targetView) return;
+
+        var views = lineageState.tuning.views || {};
+        if (!views[targetView]) return;
+
+        var force = !!(options && options.force);
+        if (!force && lineageState.activeView === targetView) return;
+
+        lineageState.activeView = targetView;
+        lineageState.pinnedNodeId = "center";
+        lineageState.renderContext = null;
+        lineageState.sidebarCards = [];
+        closeCardPreview();
+
+        updateViewToggleButtons();
+        updateGraphAriaLabel();
+        updateMainDescription();
+
+        if (options && options.skipRender) return;
+        createLineageGraph();
+    }
+
     function toDisplayVariant(parentLabel, variantLabel) {
         var tuning = lineageState.tuning;
         var raw = cleanText(variantLabel);
@@ -123,21 +354,45 @@
         return text.length > 9 ? [text.slice(0, 9), text.slice(9)] : [text];
     }
 
+    function addUniqueName(nameList, name) {
+        var cleanName = cleanText(name);
+        if (!cleanName) return;
+        if (nameList.indexOf(cleanName) > -1) return;
+        nameList.push(cleanName);
+    }
+
+    function collectImageNameCandidates(name) {
+        var baseName = cleanText(name);
+        if (!baseName) return [];
+
+        var candidates = [];
+        addUniqueName(candidates, baseName);
+
+        // 容错：部分窗棂图片文件名省略了“菱花”后缀
+        if (/菱花$/.test(baseName)) {
+            addUniqueName(candidates, baseName.replace(/菱花$/, ""));
+        }
+
+        return candidates;
+    }
+
     function buildImageCandidates(variantNode) {
         var tuning = lineageState.tuning;
+        var viewConfig = getActiveViewConfig();
+        var imagePath = cleanText(viewConfig.imagePath) || cleanText(tuning.data.imagePath);
         var nameCandidates = [];
+
         [variantNode.image, variantNode.imageAlias, variantNode.label].forEach(function (name) {
-            var cleanName = cleanText(name);
-            if (cleanName && nameCandidates.indexOf(cleanName) === -1) {
-                nameCandidates.push(cleanName);
-            }
+            collectImageNameCandidates(name).forEach(function (candidateName) {
+                addUniqueName(nameCandidates, candidateName);
+            });
         });
 
         var candidates = [];
 
         nameCandidates.forEach(function (name) {
-            var baseRaw = tuning.data.imagePath + name;
-            var baseEncoded = tuning.data.imagePath + encodeURIComponent(name);
+            var baseRaw = imagePath + name;
+            var baseEncoded = imagePath + encodeURIComponent(name);
             tuning.data.imageExts.forEach(function (ext) {
                 candidates.push(baseRaw + ext);
                 candidates.push(baseEncoded + ext);
@@ -191,22 +446,29 @@
         }
     }
 
-    function buildLineageData(rows) {
-        var tuning = lineageState.tuning;
+    function buildLineageData(rows, viewConfig, viewKey) {
         var typeMap = {};
 
+        var typeKeys = viewConfig.typeKeys || ["type", "属性", "类型"];
+        var variantKeys = viewConfig.variantKeys || ["variant", "变体", "变体名"];
+        var introKeys = viewConfig.introductionKeys || ["introduction", "intro", "description", "details", "介绍"];
+        var meaningKeys = viewConfig.meaningKeys || ["meaning", "meanings", "寓意"];
+        var buildingsKeys = viewConfig.buildingsKeys || ["buildings", "building", "architecture", "建筑", "关联建筑"];
+        var imageKeys = viewConfig.imageKeys || ["image", "img", "photo", "图片"];
+        var imageAliasKeys = viewConfig.imageAliasKeys || ["image_alias", "image_name", "图片名", "old_variant", "legacy_variant", "原始变体"];
+
         rows.forEach(function (row) {
-            var typeName = pickRowText(row, ["apron", "aporn", "type", "apron_type", "属性", "类型"]);
-            var variantName = pickRowText(row, ["variant", "variant_name", "name", "变体", "变体名"]);
+            var typeName = pickRowText(row, typeKeys);
+            var variantName = pickRowText(row, variantKeys);
             if (!typeName || !variantName) return;
 
             var variantMeta = {
                 label: variantName,
-                introduction: pickRowText(row, ["introduction", "intro", "description", "details", "介绍"]),
-                meaning: pickRowText(row, ["meaning", "meanings", "寓意"]),
-                buildings: pickRowText(row, ["buildings", "building", "architecture", "建筑", "关联建筑"]),
-                image: pickRowText(row, ["image", "img", "photo", "图片"]),
-                imageAlias: pickRowText(row, ["image_alias", "image_name", "图片名", "old_variant", "legacy_variant", "原始变体"])
+                introduction: pickRowText(row, introKeys),
+                meaning: pickRowText(row, meaningKeys),
+                buildings: pickRowText(row, buildingsKeys),
+                image: pickRowText(row, imageKeys),
+                imageAlias: pickRowText(row, imageAliasKeys)
             };
 
             if (!typeMap[typeName]) {
@@ -242,13 +504,14 @@
                     id: "type-" + index,
                     label: item.label,
                     level: 1,
-                    nodeType: "apron",
+                    nodeType: viewKey,
                     variants: sortedVariants,
                     count: sortedVariants.length
                 };
             });
 
-        var centerNode = { id: "center", label: tuning.text.centerLabel, level: 0, nodeType: "center" };
+        var centerLabel = cleanText(viewConfig.centerLabel) || "中心";
+        var centerNode = { id: "center", label: centerLabel, level: 0, nodeType: "center" };
         var variantNodes = [];
         var links = [];
         var variantsByType = {};
@@ -282,6 +545,7 @@
         nodes.forEach(function (node) { nodeById[node.id] = node; });
 
         return {
+            viewKey: viewKey,
             centerNode: centerNode,
             typeNodes: typeNodes,
             variantNodes: variantNodes,
@@ -292,26 +556,35 @@
         };
     }
 
-    function ensureLineageData(callback) {
+    function ensureLineageData(viewKey, callback) {
         var tuning = lineageState.tuning;
-        if (lineageState.data) {
-            callback(null, lineageState.data);
+
+        if (lineageState.dataByView[viewKey]) {
+            callback(null, lineageState.dataByView[viewKey]);
             return;
         }
-        if (lineageState.loading) {
-            window.setTimeout(function () { ensureLineageData(callback); }, tuning.data.loadingPollDelay);
+        if (lineageState.loadingByView[viewKey]) {
+            window.setTimeout(function () { ensureLineageData(viewKey, callback); }, tuning.data.loadingPollDelay);
             return;
         }
 
-        lineageState.loading = true;
-        d3.csv(tuning.data.csvPath, function (error, rows) {
-            lineageState.loading = false;
+        var viewConfig = getViewConfig(viewKey);
+        var csvPath = cleanText(viewConfig.csvPath);
+        if (!csvPath) {
+            callback(new Error("衍生谱系数据路径未配置"));
+            return;
+        }
+
+        lineageState.loadingByView[viewKey] = true;
+        d3.csv(csvPath, function (error, rows) {
+            lineageState.loadingByView[viewKey] = false;
             if (error) {
                 callback(error);
                 return;
             }
-            lineageState.data = buildLineageData(rows || []);
-            callback(null, lineageState.data);
+            var builtData = buildLineageData(rows || [], viewConfig, viewKey);
+            lineageState.dataByView[viewKey] = builtData;
+            callback(null, builtData);
         });
     }
 
@@ -406,16 +679,34 @@
 
     function createOrUpdateSidebar(data) {
         var tuning = lineageState.tuning;
+        var viewConfig = getActiveViewConfig();
         var gallery = document.getElementById("lineage-gallery");
         if (!gallery) return;
 
         gallery.innerHTML = "";
         var fragment = document.createDocumentFragment();
+        var meaningPrefix = cleanText(viewConfig.meaningPrefix) || tuning.text.meaningPrefix;
+        var meaningFallback = cleanText(viewConfig.meaningFallback) || tuning.text.meaningFallback;
 
         data.variantNodes.forEach(function (variantNode) {
             var card = createElement("article", "lineage-card");
             card.setAttribute("data-variant-id", variantNode.id);
             card.setAttribute("data-type-id", variantNode.parentId);
+            card.setAttribute("role", "button");
+            card.setAttribute("tabindex", 0);
+            card.setAttribute("aria-label", "查看“" + variantNode.label + "”图录放大预览");
+
+            card.addEventListener("click", function () {
+                toggleCardPreview(card);
+            });
+            card.addEventListener("keydown", function (event) {
+                if (!event) return;
+                var key = event.key;
+                if (key === "Enter" || key === " " || key === "Spacebar") {
+                    event.preventDefault();
+                    toggleCardPreview(card);
+                }
+            });
 
             var imageWrap = createElement("div", "lineage-card-image-wrap");
             var image = createElement("img", "lineage-card-image");
@@ -424,12 +715,12 @@
 
             var body = createElement("div", "lineage-card-body");
             var introductionText = cleanText(variantNode.introduction) || tuning.text.introductionFallback;
-            var meaningText = cleanText(variantNode.meaning) || tuning.text.meaningFallback;
+            var meaningText = cleanText(variantNode.meaning) || meaningFallback;
             var buildingsText = cleanText(variantNode.buildings) || tuning.text.buildingsFallback;
 
             body.appendChild(createElement("h3", "lineage-card-title", variantNode.label));
             body.appendChild(createElement("p", "lineage-card-meta", variantNode.parentLabel));
-            body.appendChild(createElement("p", "lineage-card-field lineage-card-meaning", tuning.text.meaningPrefix + meaningText));
+            body.appendChild(createElement("p", "lineage-card-field lineage-card-meaning", meaningPrefix + meaningText));
             body.appendChild(createElement("p", "lineage-card-field lineage-card-buildings", tuning.text.buildingsPrefix + buildingsText));
             body.appendChild(createElement("p", "lineage-card-introduction", introductionText));
 
@@ -442,7 +733,6 @@
 
         gallery.appendChild(fragment);
         lineageState.sidebarCards = Array.prototype.slice.call(gallery.querySelectorAll(".lineage-card"));
-        lineageState.sidebarReady = true;
     }
 
     function nodeIsRelated(node, focusNode) {
@@ -592,9 +882,14 @@
     }
 
     function nodeAriaLabel(node) {
+        var viewConfig = getActiveViewConfig();
         if (node.level === 0) return "中心节点：" + node.label;
-        if (node.level === 1) return "裙板属性类型：" + node.label;
-        return "裙板变体：" + node.label;
+        if (node.level === 1) {
+            var typePrefix = cleanText(viewConfig.typeNodeLabelPrefix) || "属性类型：";
+            return typePrefix + node.label;
+        }
+        var variantPrefix = cleanText(viewConfig.variantNodeLabelPrefix) || "变体：";
+        return variantPrefix + node.label;
     }
     function nodeGradientFill(node) {
         if (node.level === 0) return "url(#lineage-gradient-center)";
@@ -746,16 +1041,24 @@
         applyFocus(resolvePinnedNode(data));
     }
 
-    function createApronLineageGraph() {
+    function createLineageGraph() {
         var tuning = lineageState.tuning;
+        var requestedView = lineageState.activeView;
 
-        ensureLineageData(function (error, data) {
+        bindViewSwitchButtons();
+        updateViewToggleButtons();
+        updateGraphAriaLabel();
+
+        ensureLineageData(requestedView, function (error, data) {
             if (error) {
                 console.error("衍生谱系数据加载失败：", error);
                 return;
             }
 
-            if (!lineageState.sidebarReady) createOrUpdateSidebar(data);
+            // 如果在加载期间切换了 tab，则忽略旧回调
+            if (requestedView !== lineageState.activeView) return;
+
+            createOrUpdateSidebar(data);
 
             var graphElement = document.getElementById("lineage-graph");
             var container = document.getElementById("lineage-container");
@@ -775,7 +1078,7 @@
                     if (lineageState.pendingRenderTimer) window.clearTimeout(lineageState.pendingRenderTimer);
                     lineageState.pendingRenderTimer = window.setTimeout(function () {
                         lineageState.pendingRenderTimer = null;
-                        createApronLineageGraph();
+                        createLineageGraph();
                     }, tuning.data.renderRetryDelay);
                 }
                 return;
@@ -786,5 +1089,9 @@
     }
 
     window.LINEAGE_TUNING_EFFECTIVE = lineageState.tuning;
-    window.create_apron_lineage_graph = createApronLineageGraph;
+    window.create_apron_lineage_graph = createLineageGraph;
+    window.create_lineage_graph = createLineageGraph;
+    window.set_lineage_view = function (viewKey) {
+        setLineageView(viewKey || lineageState.activeView);
+    };
 })();

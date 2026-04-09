@@ -48,11 +48,15 @@
     <section id="lineage-container" class="lineage-container" aria-hidden="true">
         <div class="lineage-content-wrap">
             <div class="lineage-main">
+                <div class="lineage-main-header">
+                    <div id="lineage-view-switch" class="lineage-view-switch" role="group" aria-label="衍生类型切换">
+                        <button type="button" class="lineage-view-button" data-lineage-view="pattern">窗棂</button>
+                        <button type="button" class="lineage-view-button is-active" data-lineage-view="apron">裙板</button>
+                    </div>
+                    <p id="lineage-main-description" class="lineage-sidebar-placeholder lineage-main-description">下图以节点分支形式，展现裙板基础纹样衍生出各类变体的谱系脉络</p>
+                </div>
                 <div class="lineage-stage">
                     <div class="lineage-stage-backdrop" aria-hidden="true"></div>
-                    <div class="lineage-main-header">
-                        <h2 class="lineage-main-title">衍生图谱</h2>
-                    </div>
                     <div id="lineage-graph" class="lineage-graph" role="img" aria-label="裙板衍生谱系图"></div>
                 </div>
             </div>

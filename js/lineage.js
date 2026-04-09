@@ -1,18 +1,9 @@
 ﻿(function () {
     // ===== 衍生谱系页面调参区（中文注释版）=====
     // 说明：
-    // 1) 这里的默认值会在初始化时写入页面 CSS 变量，优先改这里即可。
-    // 2) 若外部注入 window.LINEAGE_TUNING，会在默认值基础上覆盖。
+    // 1) 样式类调参（位置、尺寸、间距等）统一在 css/style.css 的 .lineage-container 变量区维护。
+    // 2) 这里仅保留数据/布局计算/文案等 JS 配置，不再写入样式变量，避免与 CSS 调参互相覆盖。
     var DEFAULT_TUNING = {
-        cssVars: {
-            "--lineage-stage-width": "min(84vw, 1100px)",             // 左侧图谱区域宽度
-            "--lineage-stage-height": "min(84vh, 1100px)",            // 左侧图谱区域高度
-            "--lineage-stage-offset-x": "clamp(28px, 3.5vw, 72px)",  // 图谱在左侧容器中的内偏移
-            "--lineage-sidebar-width": "min(45vw, 650px)",           // 右侧图录宽度
-            "--lineage-pan-x": "-480px",                             // 图谱+图录整体横向平移，正值向右
-            "--lineage-pan-y": "0px",                                // 图谱+图录整体纵向平移，正值向下
-            "--lineage-nav-safe-top": "130px"                        // 图录避开顶部导航的安全距离
-        },
         data: {
             csvPath: "datas/apron_variant.csv",
             imagePath: "datas/imgs/apron/",
@@ -101,12 +92,6 @@
         return merged;
     }
     function buildTuning() { return mergeConfig(DEFAULT_TUNING, window.LINEAGE_TUNING || {}); }
-    function applyCssVars() {
-        var container = document.getElementById("lineage-container");
-        if (!container) return;
-        var cssVars = lineageState.tuning.cssVars;
-        Object.keys(cssVars).forEach(function (varName) { container.style.setProperty(varName, String(cssVars[varName])); });
-    }
 
     function cleanText(value) { return value === undefined || value === null ? "" : String(value).trim(); }
     function clamp(min, max, value) { return Math.max(min, Math.min(max, value)); }
@@ -763,7 +748,6 @@
 
     function createApronLineageGraph() {
         var tuning = lineageState.tuning;
-        applyCssVars();
 
         ensureLineageData(function (error, data) {
             if (error) {
@@ -778,8 +762,13 @@
             if (!graphElement || !container) return;
 
             var hostRect = graphElement.getBoundingClientRect();
+            var layoutScale = typeof window.APP_LAYOUT_SCALE === "number" && window.APP_LAYOUT_SCALE > 0
+                ? window.APP_LAYOUT_SCALE
+                : 1;
+            var virtualWidth = hostRect.width / layoutScale;
+            var virtualHeight = hostRect.height / layoutScale;
             var isActive = container.classList.contains("is-active");
-            var tooSmall = hostRect.width < tuning.data.minRenderWidth || hostRect.height < tuning.data.minRenderHeight;
+            var tooSmall = virtualWidth < tuning.data.minRenderWidth || virtualHeight < tuning.data.minRenderHeight;
 
             if (tooSmall) {
                 if (isActive) {
@@ -792,11 +781,10 @@
                 return;
             }
 
-            renderLineageGraph(data, Math.round(hostRect.width), Math.round(hostRect.height));
+            renderLineageGraph(data, Math.round(virtualWidth), Math.round(virtualHeight));
         });
     }
 
     window.LINEAGE_TUNING_EFFECTIVE = lineageState.tuning;
     window.create_apron_lineage_graph = createApronLineageGraph;
 })();
-

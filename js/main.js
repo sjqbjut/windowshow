@@ -221,8 +221,12 @@ function create_CCS_chart() {
     document.body.style.width = null;
 
     var base_width = 1600;
-    var ww = window.innerWidth;
-    var width_too_small = ww < 500;
+    var layout_scale = typeof window.APP_LAYOUT_SCALE === "number" && window.APP_LAYOUT_SCALE > 0
+        ? window.APP_LAYOUT_SCALE
+        : 1;
+    var virtual_inner_width = window.innerWidth / layout_scale;
+    var virtual_inner_height = window.innerHeight / layout_scale;
+    var ww = virtual_inner_width;
     // Keep the visualization responsive while focusing on the chart only
     var width = Math.round(Math.min(base_width, Math.max(320, ww * 0.96)));
     var height = width;
@@ -234,17 +238,16 @@ function create_CCS_chart() {
     var building_info_height_ratio = 0.65;      // 信息栏高度占视口比例
     var building_info_min_height = 220;         // 信息栏最小高度
     var building_info_max_height = 650;         // 信息栏最大高度
-    var building_info_min_readable_width = 140; // 低于该宽度时改为下方堆叠布局
     var building_info_font_scale = 1.8;           // 字体整体倍率（例如 1.15 / 1.25）
 
     // ===== 左下角区域介绍栏调参区 =====
     // 以下变量可直接用于调节区域介绍栏的尺寸/位置/字号倍率。
     var area_info_width = Math.round(Math.max(236, Math.min(400, ww * 0.35)));
-    var area_info_min_height = Math.round(Math.max(116, Math.min(148, window.innerHeight * 0.16)));
-    var area_info_max_height = Math.round(Math.max(area_info_min_height + 28, Math.min(500, window.innerHeight * 0.45)));
-    var area_info_left = width_too_small ? 10 : 40;
-    var area_info_bottom = width_too_small ? 10 : 200;
-    var area_info_font_scale = width_too_small ? 0.92 : 1.6;
+    var area_info_min_height = Math.round(Math.max(116, Math.min(148, virtual_inner_height * 0.16)));
+    var area_info_max_height = Math.round(Math.max(area_info_min_height + 28, Math.min(500, virtual_inner_height * 0.45)));
+    var area_info_left = 40;
+    var area_info_bottom = 200;
+    var area_info_font_scale = 1.6;
 
     // 信息栏简化规则：
     // 1) 可用区 = 外圈最右点 到 页面最右边；
@@ -255,12 +258,8 @@ function create_CCS_chart() {
     var building_info_width = Math.round(Math.max(0, right_space_span - side_gap * 2));
     var building_info_left_offset = Math.round(outer_ring_right + side_gap);
     var building_info_height = Math.round(
-        Math.max(building_info_min_height, Math.min(building_info_max_height, window.innerHeight * building_info_height_ratio))
+        Math.max(building_info_min_height, Math.min(building_info_max_height, virtual_inner_height * building_info_height_ratio))
     );
-    // 右侧可用区太窄时自动改为下方堆叠，避免压缩到不可读。
-    var use_right_sidebar_layout = building_info_width >= building_info_min_readable_width;
-
-    chart_container.classed("building-info-stack-layout", !use_right_sidebar_layout);
     // 这 4 个 CSS 变量对应位置/尺寸/字体：
     // --building-info-width / --building-info-left-offset / --building-info-height / --building-info-font-scale
     chart_container
@@ -306,13 +305,6 @@ function create_CCS_chart() {
 
     var chart = svg.append("g")
         .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")");
-
-    // //Test to see the window width on mobile
-    // chart.append("text")
-    //     .attr("x", -width/2 + 20)
-    //     .attr("y", -height/2 + 20)
-    //     .style("fill","black")
-    //     .text(ww)
 
     var defs = chart.append("defs");
 
@@ -836,6 +828,14 @@ function create_CCS_chart() {
             .attr("r", 2.5)
             .style("opacity", 0.45);
 
+        var mini_map_label_bg = mini_map_marker_group.selectAll(".mini-map-building-label-bg")
+            .data(mini_map_building_data)
+            .enter().append("rect")
+            .attr("class", "mini-map-building-label-bg")
+            .attr("rx", 4)
+            .attr("ry", 4)
+            .style("opacity", 0);
+
         var mini_map_label = mini_map_marker_group.selectAll(".mini-map-building-label")
             .data(mini_map_building_data)
             .enter().append("text")
@@ -844,6 +844,25 @@ function create_CCS_chart() {
             .attr("y", function (d) { return d.y + d.label_dy; })
             .style("opacity", 0)
             .text(function (d) { return d.building; });
+
+        function layout_mini_map_label_backgrounds() {
+            var label_nodes = [];
+            mini_map_label.each(function (d, i) {
+                label_nodes[i] = this;
+            });
+            mini_map_label_bg.each(function (d, i) {
+                var label_node = label_nodes[i];
+                if (!label_node || typeof label_node.getBBox !== "function") return;
+                var bbox = label_node.getBBox();
+                var pad_x = 5;
+                var pad_y = 2;
+                d3.select(this)
+                    .attr("x", bbox.x - pad_x)
+                    .attr("y", bbox.y - pad_y)
+                    .attr("width", Math.max(0, bbox.width + pad_x * 2))
+                    .attr("height", Math.max(0, bbox.height + pad_y * 2));
+            });
+        }
 
         function update_mini_map(options) {
             var opts = options || {};
@@ -874,7 +893,13 @@ function create_CCS_chart() {
                     return 0.2;
                 });
 
+            layout_mini_map_label_backgrounds();
+
+            mini_map_label_bg
+                .style("opacity", function (d) { return active_building_set[d.building_id] ? 0.96 : 0; });
+
             mini_map_label
+                .classed("is-active", function (d) { return !!active_building_set[d.building_id]; })
                 .style("opacity", function (d) { return active_building_set[d.building_id] ? 1 : 0; });
 
             if (mini_map_caption.empty()) return;
@@ -1408,11 +1433,40 @@ function create_CCS_chart() {
 
         // 纹样名 -> 数据对象的快速索引，供连线与悬浮逻辑复用。
         var characterByName = {};
+        function estimate_label_width(text, font_size) {
+            // getComputedTextLength 在隐藏容器中可能返回 0，这里提供保守估算兜底。
+            var raw = (text || "").toString();
+            if (!raw) return 0;
+            var cjk_count = 0;
+            var latin_count = 0;
+            for (var idx = 0; idx < raw.length; idx += 1) {
+                var code = raw.charCodeAt(idx);
+                if (code > 255) {
+                    cjk_count += 1;
+                } else {
+                    latin_count += 1;
+                }
+            }
+            return cjk_count * font_size * 0.95 + latin_count * font_size * 0.62;
+        }
+
+        function safe_text_length(node, text, font_size) {
+            var measured = 0;
+            if (node && typeof node.getComputedTextLength === "function") {
+                measured = node.getComputedTextLength();
+            }
+            if (!isFinite(measured) || measured <= 0) {
+                measured = estimate_label_width(text, font_size);
+            }
+            return measured;
+        }
         //Color of the dot behind the name can be the type
         character_total_data.forEach(function (d, i) {
-            var text_width_first = document.getElementById('name-label-' + i).getComputedTextLength();
-            var text_width_last = document.getElementById('last-name-label-' + i).getComputedTextLength();
-            d.dot_name_rad = rad_name + Math.max(text_width_first,text_width_last) + 10;
+            var first_node = document.getElementById('name-label-' + i);
+            var last_node = document.getElementById('last-name-label-' + i);
+            var text_width_first = safe_text_length(first_node, character_total_data[i].first_name, 22 * size_factor);
+            var text_width_last = safe_text_length(last_node, character_total_data[i].last_name, 20 * size_factor);
+            d.dot_name_rad = rad_name + Math.max(text_width_first, text_width_last) + 10;
             d.name_angle = (arcs[i].endAngle - arcs[i].startAngle) / 2 + arcs[i].startAngle;
 
             characterByName[d.character] = d;
@@ -2594,7 +2648,7 @@ function create_CCS_chart() {
         ///////////////////////////////////////////////////////////////////////////
 
         //Only create annotations when the screen is big enough
-        if(!width_too_small && num_chapters >= 50) {
+        if(num_chapters >= 50) {
 
             var annotations = [
                 {

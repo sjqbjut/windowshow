@@ -14,7 +14,7 @@
     <script src="js/main.js"></script>
     <script src="js/lineage.js"></script>
 </head>
-<body>
+<body class="landing-active">
     <div id="landing-screen" class="landing-screen">
         <div class="landing-content landing-cover-content">
             <h1 class="landing-cover-title">纹落紫禁</h1>
@@ -25,9 +25,9 @@
     </div>
 
     <nav class="lantern-nav" aria-label="页面导航">
-        <button class="lantern-nav-button is-active" type="button" data-page="landing" aria-current="page">
+        <button class="lantern-nav-button" type="button" data-page="origin">
             <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
-            <span class="lantern-nav-label">引导页</span>
+            <span class="lantern-nav-label">形制溯源</span>
         </button>
         <button class="lantern-nav-button" type="button" data-page="chart">
             <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
@@ -38,6 +38,13 @@
             <span class="lantern-nav-label">衍生谱系</span>
         </button>
     </nav>
+
+    <section id="origin-container" class="origin-container" aria-hidden="true">
+        <div class="origin-content">
+            <h2 class="origin-title">形制溯源</h2>
+            <p class="origin-subtitle">点击右上角灯笼导航，可进入“空间分布”与“衍生谱系”。</p>
+        </div>
+    </section>
 
     <div id="chart-container">
         <div id="chart"></div>
@@ -66,6 +73,25 @@
     </section>
 
     <script>
+        function resolveLayoutScale() {
+            var root_style = window.getComputedStyle(document.documentElement);
+            var raw_value = root_style.getPropertyValue("--layout-scale");
+            var parsed_value = parseFloat(raw_value);
+            return parsed_value > 0 ? parsed_value : 1;
+        }
+
+        var layoutScale = resolveLayoutScale();
+        window.APP_LAYOUT_SCALE = layoutScale;
+
+        // Lock browser zoom by preventing Ctrl + wheel.
+        (function lockPageZoom() {
+            window.addEventListener("wheel", function(event) {
+                if (event.ctrlKey) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+        })();
+
         // 首次渲染前等待字体加载完成，减少文字跳动和重排。
         WebFont.load({
             google: {
@@ -85,11 +111,12 @@
         });
 
         // 仅在宽度变化时（防抖）重建图表，因为几何尺寸和标签布局都依赖宽度。
-        var current_width = window.innerWidth;
+        var current_width = window.innerWidth / layoutScale;
         var eventTimeout;
         d3.select(window).on("resize", function() {
-            if (window.innerWidth !== current_width) {
-                current_width = window.innerWidth;
+            var next_width = window.innerWidth / layoutScale;
+            if (next_width !== current_width) {
+                current_width = next_width;
                 if (!eventTimeout) {
                     eventTimeout = setTimeout(function() {
                         eventTimeout = null;
@@ -110,6 +137,7 @@
             var landingScreen = document.getElementById("landing-screen");
             var startButton = document.getElementById("start-visualization");
             var landingRipple = document.getElementById("landing-ripple");
+            var originContainer = document.getElementById("origin-container");
             var chartContainer = document.getElementById("chart-container");
             var lineageContainer = document.getElementById("lineage-container");
             var navButtons = Array.prototype.slice.call(document.querySelectorAll(".lantern-nav-button"));
@@ -123,19 +151,34 @@
                     button.classList.toggle("is-active", isActive);
                     if (isActive) {
                         button.setAttribute("aria-current", "page");
+                        button.setAttribute("aria-disabled", "true");
+                        button.disabled = true;
                     } else {
                         button.removeAttribute("aria-current");
+                        button.removeAttribute("aria-disabled");
+                        button.disabled = false;
                     }
                 });
             }
 
             function setActiveContentPage(page) {
-                var targetPage = page || "chart";
+                var targetPage = page || "origin";
+                var showOrigin = targetPage === "origin";
                 var showChart = targetPage === "chart";
                 var showLineage = targetPage === "lineage";
 
+                if (originContainer) {
+                    originContainer.classList.toggle("is-active", showOrigin);
+                    originContainer.setAttribute("aria-hidden", showOrigin ? "false" : "true");
+                }
+
                 if (chartContainer) {
                     chartContainer.classList.toggle("page-hidden", !showChart);
+                    if (showChart) {
+                        window.requestAnimationFrame(function() {
+                            create_CCS_chart();
+                        });
+                    }
                 }
 
                 if (lineageContainer) {
@@ -148,20 +191,8 @@
                 }
             }
 
-            function showLandingPage() {
-                if (hideLandingTimer) {
-                    window.clearTimeout(hideLandingTimer);
-                    hideLandingTimer = null;
-                }
-                landingRipple.classList.remove("animate");
-                landingScreen.classList.remove("is-hidden", "is-leaving");
-                document.body.classList.add("landing-active");
-                setActiveContentPage("chart");
-                setActiveNav("landing");
-            }
-
             function hideLandingPage(withRipple, targetPage) {
-                var nextPage = targetPage || "chart";
+                var nextPage = targetPage || "origin";
 
                 if (landingScreen.classList.contains("is-hidden")) {
                     document.body.classList.remove("landing-active");
@@ -186,10 +217,12 @@
                 if (landingScreen.classList.contains("is-leaving")) return;
 
                 var buttonRect = startButton.getBoundingClientRect();
-                var centerX = buttonRect.left + buttonRect.width / 2;
-                var centerY = buttonRect.top + buttonRect.height / 2;
-                var maxX = Math.max(centerX, window.innerWidth - centerX);
-                var maxY = Math.max(centerY, window.innerHeight - centerY);
+                var centerX = (buttonRect.left + buttonRect.width / 2) / layoutScale;
+                var centerY = (buttonRect.top + buttonRect.height / 2) / layoutScale;
+                var viewportWidth = window.innerWidth / layoutScale;
+                var viewportHeight = window.innerHeight / layoutScale;
+                var maxX = Math.max(centerX, viewportWidth - centerX);
+                var maxY = Math.max(centerY, viewportHeight - centerY);
                 var rippleRadius = Math.hypot(maxX, maxY);
                 var diameter = rippleRadius * 2;
 
@@ -216,21 +249,17 @@
             }
 
             document.body.classList.add("landing-active");
-            setActiveContentPage("chart");
-            setActiveNav("landing");
+            setActiveContentPage("origin");
+            setActiveNav("origin");
 
             startButton.addEventListener("click", function() {
-                hideLandingPage(true, "chart");
+                hideLandingPage(true, "origin");
             });
 
             navButtons.forEach(function(button) {
                 button.addEventListener("click", function() {
                     var targetPage = button.getAttribute("data-page");
-                    if (targetPage === "landing") {
-                        showLandingPage();
-                    } else {
-                        hideLandingPage(false, targetPage);
-                    }
+                    hideLandingPage(false, targetPage);
                 });
             });
         })();

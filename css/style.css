@@ -6,6 +6,7 @@
 }
 
 html {
+    --layout-scale: 0.67; /* 固定页面显示比例，等效还原浏览器约 67% 缩放观感 */
     --annotation-title-font-size: 15px;
     --annotation-label-font-size: 13px;
     width: 100%;
@@ -20,14 +21,22 @@ html {
 body {
     margin: 0;
     font-family: "Barlow Semi Condensed", sans-serif;
-    width: 100%;
-    height: 100%;
+    width: calc(100% / var(--layout-scale));
+    height: calc(100% / var(--layout-scale));
     overflow: hidden;
-    background: #f8f6f3;/*主界面背景色，淡米白色*/
+    transform: scale(var(--layout-scale));
+    transform-origin: top left;
+    background:
+    radial-gradient(circle at 50% 50%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%)
+     #f8f6f3;/*主界面背景色，淡米白色*/
 }
 
 body.landing-active {
     overflow: hidden;
+}
+
+body.landing-active .lantern-nav {
+    display: none;
 }
 
 .landing-screen {
@@ -305,6 +314,7 @@ body.landing-active {
     margin: 0;
     cursor: pointer;
     background: transparent;
+    transition: transform 0.24s ease;
 }
 
 .lantern-nav-icon {
@@ -315,7 +325,7 @@ body.landing-active {
     object-position: center;
     mix-blend-mode: multiply;
     opacity: 0.82;
-    filter: saturate(0.68) contrast(0.9) brightness(0.98) drop-shadow(0 2px 5px rgba(76, 50, 28, 0.16));
+    filter: saturate(0.68) contrast(0.9) brightness(1.12) drop-shadow(0 2px 5px rgba(76, 50, 28, 0.16));
     transition: transform 0.24s ease, filter 0.24s ease, opacity 0.24s ease;
 }
 
@@ -326,7 +336,7 @@ body.landing-active {
     align-items: center;
     justify-content: center;
     padding: 0;
-    transform: translate(0, -18px); /* 左右0，向上10px */
+    transform: translate(0, -18px); /* 左右0，向上18px */
     pointer-events: none;
     color: rgba(98, 61, 30, 0.92);
     font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
@@ -346,10 +356,25 @@ body.landing-active {
     filter: saturate(0.78) contrast(0.94) brightness(1) drop-shadow(0 6px 10px rgba(76, 50, 28, 0.2));
 }
 
+.lantern-nav-button.is-active {
+    cursor: default;
+}
+
 .lantern-nav-button.is-active .lantern-nav-icon {
-    transform: scale(1.05);
-    opacity: 0.88;
-    filter: saturate(0.82) contrast(0.96) brightness(1.01) drop-shadow(0 8px 13px rgba(90, 57, 29, 0.22));
+    transform: scale(0.97);
+    opacity: 0.52;
+    filter: saturate(0.48) contrast(0.86) brightness(0.72) drop-shadow(0 2px 4px rgba(70, 44, 24, 0.16));
+}
+
+.lantern-nav-button.is-active .lantern-nav-label {
+    color: rgba(82, 55, 29, 0.74);
+    text-shadow:
+        0 1px 0 rgba(245, 232, 211, 0.45),
+        0 2px 4px rgba(78, 51, 27, 0.12);
+}
+
+.lantern-nav-button:disabled {
+    pointer-events: none;
 }
 
 .lantern-nav-button:focus-visible {
@@ -357,11 +382,59 @@ body.landing-active {
     outline-offset: 2px;
 }
 
+.origin-container {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(20px, 6vh, 56px) clamp(16px, 4vw, 48px);
+    background-image:
+        linear-gradient(160deg, rgba(26, 15, 6, 0.38) 0%, rgba(31, 18, 8, 0.2) 42%, rgba(20, 10, 4, 0.48) 100%),
+        url("../datas/imgs/art_design/cover2.jpg");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+.origin-container.is-active {
+    display: flex;
+}
+
+.origin-content {
+    width: min(92vw, 1120px);
+    text-align: center;
+    color: rgba(252, 245, 232, 0.96);
+    text-shadow:
+        0 2px 8px rgba(26, 14, 8, 0.55),
+        0 10px 24px rgba(15, 8, 4, 0.36);
+}
+
+.origin-title {
+    margin: 0;
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(2.9rem, 8.5vw, 6.4rem);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.origin-subtitle {
+    margin: clamp(18px, 3.4vw, 34px) auto 0;
+    max-width: min(90vw, 980px);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(1.1rem, 2.2vw, 1.85rem);
+    font-weight: 500;
+    line-height: 1.62;
+    letter-spacing: 0.08em;
+}
+
 #chart-container {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     max-width: none;
     margin: 0;
     padding: 0;
@@ -387,20 +460,16 @@ body.landing-active {
     --lineage-stage-offset-x: clamp(28px, 3.5vw, 72px); /* 图谱在左侧容器内偏移 */
     --lineage-stage-radius: 28px; /* 左侧图谱圆角 */
     --lineage-stage-inner-inset: 14px; /* 左侧图谱内层虚线边距 */
-    --lineage-sidebar-width: min(45vw, 650px); /* 右侧图录宽度 */
+    --lineage-sidebar-width: 620px; /* 图录宽度 */
+    --lineage-sidebar-height: calc(100vh - 80px); /* 图录高度 */
+    --lineage-sidebar-offset-x: 0px; /* 图录左右位置：负左*/
+    --lineage-sidebar-offset-y: 10px; /* 图录上下位置：负上*/
     --lineage-sidebar-radius: 24px; /* 右侧图录圆角 */
     --lineage-sidebar-inner-inset: 14px; /* 右侧图录内层虚线边距 */
     --lineage-layout-gap: clamp(48px, 3.2vw, 48px); /* 左右两栏间距 */
     --lineage-card-font-scale: 1.5; /* 右侧图录文字统一缩放倍率 */
-    --lineage-pan-x: -480px; /* 图谱+图录整体横向平移，正值向右 */
-    --lineage-pan-y: 0; /* 图谱+图录整体纵向平移，正值向下 */
-    --lineage-nav-safe-top: 130px;/*图录避开顶部导航的安全距离*/
-    --lineage-mobile-stage-width: min(100%, 640px); /* 移动端图谱宽度 */
-    --lineage-mobile-stage-height: min(56vh, 440px); /* 移动端图谱高度 */
-    --lineage-mobile-stage-radius: 18px; /* 移动端图谱圆角 */
-    --lineage-mobile-sidebar-radius: 14px; /* 移动端图录圆角 */
-    --lineage-mobile-inner-inset: 10px; /* 移动端内层虚线边距 */
-    --lineage-mobile-sidebar-max-height: 42vh; /* 移动端图录最大高度 */
+    --lineage-pan-x: -480px; /* 图谱+图录整体横向平移，正值向右*/
+    --lineage-pan-y: 0; /* 图谱+图录整体纵向平移，正值向下*/
     position: fixed;
     inset: 0;
     z-index: 3;
@@ -435,6 +504,7 @@ body.landing-active {
     display: flex;
     justify-content: flex-end; /* 让图谱贴近右侧图录，减少中间留白 */
     padding-left: var(--lineage-stage-offset-x);
+    transform: translate(0,50px); /* 微调图谱整体位置，正值向下 */
 }
 
 .lineage-main-header {
@@ -524,7 +594,7 @@ body.landing-active {
 .lineage-trend-label {
     fill: rgba(102, 71, 43, 0.7);
     font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
-    font-size: clamp(11px, 1vw, 14px);
+    font-size: clamp(11px, 1vw, 14px);/*13个变体字体大小*/
     letter-spacing: 0.06em;
 }
 
@@ -594,7 +664,7 @@ body.landing-active {
 .lineage-center-text {
     fill: rgba(74, 50, 29, 0.95);
     font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
-    font-size: clamp(15px, 1.35vw, 21px);
+    font-size: clamp(20px, 1.8vw, 28px);/*中心文字大小*/
     font-weight: 700;
     letter-spacing: 0.08em;
 }
@@ -628,13 +698,13 @@ body.landing-active {
     fill: rgba(82, 58, 35, 0.92);
     font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
     font-weight: 600;
-    font-size: clamp(11px, 0.95vw, 13px);
+    font-size: clamp(15px, 1.3vw, 18px);/*13变体名字字体大小*/
     letter-spacing: 0.02em;
 }
 
 .lineage-label-level-1 .lineage-label-text {
     font-weight: 700;
-    font-size: clamp(11px, 1vw, 14px);
+    font-size: clamp(17px, 1.4vw, 20px);/*5属性名字字体大小*/
 }
 
 .lineage-label.is-dim {
@@ -643,12 +713,11 @@ body.landing-active {
 
 .lineage-sidebar {
     width: var(--lineage-sidebar-width);
-    max-width: min(650px, 45vw);
-    margin-top: var(--lineage-nav-safe-top);
-    max-height: calc(100vh - var(--lineage-nav-safe-top) - 200px);/*图录最大高度*/
+    height: var(--lineage-sidebar-height);
+    margin-top: 0;
     position: relative;
     isolation: isolate;
-    align-self: stretch;
+    align-self: center;
     border-radius: var(--lineage-sidebar-radius);
     border: 0;
     background:
@@ -664,6 +733,7 @@ body.landing-active {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    transform: translate(var(--lineage-sidebar-offset-x), var(--lineage-sidebar-offset-y));
 }
 
 .lineage-sidebar::before,
@@ -911,16 +981,33 @@ body.landing-active {
     vector-effect: non-scaling-stroke;
 }/*小地图上建筑物位置的样式，使用描边效果提高可见性*/
 
+.mini-map-building-label-bg {
+    fill: rgba(250, 244, 232, 0.84);
+    stroke: rgba(132, 93, 56, 0.48);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 1px 2px rgba(73, 49, 28, 0.2));
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
 .mini-map-building-label {
-    fill: #2f2f2f;
+    fill: #2a1f15;
     font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
     font-size: 16px;/*调整小地图建筑定位的字体大小*/
-    font-weight: 600;
+    font-weight: 650;
+    letter-spacing: 0.02em;
     paint-order: stroke;
-    stroke: rgba(255, 255, 255, 0.9);
-    stroke-width: 2.4;
+    stroke: rgba(255, 252, 246, 0.98);
+    stroke-width: 3;
     vector-effect: non-scaling-stroke;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
 }/*小地图上建筑物名称的样式，使用描边效果提高可读性*/
+
+.mini-map-building-label.is-active {
+    fill: #21150d;
+}
 
 .mini-map-caption {
     display: none;
@@ -1425,21 +1512,6 @@ body.landing-active {
     background: rgba(196, 175, 146, 0.18);
 }
 
-/* 窄屏/空间不足时改为下方堆叠布局，避免覆盖主图 */
-#chart-container.building-info-stack-layout.building-info-visible {
-    padding-bottom: calc(var(--building-info-height, 33vh) + 24px);
-}
-
-#chart-container.building-info-stack-layout .building-info-panel {
-    top: 100%;
-    left: 50%;
-    transform: translate(-50%, 12px);
-}
-
-#chart-container.building-info-stack-layout .building-info-panel.is-visible {
-    transform: translate(-50%, 0);
-}
-
 #chart svg {
     position: absolute;
     top: 0;
@@ -1491,223 +1563,6 @@ canvas {
     fill: none;
     stroke-dasharray: 0, 5;
     stroke-linecap: round;
-}
-
-@media screen and (max-width: 500px) {
-    #chart-container {
-        padding: 0;
-    }
-
-    .mini-map-panel {
-        top: 10px;
-        left: 10px;
-        width: min(clamp(229px, 65vw, 304px), calc(100vw - 20px));
-    }/*调整小地图在小屏幕上的大小*/
-
-    .building-info-panel {
-        width: min(94vw, 360px);
-    }
-
-    .area-info-panel {
-        width: min(var(--area-info-width, 320px), calc(100vw - 20px));
-        left: 10px;
-        bottom: 10px;
-    }
-
-    .area-info-inner {
-        padding: 10px 11px;
-        gap: 6px;
-    }
-
-    .area-info-title {
-        font-size: calc(14px * var(--area-info-font-scale, 1));
-    }
-
-    .area-info-description {
-        font-size: calc(12px * var(--area-info-font-scale, 1));
-        line-height: 1.56;
-    }
-/* 手机端扇形图区域介绍调整：整体缩小，标题和标签字号微调，图例行高微调，避免过高导致单行显示 */
-    .pattern-area-svg {
-        max-width: 260px;
-    }
-
-    .pattern-area-title {
-        font-size: calc(12px * var(--area-info-font-scale, 1));
-    }
-
-    .pattern-area-label {
-        font-size: calc(9.5px * var(--area-info-font-scale, 1));
-    }
-
-    .pattern-area-legend {
-        max-height: 56px;
-    }
-
-    .pattern-area-legend-text {
-        font-size: calc(10px * var(--area-info-font-scale, 1));
-    }
-
-    /* 手机端堆叠布局底部留白入口 */
-    #chart-container.building-info-stack-layout.building-info-visible {
-        padding-bottom: calc(var(--building-info-height, 33vh) + 28px);
-    }
-
-    .building-info-inner {
-        margin-left: 10px;
-    }
-
-    .building-info-title {
-        /* 手机端标题字号基准值（仍受字体倍率变量影响） */
-        font-size: calc(13px * var(--building-info-font-scale, 1));
-    }
-
-    .building-info-row {
-        /* 手机端列宽入口 */
-        grid-template-columns: 50px minmax(0, 1fr);
-        column-gap: 6px;
-    }
-
-    .lineage-container {
-        --lineage-stage-width: var(--lineage-mobile-stage-width);
-        --lineage-stage-height: var(--lineage-mobile-stage-height);
-        --lineage-stage-radius: var(--lineage-mobile-stage-radius);
-        --lineage-sidebar-radius: var(--lineage-mobile-sidebar-radius);
-        --lineage-stage-inner-inset: var(--lineage-mobile-inner-inset);
-        --lineage-sidebar-inner-inset: var(--lineage-mobile-inner-inset);
-        padding: 76px 10px 10px;
-        overflow-y: auto;
-    }
-
-    .lineage-content-wrap {
-        align-items: stretch;
-        flex-direction: column;
-        gap: 10px;
-        transform: none;
-    }
-
-    .lineage-main {
-        padding-left: 0;
-        justify-content: center;
-    }
-
-    .lineage-sidebar {
-        width: 100%;
-        max-width: none;
-        margin-top: 0;
-        max-height: var(--lineage-mobile-sidebar-max-height);
-    }
-
-    .lineage-sidebar-header {
-        padding: 12px 12px 9px;
-    }
-
-    .lineage-sidebar-title {
-        font-size: 1.14rem;
-    }
-
-    .lineage-gallery {
-        padding: 10px;
-        gap: 8px;
-    }
-
-    .lineage-card {
-        grid-template-columns: 86px minmax(0, 1fr);
-        gap: 8px;
-        padding: 8px;
-    }
-
-    .lineage-card-title {
-        font-size: calc(0.86rem * var(--lineage-card-font-scale));
-        line-height: 1.32;
-    }
-
-    .lineage-card-meta,
-    .lineage-card-field,
-    .lineage-card-introduction,
-    .lineage-card-placeholder {
-        font-size: calc(0.75rem * var(--lineage-card-font-scale));
-    }
-
-    .landing-content {
-        padding: 16px;
-    }
-
-    .landing-title-main {
-        gap: clamp(0.04em, 1.8vw, 0.14em);
-        font-size: clamp(3.35rem, 16.2vw, 5.2rem);
-    }
-
-    .title-char:nth-child(1) {
-        transform: translateY(-0.14em) rotate(-6deg);
-    }
-
-    .title-char:nth-child(2) {
-        transform: translateY(0.01em) rotate(-1deg);
-    }
-
-    .title-char:nth-child(3) {
-        transform: translateY(-0.19em) rotate(4deg);
-    }
-
-    .title-char:nth-child(4) {
-        transform: translateY(0.07em) rotate(6deg);
-    }
-
-    .landing-title-sub {
-        margin-top: clamp(10px, 2.2vw, 14px);
-        letter-spacing: 0.12em;
-        font-size: clamp(1.08rem, 5.15vw, 1.42rem);
-        line-height: 1.4;
-    }
-
-    .start-button {
-        margin-top: 22px;
-        padding: 10px 26px;
-    }
-
-    .landing-cover-content {
-        width: min(96vw, 980px);
-        min-height: min(90vh, 680px);
-    }
-
-    .landing-cover-title {
-        top: 19%;
-        max-width: 90vw;
-        font-size: clamp(2.6rem, 11vw, 4.3rem);
-        letter-spacing: 0.11em;
-    }
-
-    .landing-cover-subtitle {
-        top: 82%;
-        max-width: 92vw;
-        padding: 5px 12px;
-        font-size: clamp(0.88rem, 3.2vw, 1.28rem);
-        letter-spacing: 0.05em;
-    }
-
-    .landing-cover-content .start-button {
-        top: 90%;
-        padding: 10px 28px;
-    }
-
-    .lantern-nav {
-        top: 6px;
-        right: 6px;
-        gap: 4px;/*手机端按钮间距调整*/
-        max-width: calc(100vw - 8px);
-    }
-
-    .lantern-nav-button {
-        width: 112px;
-        height: 134px;
-    }
-
-    .lantern-nav-label {
-        padding: 0 24px 0;
-        transform: translateY(-5px);
-        font-size: 19px;
-    }
 }
 
 @media (prefers-reduced-motion: reduce) {

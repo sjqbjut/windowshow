@@ -230,7 +230,7 @@ function create_CCS_chart() {
 
     // ===== 右侧信息栏常用调参区（推荐优先改这里） =====
     var building_info_outer_ring_ratio = 0.4;   // 最外圈半径比例（与 rad_card_label 保持一致时建议 0.4）
-    var building_info_side_gap_ratio = 0.20;    // 右侧可用区两侧留白比例（0.15 = 两端各留 15%）
+    var building_info_side_gap_ratio = 0.16;    // 右侧可用区两侧留白比例（0.15 = 两端各留 15%）
     var building_info_height_ratio = 0.65;      // 信息栏高度占视口比例
     var building_info_min_height = 220;         // 信息栏最小高度
     var building_info_max_height = 650;         // 信息栏最大高度
@@ -1604,6 +1604,31 @@ function create_CCS_chart() {
             stop_merged_pattern_cycle();
             hide_area_info_panel();
             show_pattern_area_panel(d.character, locked_other_pattern_type);
+
+            // 每次切换纹样前先重置高亮状态，避免多次点击后残留旧透明度/旧选中圈。
+            var should_emphasize_selected_pattern = info_focus_locked && locked_focus_type === "pattern";
+            if (should_emphasize_selected_pattern) {
+                names.style("opacity", 0.24);
+                name_dot.style("opacity", 0.2);
+                names.filter(function (c) { return c.character === d.character; })
+                    .style("opacity", 1);
+                name_dot.filter(function (c) { return c.character === d.character; })
+                    .style("opacity", 1);
+            } else {
+                names.style("opacity", null);
+                name_dot.style("opacity", null);
+            }
+
+            hover_circle.style("opacity", 0);
+            chapter_hover_slice.style("fill", "none").style("stroke", "none");
+            chapter_number.style("fill", null);
+            chapter_dot
+                .attr("r", chapter_dot_rad)
+                .style("stroke-width", chapter_dot_rad * 0.5)
+                .style("fill", "#c4c4c4");
+            color_hover_circle.style("opacity", 0);
+            relation_lines.style("opacity", 0.7);
+            annotation_relation_group.selectAll(".annotation").remove();
 
             // 仅绘制当前纹样相关连线。
             ctx.clearRect(-width/2, -height/2, width, height);

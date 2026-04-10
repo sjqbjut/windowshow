@@ -2612,7 +2612,7 @@ function create_CCS_chart() {
                     + (isRightSideAngle(d.centerAngle) ? "" : "rotate(180)");
             })
             .style("text-anchor", function (d) { return isRightSideAngle(d.centerAngle) ? "start" : "end"; })
-            .style("font-size", (18 * size_factor) + "px")//外圈建筑名字体大小
+            .style("font-size", (20 * size_factor) + "px")//外圈建筑名字体大小
             .text(function (d, i) { return d.card_captured; });
 
         //////////////////////////////////////////////////////////////

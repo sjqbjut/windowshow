@@ -1914,6 +1914,56 @@ canvas {
     transform: translateX(-50%);
 }
 
+.center-explore-title {
+    fill: rgba(83, 59, 35, 0.96);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    pointer-events: none;
+}
+
+.center-explore-link-group {
+    pointer-events: none;
+}
+
+.center-explore-link {
+    fill: none;
+    stroke-linecap: round;
+    mix-blend-mode: multiply;
+    opacity: 0.3;
+    transition: opacity 0.18s ease;
+}
+
+.center-explore-group.is-links-active .center-explore-link {
+    opacity: 0.7;
+}
+
+.center-explore-button {
+    cursor: pointer;
+}
+
+.center-explore-button-circle {
+    stroke: rgba(130, 91, 53, 0.7);
+    stroke-width: 1.4;
+    filter: drop-shadow(0 3px 8px rgba(83, 59, 34, 0.2));
+    transition: stroke 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+
+.center-explore-button-text {
+    fill: rgba(80, 58, 34, 0.98);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+}
+
+.center-explore-button:hover .center-explore-button-circle,
+.center-explore-button:focus .center-explore-button-circle,
+.center-explore-button:focus-visible .center-explore-button-circle {
+    stroke: rgba(141, 95, 51, 0.9);
+    filter: drop-shadow(0 4px 10px rgba(83, 59, 34, 0.25));
+}
+
 .last-name-label {
     fill: #b9b9b9;
 }

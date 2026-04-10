@@ -1498,6 +1498,140 @@ function create_CCS_chart() {
             .style("stroke", "white")
             .style("stroke-width", 3 * size_factor);
 
+        // 中心引导：标题 + 跳转按钮 + 指向关键纹样的连线。
+        var lineage_focus_pattern_names = ["步步锦", "双交四椀菱花", "三交六椀菱花"];
+        var center_explore_button_radius = Math.max(37, 62 * size_factor);
+        var center_explore_title_y = -Math.max(20, rad_image * 0.42);
+        var center_explore_title_font_size = Math.max(12, 22 * size_factor);//空间分布标题大小
+        var center_explore_button_font_size = Math.max(13.8, 18.9 * size_factor);
+
+        function build_center_explore_line_path(d) {
+            if (!d || !d.target_node) return "";
+            var target_angle = d.target_node.name_angle;
+            var start_radius = center_explore_button_radius + 3 * size_factor;
+            var target_radius = Math.max(start_radius + 12 * size_factor, (rad_donut_inner + rad_donut_outer) / 2);
+
+            var start_x = start_radius * Math.cos(target_angle - pi1_2);
+            var start_y = start_radius * Math.sin(target_angle - pi1_2);
+            var end_x = target_radius * Math.cos(target_angle - pi1_2);
+            var end_y = target_radius * Math.sin(target_angle - pi1_2);
+
+            // 让曲线从按钮出发后轻微侧偏，再回到内圈圆弧，视觉上与主图连线保持一致的弧线感。
+            var bend_sign = Math.cos(target_angle - pi1_2) >= 0 ? -1 : 1;
+            var control_angle = target_angle + bend_sign * 0.24;
+            var control_radius = Math.max(start_radius + 20 * size_factor, target_radius * 0.64);
+            var control_x = control_radius * Math.cos(control_angle - pi1_2);
+            var control_y = control_radius * Math.sin(control_angle - pi1_2);
+
+            return "M" + start_x + "," + start_y + " Q" + control_x + "," + control_y + " " + end_x + "," + end_y;
+        }
+
+        function jump_to_pattern_lineage_page() {
+            if (typeof window.set_lineage_view === "function") {
+                window.set_lineage_view("pattern");
+            }
+            var lineage_nav_button = document.querySelector('.lantern-nav-button[data-page="lineage"]');
+            if (lineage_nav_button && typeof lineage_nav_button.click === "function") {
+                lineage_nav_button.click();
+            }
+            if (typeof window.set_lineage_view === "function") {
+                window.setTimeout(function () {
+                    window.set_lineage_view("pattern");
+                }, 0);
+            }
+        }
+
+        var center_explore_link_data = lineage_focus_pattern_names
+            .map(function (pattern_name) {
+                var normalized_name = cleanText(pattern_name);
+                return {
+                    pattern: normalized_name,
+                    target_node: characterByName[normalized_name] || null
+                };
+            })
+            .filter(function (d) { return !!d.target_node; });
+
+        var center_explore_button_gradient_id = "center-explore-button-gradient";
+        var center_explore_button_gradient = defs.append("radialGradient")
+            .attr("id", center_explore_button_gradient_id)
+            .attr("cx", "38%")
+            .attr("cy", "34%")
+            .attr("r", "72%");
+        center_explore_button_gradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "#fffdf8")
+            .attr("stop-opacity", 0.96);
+        center_explore_button_gradient.append("stop")
+            .attr("offset", "62%")
+            .attr("stop-color", "#f8eedf")
+            .attr("stop-opacity", 0.9);
+        center_explore_button_gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#ecd7bd")
+            .attr("stop-opacity", 0.84);
+
+        var center_explore_group = chart.append("g")
+            .attr("class", "center-explore-group")
+            .attr("aria-label", "中心引导：深究纹样演变");
+
+        center_explore_group.append("text")
+            .attr("class", "center-explore-title")
+            .attr("x", 0)
+            .attr("y", center_explore_title_y)
+            .attr("text-anchor", "middle")
+            .style("font-size", center_explore_title_font_size + "px")
+            .text("故宫窗棂空间分布：纹样・建筑・区域");
+
+        var center_explore_link_group = center_explore_group.append("g")
+            .attr("class", "center-explore-link-group");
+        center_explore_link_group.selectAll(".center-explore-link")
+            .data(center_explore_link_data)
+            .enter().append("path")
+            .attr("class", "center-explore-link")
+            .attr("d", build_center_explore_line_path)
+            .style("stroke", function (d) { return d.target_node.color || "#bbbbbb"; })
+            .style("stroke-width", 3 * size_factor);
+
+        var center_explore_button = center_explore_group.append("g")
+            .attr("class", "center-explore-button")
+            .attr("role", "button")
+            .attr("tabindex", 0)
+            .attr("aria-label", "深究纹样演变，跳转到衍生谱系页")
+            .on("mouseover", function () {
+                center_explore_group.classed("is-links-active", true);
+            })
+            .on("mouseout", function () {
+                center_explore_group.classed("is-links-active", false);
+            })
+            .on("focus", function () {
+                center_explore_group.classed("is-links-active", true);
+            })
+            .on("blur", function () {
+                center_explore_group.classed("is-links-active", false);
+            })
+            .on("click", function () {
+                d3.event.stopPropagation();
+                jump_to_pattern_lineage_page();
+            })
+            .on("keydown", function () {
+                var key = d3.event.key;
+                if (key === "Enter" || key === " " || key === "Spacebar") {
+                    d3.event.preventDefault();
+                    d3.event.stopPropagation();
+                    jump_to_pattern_lineage_page();
+                }
+            });
+        center_explore_button.append("circle")
+            .attr("class", "center-explore-button-circle")
+            .attr("r", center_explore_button_radius)
+            .attr("fill", "url(#" + center_explore_button_gradient_id + ")");
+        center_explore_button.append("text")
+            .attr("class", "center-explore-button-text")
+            .attr("text-anchor", "middle")
+            .attr("dy", "0.35em")
+            .style("font-size", center_explore_button_font_size + "px")
+            .text("深究纹样演变");
+
         ///////////////////////////////////////////////////////////////////////////
         ////////////////////////// Create inner relations /////////////////////////
         /////////////////////////////////////////////////////////////////////////// 
@@ -2612,7 +2746,7 @@ function create_CCS_chart() {
                     + (isRightSideAngle(d.centerAngle) ? "" : "rotate(180)");
             })
             .style("text-anchor", function (d) { return isRightSideAngle(d.centerAngle) ? "start" : "end"; })
-            .style("font-size", (18 * size_factor) + "px")//外圈建筑名字体大小
+            .style("font-size", (20 * size_factor) + "px")//外圈建筑名字体大小
             .text(function (d, i) { return d.card_captured; });
 
         //////////////////////////////////////////////////////////////

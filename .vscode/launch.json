@@ -1,18 +1,33 @@
 {
-    // 使用 IntelliSense 了解相关属性。 
-    // 悬停以查看现有属性的描述。
-    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-
-        {
-            "name": "Launch Chrome",
-            "request": "launch",
-            "type": "chrome",
-            "url": "http://localhost:8000",
-            "webRoot": "${workspaceFolder}",
-            "preLaunchTask": "start-server",
-        },
-
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Chrome",
+      "request": "launch",
+      "type": "pwa-chrome",
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "start-server",
+      "runtimeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "userDataDir": "${workspaceFolder}\\.vscode\\.chrome-debug-profile",
+      "runtimeArgs": [
+        "--window-size=1440,900",
+        "--force-device-scale-factor=1"
+      ]
+    },
+    {
+      "name": "Launch Edge",
+      "request": "launch",
+      "type": "pwa-msedge",
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "start-server",
+      "runtimeExecutable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "userDataDir": "${workspaceFolder}\\.vscode\\.edge-debug-profile",
+      "runtimeArgs": [
+        "--window-size=1440,900",
+        "--force-device-scale-factor=1"
+      ]
+    }
+  ]
 }

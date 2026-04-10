@@ -6,7 +6,7 @@
 }
 
 html {
-    --layout-scale: 0.67; /* 固定页面显示比例，等效还原浏览器约 67% 缩放观感 */
+    --layout-scale: 1; /* 固定页面显示比例，等效还原浏览器约 67% 缩放观感 */
     --annotation-title-font-size: 15px;
     --annotation-label-font-size: 13px;
     width: 100%;

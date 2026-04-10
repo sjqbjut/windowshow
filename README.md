@@ -12,7 +12,7 @@
    - `Folder`: `/ (root)`
 4. 保存后等待 1-3 分钟。
 5. 访问页面地址：
-   - `https://<你的用户名>.github.io/<仓库名>/`
+   - `https://sjqbjut.github.io/windowshow/`
 
 ## 关于 CNAME
 

@@ -45,6 +45,10 @@
     <div id="chart-container">
         <div id="chart"></div>
     </div>
+    <button id="chart-lineage-button" class="chart-lineage-button" type="button" aria-label="深究纹样衍变，跳转到衍生谱系" aria-hidden="true">
+        <img src="datas/imgs/art_design/button1.png" alt="" aria-hidden="true">
+        <span class="chart-lineage-button-label" aria-hidden="true">深究纹样衍变</span>
+    </button>
 
     <section id="lineage-container" class="lineage-container" aria-hidden="true">
         <div class="lineage-content-wrap">
@@ -139,11 +143,29 @@
             var landingRipple = document.getElementById("landing-ripple");
             var originContainer = document.getElementById("origin-container");
             var chartContainer = document.getElementById("chart-container");
+            var chartLineageButton = document.getElementById("chart-lineage-button");
             var lineageContainer = document.getElementById("lineage-container");
             var navButtons = Array.prototype.slice.call(document.querySelectorAll(".lantern-nav-button"));
             if (!landingScreen || !startButton || !landingRipple) return;
 
             var hideLandingTimer = null;
+            var chartLineageTransitionTimer = null;
+            var chartLineageTransitionDuration = 720;
+
+            function clearChartLineageTransitionTimer() {
+                if (chartLineageTransitionTimer) {
+                    window.clearTimeout(chartLineageTransitionTimer);
+                    chartLineageTransitionTimer = null;
+                }
+            }
+
+            function resetChartLineageTransitionState() {
+                if (chartLineageButton) {
+                    chartLineageButton.classList.remove("is-spinning");
+                    chartLineageButton.disabled = false;
+                    chartLineageButton.removeAttribute("aria-disabled");
+                }
+            }
 
             function setActiveNav(page) {
                 navButtons.forEach(function(button) {
@@ -179,6 +201,16 @@
                             create_CCS_chart();
                         });
                     }
+                }
+
+                if (chartLineageButton) {
+                    chartLineageButton.classList.toggle("is-visible", showChart);
+                    chartLineageButton.setAttribute("aria-hidden", showChart ? "false" : "true");
+                }
+
+                if (!showChart) {
+                    clearChartLineageTransitionTimer();
+                    resetChartLineageTransitionState();
                 }
 
                 if (lineageContainer) {
@@ -266,6 +298,23 @@
                     hideLandingPage(false, targetPage);
                 });
             });
+
+            if (chartLineageButton) {
+                chartLineageButton.addEventListener("click", function() {
+                    if (!chartContainer || chartContainer.classList.contains("page-hidden")) return;
+                    if (chartLineageButton.disabled) return;
+
+                    clearChartLineageTransitionTimer();
+                    chartLineageButton.disabled = true;
+                    chartLineageButton.setAttribute("aria-disabled", "true");
+                    chartLineageButton.classList.add("is-spinning");
+
+                    chartLineageTransitionTimer = window.setTimeout(function() {
+                        chartLineageTransitionTimer = null;
+                        hideLandingPage(false, "lineage");
+                    }, chartLineageTransitionDuration);
+                });
+            }
 
             window.addEventListener("origin:go-chart", function() {
                 hideLandingPage(false, "chart");

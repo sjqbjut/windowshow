@@ -23,8 +23,8 @@
     var STEP_FOCUS_SCALE = 2.28;
     // 打字机速度（毫秒/字）
     var TYPE_SPEED = {
-        step1: 50,
-        normal: 48,
+        step1: 60,
+        normal: 60,
         detail: 60
     };
     var STEP4_SEQUENCE = [
@@ -367,7 +367,7 @@
             state.replayBusy = false;
             return;
         }
-
+        await wait(800); 
         setStepThreeVisual();
         setBlinkHighlight("o2");
         ok = await typeCopy(COPY.step3, token, TYPE_SPEED.normal);

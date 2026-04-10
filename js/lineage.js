@@ -42,6 +42,11 @@
                 meaningPrefix: "风格：",
                 meaningFallback: "暂无风格",
                 graphAriaLabel: "窗棂衍生谱系图",
+                gradients: {
+                    center: [{ offset: "0%", color: "#fff2ec" }, { offset: "100%", color: "#cf4f3b" }],
+                    type: [{ offset: "0%", color: "#f8ddd4" }, { offset: "100%", color: "#b53f2e" }],
+                    variant: [{ offset: "0%", color: "#fdebe4" }, { offset: "100%", color: "#d77161" }]
+                },
                 typeKeys: ["pattern", "type", "pattern_type", "属性", "类型", "母纹样", "纹样类型"],
                 variantKeys: ["variant", "variant_name", "name", "变体", "变体名"],
                 introductionKeys: ["introduction", "intro", "description", "details", "介绍"],
@@ -68,13 +73,13 @@
             centerXRatio: 0.5,        // 图谱中心横向位置比例（越小越靠左）
             centerYRatio: 0.52,        // 图谱中心纵向位置比例（越小越靠上）
             typeRingRatio: 0.15,       // 中心到“apron类型层”的半径比例
-            variantRingRatio: 0.38,    // 中心到“variant层”的半径比例
-            typeStartAngle: -Math.PI / 2,
-            variantSpreadMin: Math.PI / 8,
-            variantSpreadMax: Math.PI * 0.86,
-            variantSpreadStep: Math.PI / 10,
+            variantRingRatio: 0.32,    // 中心到“variant层”的半径比例
+            typeStartAngle: -Math.PI / 2,//起始角度
+            variantSpreadMin: Math.PI / 15,//最小展开角度
+            variantSpreadMax: Math.PI * 0.95,//最大展开角度
+            variantSpreadStep: Math.PI / 15,
             variantSpreadBase: Math.PI / 10,
-            variantRadialOffset: 10    // 变体节点交错起伏量（2.5D层次）
+            variantRadialOffset: 5   // 变体节点交错起伏量（2.5D层次）
         },
         visual: {
             nodeRadiusByLevel: { "0": 38, "1": 22, "2": 12 },
@@ -273,6 +278,7 @@
             ariaLabel = centerLabel + "衍生谱系图";
         }
 
+        graphElement.setAttribute("data-lineage-view", lineageState.activeView);
         graphElement.setAttribute("aria-label", ariaLabel);
     }
 
@@ -827,11 +833,18 @@
             .attr("x2", "0%")
             .attr("y2", "100%");
 
-        stops.forEach(function (stop) {
+        (Array.isArray(stops) ? stops : []).forEach(function (stop) {
             gradient.append("stop")
                 .attr("offset", stop.offset)
                 .attr("stop-color", stop.color);
         });
+    }
+
+    function getActiveViewGradients() {
+        var baseGradients = isPlainObject(lineageState.tuning.gradients) ? lineageState.tuning.gradients : {};
+        var viewConfig = getActiveViewConfig();
+        var viewGradients = isPlainObject(viewConfig.gradients) ? viewConfig.gradients : {};
+        return mergeConfig(baseGradients, viewGradients);
     }
 
     function renderRingsAndTrend(svg, data) {
@@ -1018,10 +1031,11 @@
             .attr("viewBox", "0 0 " + width + " " + height)
             .attr("aria-hidden", "true");
 
+        var activeGradients = getActiveViewGradients();
         var defs = svg.append("defs");
-        appendLinearGradient(defs, "lineage-gradient-center", lineageState.tuning.gradients.center);
-        appendLinearGradient(defs, "lineage-gradient-type", lineageState.tuning.gradients.type);
-        appendLinearGradient(defs, "lineage-gradient-variant", lineageState.tuning.gradients.variant);
+        appendLinearGradient(defs, "lineage-gradient-center", activeGradients.center);
+        appendLinearGradient(defs, "lineage-gradient-type", activeGradients.type);
+        appendLinearGradient(defs, "lineage-gradient-variant", activeGradients.variant);
 
         renderRingsAndTrend(svg, data);
         var linkSelections = renderLinks(svg, data);

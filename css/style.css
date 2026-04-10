@@ -392,9 +392,13 @@ body.landing-active .lantern-nav {
     padding: clamp(20px, 6vh, 56px) clamp(16px, 4vw, 48px);
     overflow: visible;
     background:
+        linear-gradient(180deg, rgba(248, 246, 243, 0.72), rgba(248, 246, 243, 0.76)),
         radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%),
         radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.24) 0%, rgba(220, 191, 153, 0) 52%),
-        #f8f6f3;
+        url("../datas/imgs/art_design/background.jpg");
+    background-size: auto, auto, auto, cover;
+    background-position: center center, center center, center center, center center;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
 }/*形制解析页面背景，淡米白色，带有两处径向渐变的光斑*/
 
 .origin-container.is-active {
@@ -406,7 +410,7 @@ body.landing-active .lantern-nav {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(14px, 2.4vh, 26px);
+    gap: clamp(8px, 1.45vh, 14px);
 }
 
 .origin-stage {
@@ -522,7 +526,7 @@ body.landing-active .lantern-nav {
 .origin-copy {
     width: min(96vw, 1240px);
     margin: 0;
-    min-height: 3.6em;
+    min-height: 2.8em;
     transform: translateY(40px);/*打字机输出文字位置下移40px */
     color: rgba(84, 47, 24, 0.95);
     font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
@@ -538,17 +542,19 @@ body.landing-active .lantern-nav {
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
+    margin-top: -4px;
     gap: 10px;
     opacity: 0;
     pointer-events: none;
     transform: translateY(10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease, gap 0.3s ease;
 }
 
 .origin-replay.is-visible {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
+    gap: 11px;
 }
 
 .origin-replay-label {
@@ -560,48 +566,81 @@ body.landing-active .lantern-nav {
 }
 
 .origin-replay-btn {
-    border: 1px solid rgba(141, 97, 58, 0.5);
-    border-radius: 999px;
-    padding: 8px 20px;
-    background: linear-gradient(180deg, rgba(255, 248, 235, 0.96), rgba(238, 222, 196, 0.96));
+    --origin-replay-btn-width: clamp(132px, 11.2vw, 176px);
+    inline-size: var(--origin-replay-btn-width);
+    aspect-ratio: 1210 / 710;
+    display: inline-grid;
+    place-items: center;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: url("../datas/imgs/art_design/button2.png") no-repeat center center / 100% 100%;
     color: rgba(95, 60, 33, 0.95);
     font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
-    font-size: clamp(1.05rem, 1.45vw, 1.32rem);
+    font-size: clamp(1.01rem, 1.35vw, 1.22rem);
     letter-spacing: 0.08em;
+    line-height: 1;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    filter: drop-shadow(0 1px 2px rgba(108, 69, 36, 0.16));
+    transition: inline-size 0.3s ease, transform 0.2s ease, filter 0.2s ease, font-size 0.3s ease;
+}
+
+.origin-replay.is-visible .origin-replay-btn {
+    --origin-replay-btn-width: clamp(145px, 12.32vw, 194px);
+    font-size: clamp(1.111rem, 1.485vw, 1.342rem);
 }
 
 .origin-replay-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(108, 69, 36, 0.2);
-    filter: brightness(1.04);
+    filter: brightness(1.04) drop-shadow(0 6px 12px rgba(108, 69, 36, 0.24));
+}
+
+.origin-replay-btn:focus-visible {
+    outline: none;
+    filter: brightness(1.04) drop-shadow(0 6px 12px rgba(108, 69, 36, 0.24));
 }
 
 .origin-action {
-    border: 1px solid rgba(141, 97, 58, 0.55);
-    border-radius: 999px;
-    padding: 12px 34px;
-    background: linear-gradient(180deg, rgba(254, 246, 230, 0.96), rgba(237, 221, 195, 0.96));
+    --origin-action-width: clamp(204px, 15.6vw, 268px);
+    inline-size: var(--origin-action-width);
+    aspect-ratio: 1210 / 710;
+    display: inline-grid;
+    place-items: center;
+    margin-top: -10px;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    background: url("../datas/imgs/art_design/button2.png") no-repeat center center / 100% 100%;
     color: rgba(95, 60, 33, 0.95);
     font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
-    font-size: clamp(1.32rem, 1.8vw, 1.86rem);
+    font-size: clamp(1.32rem, 1.7vw, 1.74rem);
     letter-spacing: 0.08em;
+    line-height: 1;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
     transform: translateY(10px);
-    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.26s ease;
+    filter: drop-shadow(0 1px 2px rgba(108, 69, 36, 0.16));
+    transition: opacity 0.3s ease, transform 0.3s ease, inline-size 0.3s ease, font-size 0.3s ease, filter 0.2s ease;
 }
 
 .origin-action.is-visible {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
+    --origin-action-width: clamp(224px, 17.16vw, 295px);
+    font-size: clamp(1.452rem, 1.87vw, 1.914rem);
 }
 
 .origin-action:hover {
-    box-shadow: 0 10px 24px rgba(108, 69, 36, 0.2);
+    filter: brightness(1.04) drop-shadow(0 10px 18px rgba(108, 69, 36, 0.24));
+}
+
+.origin-action:focus-visible {
+    outline: none;
+    filter: brightness(1.04) drop-shadow(0 10px 18px rgba(108, 69, 36, 0.24));
 }
 
 @keyframes origin-focus-pulse {
@@ -647,7 +686,7 @@ body.landing-active .lantern-nav {
     }
 
     .origin-copy {
-        min-height: 4.4em;
+        min-height: 3.6em;
         font-size: clamp(1.36rem, 3vw, 1.74rem);
         line-height: 1.62;
     }
@@ -692,6 +731,14 @@ body.landing-active .lantern-nav {
     padding: 0;
     text-align: center;
     overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(248, 246, 243, 0.68), rgba(248, 246, 243, 0.74)),
+        radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.58) 0%, rgba(255, 248, 236, 0) 44%),
+        radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.2) 0%, rgba(220, 191, 153, 0) 52%),
+        url("../datas/imgs/art_design/background.jpg");
+    background-size: auto, auto, auto, cover;
+    background-position: center center, center center, center center, center center;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
 }
 
 #chart-container.page-hidden {
@@ -705,6 +752,126 @@ body.landing-active .lantern-nav {
     transform: translate(-50%, -50%);
 }
 
+.chart-lineage-button {
+    position: fixed;
+    right: 230px;
+    bottom: 180px;
+    z-index: 10000;
+    width: 196px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, 8px, 0) scale(0.96);
+    transform-origin: center center;
+    filter: saturate(1) contrast(1.05) brightness(1.05);
+    transition: opacity 0.3s ease, transform 0.3s ease, filter 0.3s ease;
+}/*空间分布页面右下角的“深究纹样衍变”按钮，带有轻微的上浮和缩放效果*/
+
+.chart-lineage-button::before {
+    content: "";
+    position: absolute;
+    inset: 13% 15%;
+    z-index: -1;
+    border-radius: 999px;
+    filter: blur(6px);
+    opacity: 0.86;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.chart-lineage-button img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transform: scale(1);/* 图标放大x倍（保留） */
+    transform-origin: center center;
+}
+
+.chart-lineage-button.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.chart-lineage-button-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: max-content;
+    max-width: 74%;
+    color: rgba(96, 62, 34, 0.96);
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.1;
+    text-shadow:
+        0 1px 0 rgba(255, 250, 241, 0.88),
+        0 3px 6px rgba(100, 66, 37, 0.12);
+}
+
+.chart-lineage-button:hover {
+    transform: translate3d(0, -4px, 0) scale(1.03);
+    
+    filter: saturate(1) contrast(1.05) brightness(1.05);/* ✅ 优化：hover 比默认更亮，保留交互效果 */
+}
+
+.chart-lineage-button:hover::before {
+    opacity: 1;
+    transform: scale(1.03);
+}
+
+.chart-lineage-button:active {
+    transform: translate3d(0, 0, 0) scale(1);
+}
+
+.chart-lineage-button:focus-visible {
+    outline: 2px solid rgba(170, 114, 68, 0.88);
+    outline-offset: 5px;
+    border-radius: 999px;
+}
+
+.chart-lineage-button[aria-disabled="true"] {
+    pointer-events: none;
+}
+
+.chart-lineage-button.is-spinning {
+    animation: chart-lineage-button-spin 0.72s cubic-bezier(0.2, 0.72, 0.3, 1) forwards;
+}
+
+.chart-lineage-button.is-spinning .chart-lineage-button-label {
+    animation: chart-lineage-button-label-fade 0.58s ease forwards;
+}
+
+@keyframes chart-lineage-button-spin {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    }
+    55% {
+        opacity: 0.72;
+        transform: translate3d(0, -2px, 0) scale(1.18) rotate(252deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(0, -2px, 0) scale(1.3) rotate(420deg);
+    }
+}
+
+@keyframes chart-lineage-button-label-fade {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
 .lineage-container {
     /* 衍生谱系页面调参区：优先调整这里 */
     --lineage-stage-width: min(84vw, 1100px); /* 左侧图谱区域宽度 */
@@ -713,15 +880,15 @@ body.landing-active .lantern-nav {
     --lineage-stage-radius: 28px; /* 左侧图谱圆角 */
     --lineage-stage-inner-inset: 14px; /* 左侧图谱内层虚线边距 */
     --lineage-sidebar-width: 620px; /* 图录宽度 */
-    --lineage-sidebar-height: 1050px; /* 图录高度 */
+    --lineage-sidebar-height: 1110px; /* 图录高度 */
     --lineage-sidebar-offset-x: 0px; /* 图录左右位置：负左*/
-    --lineage-sidebar-offset-y: -40px; /* 图录上下位置：负上*/
+    --lineage-sidebar-offset-y: -15px; /* 图录上下位置：负上*/
     --lineage-sidebar-radius: 24px; /* 右侧图录圆角 */
     --lineage-sidebar-inner-inset: 14px; /* 右侧图录内层虚线边距 */
     --lineage-layout-gap: clamp(48px, 3.2vw, 48px); /* 左右两栏间距 */
     --lineage-card-font-scale: 1.5; /* 右侧图录文字统一缩放倍率 */
     --lineage-pan-x: -480px; /* 图谱+图录整体横向平移，正值向右*/
-    --lineage-pan-y: 0; /* 图谱+图录整体纵向平移，正值向下*/
+    --lineage-pan-y: 40px; /* 图谱+图录整体纵向平移，正值向下*/
     position: fixed;
     inset: 0;
     z-index: 3;
@@ -730,9 +897,13 @@ body.landing-active .lantern-nav {
     justify-content: center;
     padding: clamp(18px, 2.8vw, 36px) clamp(14px, 2.8vw, 34px) clamp(14px, 2.2vw, 26px);
     background:
+        linear-gradient(180deg, rgba(248, 246, 243, 0.72), rgba(248, 246, 243, 0.78)),
         radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%),
         radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.24) 0%, rgba(220, 191, 153, 0) 52%),
-        #f8f6f3;
+        url("../datas/imgs/art_design/background.jpg");
+    background-size: auto, auto, auto, cover;
+    background-position: center center, center center, center center, center center;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
     overflow: hidden;
 }
 
@@ -784,7 +955,7 @@ body.landing-active .lantern-nav {
     padding: 8px 28px;
     background: rgba(255, 250, 242, 0.65);
     color: rgba(96, 67, 41, 0.86);
-    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
     font-size: clamp(1.9rem, 2.1vw, 2.2rem);
     line-height: 1.2;
     font-weight: 600;
@@ -943,6 +1114,22 @@ body.landing-active .lantern-nav {
     opacity: 0.13;
 }
 
+.lineage-graph[data-lineage-view="pattern"] .lineage-link-shadow {
+    stroke: rgba(141, 43, 34, 0.2);
+}
+
+.lineage-graph[data-lineage-view="pattern"] .lineage-link {
+    stroke: rgba(174, 52, 40, 0.72);
+}
+
+.lineage-graph[data-lineage-view="pattern"] .lineage-link.lineage-link-level-1 {
+    stroke: rgba(160, 44, 34, 0.74);
+}
+
+.lineage-graph[data-lineage-view="pattern"] .lineage-link.is-active {
+    stroke: rgba(205, 72, 54, 0.94);
+}
+
 .lineage-node {
     cursor: pointer;
     transition: opacity 0.22s ease;
@@ -963,6 +1150,19 @@ body.landing-active .lantern-nav {
     stroke: rgba(129, 89, 52, 0.54);
     stroke-width: 1.2;
     transition: stroke 0.22s ease, stroke-width 0.22s ease, transform 0.22s ease;
+}
+
+.lineage-graph[data-lineage-view="pattern"] .lineage-node-shadow {
+    fill: rgba(116, 30, 24, 0.2);
+}
+
+.lineage-graph[data-lineage-view="pattern"] .lineage-node-halo {
+    fill: rgba(255, 238, 229, 0.42);
+    stroke: rgba(171, 54, 43, 0.24);
+}
+
+.lineage-graph[data-lineage-view="pattern"] .lineage-node-core {
+    stroke: rgba(156, 44, 35, 0.56);
 }
 
 .lineage-node-specular {
@@ -1916,53 +2116,17 @@ canvas {
 
 .center-explore-title {
     fill: rgba(83, 59, 35, 0.96);
-    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
     font-weight: 700;
     letter-spacing: 0.03em;
     pointer-events: none;
-}
+}/* 空间分布中心标题的样式 */
+
 
 .center-explore-link-group {
     pointer-events: none;
 }
 
-.center-explore-link {
-    fill: none;
-    stroke-linecap: round;
-    mix-blend-mode: multiply;
-    opacity: 0.3;
-    transition: opacity 0.18s ease;
-}
-
-.center-explore-group.is-links-active .center-explore-link {
-    opacity: 0.7;
-}
-
-.center-explore-button {
-    cursor: pointer;
-}
-
-.center-explore-button-circle {
-    stroke: rgba(130, 91, 53, 0.7);
-    stroke-width: 1.4;
-    filter: drop-shadow(0 3px 8px rgba(83, 59, 34, 0.2));
-    transition: stroke 0.2s ease, filter 0.2s ease, transform 0.2s ease;
-}
-
-.center-explore-button-text {
-    fill: rgba(80, 58, 34, 0.98);
-    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    pointer-events: none;
-}
-
-.center-explore-button:hover .center-explore-button-circle,
-.center-explore-button:focus .center-explore-button-circle,
-.center-explore-button:focus-visible .center-explore-button-circle {
-    stroke: rgba(141, 95, 51, 0.9);
-    filter: drop-shadow(0 4px 10px rgba(83, 59, 34, 0.25));
-}
 
 .last-name-label {
     fill: #b9b9b9;
@@ -2005,7 +2169,9 @@ canvas {
     .landing-screen,
     .start-button,
     .landing-ripple,
-    .lantern-nav-icon {
+    .lantern-nav-icon,
+    .chart-lineage-button,
+    .chart-lineage-button-label {
         transition: none;
         animation: none;
     }

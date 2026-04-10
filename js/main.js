@@ -1498,10 +1498,31 @@ function create_CCS_chart() {
             .style("stroke", "white")
             .style("stroke-width", 3 * size_factor);
 
+        var center_explore_title_font_size = Math.max(22, 40 * size_factor);//空间分布标题大小
+
+        var center_explore_group = chart.append("g")
+            .attr("class", "center-explore-group")
+
+            center_explore_group.append("text")
+            .attr("class", "center-explore-title")
+            .attr("x", 0)
+            .attr("y", -25 * size_factor)
+            .attr("text-anchor", "middle")
+            .style("font-size", center_explore_title_font_size + "px")
+            .text("故宫窗棂空间分布");
+
+            center_explore_group.append("text")
+            .attr("class", "center-explore-title")
+            .attr("x", 0)
+            .attr("y", 38 * size_factor)
+            .attr("text-anchor", "middle")
+            .style("font-size", center_explore_title_font_size + "px")
+            .text("纹样・建筑・区域");
+
+
         ///////////////////////////////////////////////////////////////////////////
         ////////////////////////// Create inner relations /////////////////////////
         /////////////////////////////////////////////////////////////////////////// 
-
         var pull_scale = d3.scaleLinear()
             .domain([2 * rad_relation, 0])
             .range([0.7, 2.3]);

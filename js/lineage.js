@@ -107,7 +107,7 @@
         pinnedNodeId: "center",
         renderContext: null,
         pendingRenderTimer: null,
-        activeView: "apron",
+        activeView: "pattern",
         toggleReady: false,
         previewOverlay: null,
         previewPanel: null,

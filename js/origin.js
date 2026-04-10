@@ -55,6 +55,7 @@
         world: null,
         base: null,
         copy: null,
+        continueHint: null,
         replay: null,
         replayButtons: {},
         action: null,
@@ -77,6 +78,13 @@
     function setCopyInstant(text) {
         if (!dom.copy) return;
         dom.copy.textContent = text || "";
+    }
+
+    function setContinueHintVisible(visible) {
+        if (!dom.continueHint) return;
+        var shouldShow = !!visible && state.started && !state.completed;
+        dom.continueHint.classList.toggle("is-visible", shouldShow);
+        dom.continueHint.setAttribute("aria-hidden", shouldShow ? "false" : "true");
     }
 
     function wait(ms) {
@@ -237,7 +245,8 @@
         setBaseVisible(true);
         setVisibleLayers(["o1"]);
         setFocus("", 1);
-        setInteractiveTarget("o1", { remind: true });
+        clearLayerHighlights();
+        setContinueHintVisible(false);
         setReplayVisible(false);
         setActionVisible(false);
     }
@@ -250,6 +259,7 @@
         setVisibleLayers(["o1", "o2"]);
         setFocus("o1", STEP_FOCUS_SCALE);
         clearLayerHighlights();
+        setContinueHintVisible(false);
         setReplayVisible(false);
         setActionVisible(false);
     }
@@ -262,6 +272,7 @@
         setVisibleLayers(["o1", "o2"]);
         setFocus("o2", STEP_FOCUS_SCALE);
         clearLayerHighlights();
+        setContinueHintVisible(false);
         setReplayVisible(false);
         setActionVisible(false);
     }
@@ -273,6 +284,7 @@
         setVisibleLayers(["o1", "o2", "o3", "o4", "o5"]);
         setFocus("o2", STEP_FOCUS_SCALE);
         clearLayerHighlights();
+        setContinueHintVisible(false);
         setReplayVisible(false);
         setActionVisible(false);
     }
@@ -288,6 +300,7 @@
         setFocus("", 1);
         clearLayerHighlights();
         setCopyInstant(COPY.step1);
+        setContinueHintVisible(false);
         setReplayVisible(true);
         setActionVisible(true);
     }
@@ -295,7 +308,10 @@
     async function runStepOne() {
         setStepOneVisual();
         var token = currentRunToken();
-        await typeCopy(COPY.step1, token, TYPE_SPEED.step1);
+        var ok = await typeCopy(COPY.step1, token, TYPE_SPEED.step1);
+        if (!ok || !runIsActive(token)) return;
+        setInteractiveTarget("o1", { remind: true });
+        setContinueHintVisible(true);
     }
 
     async function runStepTwo() {
@@ -305,6 +321,7 @@
         var ok = await typeCopy(COPY.step2, token, TYPE_SPEED.normal);
         if (!ok || !runIsActive(token)) return;
         setInteractiveTarget("o2", { remind: true });
+        setContinueHintVisible(true);
     }
 
     async function runStepThreeAndFour() {
@@ -318,6 +335,7 @@
         state.step4Index = 0;
         state.step4Busy = false;
         setInteractiveTarget(STEP4_SEQUENCE[0].key, { remind: true });
+        setContinueHintVisible(true);
     }
 
     async function handleStepFourClick(key) {
@@ -328,6 +346,7 @@
         var currentItem = STEP4_SEQUENCE[state.step4Index];
         if (!currentItem || key !== currentItem.key) return;
 
+        setContinueHintVisible(false);
         state.step4Busy = true;
         setSteadyHighlight(currentItem.key);
 
@@ -343,6 +362,7 @@
 
         if (state.step4Index < STEP4_SEQUENCE.length) {
             setInteractiveTarget(STEP4_SEQUENCE[state.step4Index].key, { remind: true });
+            setContinueHintVisible(true);
             return;
         }
 
@@ -438,11 +458,13 @@
 
         var key = layer.getAttribute("data-layer");
         if (state.mode === "step1" && key === "o1" && layer.classList.contains("is-target")) {
+            setContinueHintVisible(false);
             runStepTwo();
             return;
         }
 
         if (state.mode === "step2" && key === "o2" && layer.classList.contains("is-target")) {
+            setContinueHintVisible(false);
             runStepThreeAndFour();
             return;
         }
@@ -453,7 +475,8 @@
     }
 
     function navigateToChartPage() {
-        var evt = new CustomEvent("origin:go-chart");
+        // 告知首页过渡层：本次跳转需要播放波纹缓冲。
+        var evt = new CustomEvent("origin:go-chart", { detail: { withRipple: true } });
         window.dispatchEvent(evt);
     }
 
@@ -502,6 +525,7 @@
             "    </div>",
             "  </div>",
             '  <p class="origin-copy" id="origin-copy" aria-live="polite"></p>',
+            '  <p class="origin-continue-hint" id="origin-continue-hint" aria-hidden="true">点击闪烁区域以继续</p>',
             '  <div class="origin-replay" id="origin-replay" aria-label="再次播放控制">',
             '    <span class="origin-replay-label">再次播放</span>',
             '    <button type="button" class="origin-replay-btn" data-replay="door">隔扇门</button>',
@@ -520,6 +544,7 @@
         dom.world = container.querySelector("#origin-world");
         dom.base = container.querySelector("#origin-base-image");
         dom.copy = container.querySelector("#origin-copy");
+        dom.continueHint = container.querySelector("#origin-continue-hint");
         dom.replay = container.querySelector("#origin-replay");
         dom.action = container.querySelector("#origin-action");
         dom.overlays = {};
@@ -551,6 +576,7 @@
         cacheDom(container);
         bindEvents();
         setCopyInstant("");
+        setContinueHintVisible(false);
         setReplayVisible(false);
         setActionVisible(false);
         state.initialized = true;

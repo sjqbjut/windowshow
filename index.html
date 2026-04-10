@@ -22,8 +22,8 @@
             <p class="landing-cover-subtitle">北京故宫窗棂与裙板纹样分布数据可视化</p>
             <button id="start-visualization" class="start-button" type="button">开始</button>
         </div>
-        <span id="landing-ripple" class="landing-ripple" aria-hidden="true"></span>
     </div>
+    <span id="page-ripple" class="landing-ripple" aria-hidden="true"></span>
 
     <nav class="lantern-nav" aria-label="页面导航">
         <button class="lantern-nav-button" type="button" data-page="origin">
@@ -55,8 +55,8 @@
             <div class="lineage-main">
                 <div class="lineage-main-header">
                     <div id="lineage-view-switch" class="lineage-view-switch" role="group" aria-label="衍生类型切换">
-                        <button type="button" class="lineage-view-button" data-lineage-view="pattern">窗棂</button>
-                        <button type="button" class="lineage-view-button is-active" data-lineage-view="apron">裙板</button>
+                        <button type="button" class="lineage-view-button is-active" data-lineage-view="pattern">窗棂</button>
+                        <button type="button" class="lineage-view-button" data-lineage-view="apron">裙板</button>
                     </div>
                     <p id="lineage-main-description" class="lineage-sidebar-placeholder lineage-main-description">下图以节点分支形式，展现裙板基础纹样衍生出各类变体的谱系脉络</p>
                 </div>
@@ -133,24 +133,42 @@
             }
         });
 
-        // 落地页流程：
-        // 1) 点击开始按钮
-        // 2) 计算可覆盖整个视口的波纹半径
-        // 3) 播放过渡动画并隐藏落地页
+        // 过渡流程：
+        // 1) 点击“开始”按钮，播放背景中心放大并淡出的离场动画
+        // 2) 点击“探索空间分布”按钮，从按钮中心触发三层波纹后切换页面
         (function setupLandingTransition() {
             var landingScreen = document.getElementById("landing-screen");
             var startButton = document.getElementById("start-visualization");
-            var landingRipple = document.getElementById("landing-ripple");
+            var pageRipple = document.getElementById("page-ripple");
             var originContainer = document.getElementById("origin-container");
             var chartContainer = document.getElementById("chart-container");
             var chartLineageButton = document.getElementById("chart-lineage-button");
             var lineageContainer = document.getElementById("lineage-container");
             var navButtons = Array.prototype.slice.call(document.querySelectorAll(".lantern-nav-button"));
-            if (!landingScreen || !startButton || !landingRipple) return;
+            if (!landingScreen || !startButton || !pageRipple) return;
 
             var hideLandingTimer = null;
+            // 波纹动画独立计时器：仅控制波纹收尾，不阻塞页面切换。
+            var pageRippleTimer = null;
             var chartLineageTransitionTimer = null;
             var chartLineageTransitionDuration = 720;
+            var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            var landingZoomDuration = prefersReducedMotion ? 0 : 1700;
+            var pageRippleDuration = prefersReducedMotion ? 0 : 1520;
+
+            function clearHideLandingTimer() {
+                if (hideLandingTimer) {
+                    window.clearTimeout(hideLandingTimer);
+                    hideLandingTimer = null;
+                }
+            }
+
+            function clearPageRippleTimer() {
+                if (pageRippleTimer) {
+                    window.clearTimeout(pageRippleTimer);
+                    pageRippleTimer = null;
+                }
+            }
 
             function clearChartLineageTransitionTimer() {
                 if (chartLineageTransitionTimer) {
@@ -197,9 +215,7 @@
                 if (chartContainer) {
                     chartContainer.classList.toggle("page-hidden", !showChart);
                     if (showChart) {
-                        window.requestAnimationFrame(function() {
-                            create_CCS_chart();
-                        });
+                        create_CCS_chart();
                     }
                 }
 
@@ -227,61 +243,99 @@
                 }
             }
 
-            function hideLandingPage(withRipple, targetPage) {
-                var nextPage = targetPage || "origin";
+            function applyPageState(nextPage) {
+                document.body.classList.remove("landing-active");
+                setActiveContentPage(nextPage);
+                setActiveNav(nextPage);
+            }
 
-                if (landingScreen.classList.contains("is-hidden")) {
-                    document.body.classList.remove("landing-active");
-                    setActiveContentPage(nextPage);
-                    setActiveNav(nextPage);
-                    return;
-                }
-
-                if (!withRipple) {
-                    if (hideLandingTimer) {
-                        window.clearTimeout(hideLandingTimer);
-                        hideLandingTimer = null;
-                    }
-                    landingScreen.classList.remove("is-leaving");
-                    landingScreen.classList.add("is-hidden");
-                    document.body.classList.remove("landing-active");
-                    setActiveContentPage(nextPage);
-                    setActiveNav(nextPage);
-                    return;
-                }
-
-                if (landingScreen.classList.contains("is-leaving")) return;
-
-                var buttonRect = startButton.getBoundingClientRect();
-                var centerX = (buttonRect.left + buttonRect.width / 2) / layoutScale;
-                var centerY = (buttonRect.top + buttonRect.height / 2) / layoutScale;
+            function runRippleFromPoint(centerX, centerY, onDone, customRadius) {
                 var viewportWidth = window.innerWidth / layoutScale;
                 var viewportHeight = window.innerHeight / layoutScale;
                 var maxX = Math.max(centerX, viewportWidth - centerX);
                 var maxY = Math.max(centerY, viewportHeight - centerY);
                 var rippleRadius = Math.hypot(maxX, maxY);
+                // 允许外部传入半径（用于“略小于外圈”的视觉要求）。
+                if (typeof customRadius === "number" && customRadius > 0) {
+                    rippleRadius = customRadius;
+                }
                 var diameter = rippleRadius * 2;
 
-                // 让波纹圆心与按钮中心对齐。
-                landingRipple.style.width = diameter + "px";
-                landingRipple.style.height = diameter + "px";
-                landingRipple.style.left = (centerX - rippleRadius) + "px";
-                landingRipple.style.top = (centerY - rippleRadius) + "px";
+                pageRipple.style.width = diameter + "px";
+                pageRipple.style.height = diameter + "px";
+                pageRipple.style.left = (centerX - rippleRadius) + "px";
+                pageRipple.style.top = (centerY - rippleRadius) + "px";
+                pageRipple.classList.remove("animate");
+                void pageRipple.offsetWidth;
+                pageRipple.classList.add("animate");
 
-                // 通过强制回流重启动画，确保每次点击都能播放。
-                landingRipple.classList.remove("animate");
-                void landingRipple.offsetWidth;
-                landingRipple.classList.add("animate");
+                if (!onDone) return;
+                clearPageRippleTimer();
+                if (pageRippleDuration === 0) {
+                    onDone();
+                    return;
+                }
+
+                pageRippleTimer = window.setTimeout(function() {
+                    pageRippleTimer = null;
+                    onDone();
+                }, pageRippleDuration);
+            }
+
+            function hideLandingPage(withZoom, targetPage) {
+                var nextPage = targetPage || "origin";
+                clearPageRippleTimer();
+
+                if (landingScreen.classList.contains("is-hidden")) {
+                    applyPageState(nextPage);
+                    return;
+                }
+
+                if (!withZoom) {
+                    clearHideLandingTimer();
+                    landingScreen.classList.remove("is-leaving", "is-zooming");
+                    landingScreen.classList.add("is-hidden");
+                    applyPageState(nextPage);
+                    return;
+                }
+
+                if (landingScreen.classList.contains("is-leaving")) return;
+                clearHideLandingTimer();
+                landingScreen.classList.add("is-zooming");
                 landingScreen.classList.add("is-leaving");
 
-                // 延时与 CSS 过渡/波纹时长保持一致。
+                if (landingZoomDuration === 0) {
+                    landingScreen.classList.add("is-hidden");
+                    applyPageState(nextPage);
+                    return;
+                }
+
                 hideLandingTimer = window.setTimeout(function() {
                     landingScreen.classList.add("is-hidden");
-                    document.body.classList.remove("landing-active");
-                    setActiveContentPage(nextPage);
-                    setActiveNav(nextPage);
+                    applyPageState(nextPage);
                     hideLandingTimer = null;
-                }, 1400);
+                }, landingZoomDuration);
+            }
+
+            function openPageWithRipple(targetPage) {
+                var nextPage = targetPage || "chart";
+                var viewportWidth = window.innerWidth / layoutScale;
+                var viewportHeight = window.innerHeight / layoutScale;
+                var centerX = viewportWidth / 2;
+                var centerY = viewportHeight / 2;
+                // 与主图相同的响应式宽度基准（见 create_CCS_chart）。
+                var chartBaseWidth = 1600;
+                var chartWidth = Math.round(Math.min(chartBaseWidth, Math.max(320, viewportWidth * 0.96)));
+                // 主可视化外圈半径：main.js 中 rad_card_label = width * 0.4。
+                var chartOuterRingRadius = chartWidth * 0.4;
+                // 波纹半径略小于外圈，避免超出主可视化边界。
+                var rippleRadius = chartOuterRingRadius * 0.96;
+
+                // 波纹作为过渡缓冲：先启动波纹，再并行切页与渲染。
+                runRippleFromPoint(centerX, centerY, null, rippleRadius);
+                window.setTimeout(function() {
+                    hideLandingPage(false, nextPage);
+                }, 0);
             }
 
             document.body.classList.add("landing-active");
@@ -316,8 +370,14 @@
                 });
             }
 
-            window.addEventListener("origin:go-chart", function() {
-                hideLandingPage(false, "chart");
+            window.addEventListener("origin:go-chart", function(event) {
+                var detail = event && event.detail ? event.detail : null;
+                var withRipple = !detail || detail.withRipple !== false;
+                if (!withRipple) {
+                    hideLandingPage(false, "chart");
+                    return;
+                }
+                openPageWithRipple("chart");
             });
         })();
     </script>

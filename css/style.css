@@ -48,13 +48,32 @@ body.landing-active .lantern-nav {
     justify-content: center;
     overflow: hidden;
     background-color: #f4efe2;
+    transition: opacity 1.2s ease 0.5s, visibility 0s linear 1.7s;
+}
+
+.landing-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    /* 首屏背景单独放在伪元素上，便于做“镜头推进”且不影响文案层。 */
     background-image:
         linear-gradient(180deg, rgba(255, 250, 238, 0.32) 0%, rgba(252, 245, 230, 0.12) 36%, rgba(245, 236, 217, 0.1) 100%),
         url("../datas/imgs/art_design/cover1.jpg");
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
-    transition: opacity 0.72s ease 0.45s, visibility 0s linear 1.17s;
+    transform-origin: center center;
+    transform: scale(1);
+    opacity: 1;
+    transition: transform 1.7s cubic-bezier(0.2, 0.72, 0.22, 1), opacity 1.7s ease;
+    will-change: transform, opacity;
+}
+
+.landing-screen.is-zooming::before {
+    /* 点击“开始”后的背景推进倍率。 */
+    transform: scale(1.7);
+    opacity: 0;
 }
 
 
@@ -74,6 +93,12 @@ body.landing-active .lantern-nav {
     width: min(90vw, 920px);
     padding: 24px;
     text-align: center;
+    transition: opacity 0.52s ease, transform 0.52s ease;
+}
+
+.landing-screen.is-zooming .landing-content {
+    opacity: 0;
+    transform: translateY(8px);
 }
 
 .landing-cover-content {
@@ -236,19 +261,24 @@ body.landing-active .lantern-nav {
 }
 
 .landing-ripple {
-    position: absolute;
-    z-index: 2;
-    inset: auto;
+    position: fixed;
+    /* 全屏固定层：保证切页时波纹仍可连续可见。 */
+    z-index: 10030;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
     border-radius: 50%;
     pointer-events: none;
     opacity: 0;
     transform: scale(0.02);
     transform-origin: center center;
-    border: 2.3px solid rgba(255, 255, 255, 0.9);
+    /* 提高高光对比，让过渡提示更明显。 */
+    border: 2.4px solid rgba(255, 255, 255, 0.98);
     box-shadow:
-        0 0 0 1px rgba(242, 250, 255, 0.75) inset,
-        0 0 22px rgba(255, 255, 255, 0.72);
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0.16) 42%, rgba(255, 255, 255, 0.02) 70%, rgba(255, 255, 255, 0) 100%);
+        0 0 0 2px rgba(242, 250, 255, 0.84) inset,
+        0 0 14px rgba(255, 255, 255, 0.9);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.34) 40%, rgba(255, 255, 255, 0.08) 66%, rgba(255, 255, 255, 0) 100%);
 }/*三层波纹涟漪*/
 
 .landing-ripple::before,
@@ -257,38 +287,34 @@ body.landing-active .lantern-nav {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    border: 2px solid rgba(255, 255, 255, 0.86);
+    border: 1.8px solid rgba(255, 255, 255, 0.75);
     opacity: 0;
     transform: scale(0.02);
-    box-shadow: 0 0 18px rgba(255, 255, 255, 0.62);
-}
-
-.landing-ripple.animate {
-    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.98);
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.60);
 }
 
 .landing-ripple.animate::before {
-    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.98) 0.14s;
+    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.75) 0.12s;
 }
 
 .landing-ripple.animate::after {
-    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.98) 0.28s;
+    animation: landing-ripple-expand 1.18s cubic-bezier(0.2, 0.62, 0.24, 0.75) 0.24s;
 }
 
 @keyframes landing-ripple-expand {
     0% {
-        opacity: 0.95;
+        opacity: 1;
         transform: scale(0);
     }
     55% {
-        opacity: 0.64;
+        opacity: 0.82;
     }
     100% {
         opacity: 0;
-        transform: scale(1.05);
+        transform: scale(1.12);
         box-shadow:
-            0 0 0 26px rgba(255, 255, 255, 0),
-            0 0 6px rgba(255, 255, 255, 0);
+            0 0 0 34px rgba(255, 255, 255, 0),
+            0 0 10px rgba(255, 255, 255, 0);
     }
 }
 
@@ -537,6 +563,31 @@ body.landing-active .lantern-nav {
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.66);
 }
 
+.origin-continue-hint {
+    width: min(96vw, 1240px);
+    margin: 0;
+    height: 0;
+    overflow: visible;
+    transform: translateY(40px);
+    color: rgba(84, 47, 24, 0.76);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(1.68rem, 2.1vw, 2.18rem);
+    line-height: 1.72;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.58);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.28s ease, visibility 0s linear 0.28s;
+}
+
+.origin-continue-hint.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
 .origin-replay {
     display: inline-flex;
     align-items: center;
@@ -713,6 +764,7 @@ body.landing-active .lantern-nav {
     .origin-base,
     .origin-layer,
     .origin-layer::after,
+    .origin-continue-hint,
     .origin-replay,
     .origin-replay-btn,
     .origin-action {
@@ -2167,6 +2219,8 @@ canvas {
 
 @media (prefers-reduced-motion: reduce) {
     .landing-screen,
+    .landing-screen::before,
+    .landing-content,
     .start-button,
     .landing-ripple,
     .lantern-nav-icon,

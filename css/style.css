@@ -390,13 +390,296 @@ body.landing-active .lantern-nav {
     align-items: center;
     justify-content: center;
     padding: clamp(20px, 6vh, 56px) clamp(16px, 4vw, 48px);
+    overflow: visible;
     background:
-    radial-gradient(circle at 50% 50%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%)
-     #f8f6f3;/*主界面背景色，淡米白色 */
-}
+        radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%),
+        radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.24) 0%, rgba(220, 191, 153, 0) 52%),
+        #f8f6f3;
+}/*形制解析页面背景，淡米白色，带有两处径向渐变的光斑*/
 
 .origin-container.is-active {
     display: flex;
+}
+
+.origin-scene {
+    width: min(96vw, 1320px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(14px, 2.4vh, 26px);
+}
+
+.origin-stage {
+    position: relative;
+    width: min(96vw, 1320px);
+    aspect-ratio: 1235 / 584;
+    border-radius: 0;
+    overflow: visible;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+.origin-world {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+    transition: transform 0.78s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.origin-base {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    user-select: none;
+    pointer-events: none;
+    transition: opacity 0.42s ease;
+}
+
+.origin-base.is-hidden {
+    opacity: 0;
+}
+
+.origin-layer {
+    position: absolute;
+    z-index: 2;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.origin-layer.is-visible {
+    opacity: 1;
+}
+
+.origin-layer img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+}
+
+.origin-layer::after {
+    content: "";
+    position: absolute;
+    inset: clamp(-8px, -1vw, -6px);
+    border-radius: clamp(8px, 1.1vw, 12px);
+    border: 2px solid rgba(255, 239, 206, 0.94);
+    box-shadow:
+        0 0 0 1px rgba(152, 96, 61, 0.45),
+        0 0 20px rgba(244, 198, 138, 0.72);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.origin-layer.is-target {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.origin-layer.is-target:hover,
+.origin-layer.is-target:focus-visible,
+.origin-layer.is-auto-highlight {
+    filter: brightness(1.07) saturate(1.06);
+}
+
+.origin-layer.is-target:hover::after,
+.origin-layer.is-target:focus-visible::after,
+.origin-layer.is-auto-highlight::after {
+    opacity: 1;
+}
+
+.origin-layer:focus-visible {
+    outline: none;
+}
+
+.origin-layer.is-pulse::after {
+    animation: origin-focus-pulse 1.34s ease-in-out infinite;
+}
+
+.origin-layer.is-remind {
+    transform-origin: center center;
+    animation: origin-remind-blink 0.82s ease-in-out infinite;
+}
+
+.origin-layer.is-remind::after {
+    opacity: 1;
+    border-color: rgba(255, 247, 224, 0.98);
+    box-shadow:
+        0 0 0 1px rgba(173, 111, 68, 0.62),
+        0 0 34px rgba(245, 186, 108, 0.95);
+    animation: origin-remind-glow 0.82s ease-in-out infinite;
+}
+
+.origin-copy {
+    width: min(96vw, 1240px);
+    margin: 0;
+    min-height: 3.6em;
+    transform: translateY(40px);/*打字机输出文字位置下移40px */
+    color: rgba(84, 47, 24, 0.95);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(1.68rem, 2.1vw, 2.18rem);
+    line-height: 1.72;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.66);
+}
+
+.origin-replay {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.origin-replay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.origin-replay-label {
+    color: rgba(94, 62, 36, 0.96);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(1.12rem, 1.5vw, 1.36rem);
+    letter-spacing: 0.1em;
+    margin-right: 4px;
+}
+
+.origin-replay-btn {
+    border: 1px solid rgba(141, 97, 58, 0.5);
+    border-radius: 999px;
+    padding: 8px 20px;
+    background: linear-gradient(180deg, rgba(255, 248, 235, 0.96), rgba(238, 222, 196, 0.96));
+    color: rgba(95, 60, 33, 0.95);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(1.05rem, 1.45vw, 1.32rem);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.origin-replay-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(108, 69, 36, 0.2);
+    filter: brightness(1.04);
+}
+
+.origin-action {
+    border: 1px solid rgba(141, 97, 58, 0.55);
+    border-radius: 999px;
+    padding: 12px 34px;
+    background: linear-gradient(180deg, rgba(254, 246, 230, 0.96), rgba(237, 221, 195, 0.96));
+    color: rgba(95, 60, 33, 0.95);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(1.32rem, 1.8vw, 1.86rem);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.26s ease;
+}
+
+.origin-action.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.origin-action:hover {
+    box-shadow: 0 10px 24px rgba(108, 69, 36, 0.2);
+}
+
+@keyframes origin-focus-pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 1px rgba(152, 96, 61, 0.45),
+            0 0 16px rgba(244, 198, 138, 0.58);
+    }
+    50% {
+        box-shadow:
+            0 0 0 2px rgba(152, 96, 61, 0.6),
+            0 0 26px rgba(244, 198, 138, 0.86);
+    }
+}
+
+@keyframes origin-remind-blink {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1.2) saturate(1.2);
+    }
+    50% {
+        opacity: 0.56;
+        transform: scale(0.975);
+        filter: brightness(0.84) saturate(0.86);
+    }
+}
+
+@keyframes origin-remind-glow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+@media (max-width: 900px) {
+    .origin-scene,
+    .origin-stage,
+    .origin-copy {
+        width: 98vw;
+    }
+
+    .origin-copy {
+        min-height: 4.4em;
+        font-size: clamp(1.36rem, 3vw, 1.74rem);
+        line-height: 1.62;
+    }
+
+    .origin-replay {
+        gap: 8px;
+        width: 98vw;
+    }
+
+    .origin-replay-label {
+        width: 100%;
+        text-align: center;
+        margin-right: 0;
+    }
+
+    .origin-layer::after {
+        inset: -6px;
+        border-radius: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .origin-world,
+    .origin-base,
+    .origin-layer,
+    .origin-layer::after,
+    .origin-replay,
+    .origin-replay-btn,
+    .origin-action {
+        transition: none;
+        animation: none;
+    }
 }
 
 #chart-container {
@@ -1629,6 +1912,56 @@ canvas {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
+}
+
+.center-explore-title {
+    fill: rgba(83, 59, 35, 0.96);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    pointer-events: none;
+}
+
+.center-explore-link-group {
+    pointer-events: none;
+}
+
+.center-explore-link {
+    fill: none;
+    stroke-linecap: round;
+    mix-blend-mode: multiply;
+    opacity: 0.3;
+    transition: opacity 0.18s ease;
+}
+
+.center-explore-group.is-links-active .center-explore-link {
+    opacity: 0.7;
+}
+
+.center-explore-button {
+    cursor: pointer;
+}
+
+.center-explore-button-circle {
+    stroke: rgba(130, 91, 53, 0.7);
+    stroke-width: 1.4;
+    filter: drop-shadow(0 3px 8px rgba(83, 59, 34, 0.2));
+    transition: stroke 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+
+.center-explore-button-text {
+    fill: rgba(80, 58, 34, 0.98);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+}
+
+.center-explore-button:hover .center-explore-button-circle,
+.center-explore-button:focus .center-explore-button-circle,
+.center-explore-button:focus-visible .center-explore-button-circle {
+    stroke: rgba(141, 95, 51, 0.9);
+    filter: drop-shadow(0 4px 10px rgba(83, 59, 34, 0.25));
 }
 
 .last-name-label {

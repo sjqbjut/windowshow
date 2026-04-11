@@ -35,10 +35,6 @@ body.landing-active {
     overflow: hidden;
 }
 
-body.landing-active .lantern-nav {
-    display: none;
-}
-
 .landing-screen {
     position: fixed;
     inset: 0;
@@ -437,6 +433,7 @@ body.landing-active .lantern-nav {
     flex-direction: column;
     align-items: center;
     gap: clamp(8px, 1.45vh, 14px);
+    transform: translateY(50px);
 }
 
 .origin-stage {
@@ -1824,7 +1821,6 @@ body.landing-active .lantern-nav {
 }
 
 .hierarchy-pyramid-tier {
-    cursor: pointer;
     transition: opacity 0.2s ease;
 }
 

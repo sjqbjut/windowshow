@@ -1,16 +1,11 @@
+const crypto = require('crypto');
 const fs = require('fs');
-const path = require('path');
 const http = require('http');
+const path = require('path');
 const open = require('open');
 
-// 内存静态文件表：
-//   key   => 请求路径（例如 "/css/style.css"）
-//   value => 文件 Buffer 内容
-//
-// 启动时一次性预加载，避免每次请求都触发磁盘 I/O。
 const files = {};
 
-// 将单个静态文件注册到内存表。
 function addFile(urlPath, relativeFilePath) {
   const absPath = path.join(__dirname, relativeFilePath);
   if (!fs.existsSync(absPath)) return;
@@ -23,8 +18,10 @@ function addFile(urlPath, relativeFilePath) {
   '/css/animeace2_reg.otf',
   '/datas/apron.csv',
   '/datas/apron_variant.csv',
+  '/datas/pattern_variant.csv',
   '/datas/buildings.csv',
   '/datas/patterns.csv',
+  '/datas/level.csv',
   '/datas/area_introduction.csv',
   '/datas/fc_building_per_pattern.json',
   '/datas/fc_building_total.json',
@@ -32,6 +29,10 @@ function addFile(urlPath, relativeFilePath) {
   '/datas/fc_pattern_total.json',
   '/datas/map_layout.json',
   '/js/main.js',
+  '/js/hierarchy.js',
+  '/js/origin.js',
+  '/js/lineage.js',
+  '/js/lifecycle.js',
   '/plugins/d3.min.js',
   '/plugins/d3-annotation.min.js',
   '/plugins/webfont.js',
@@ -39,13 +40,6 @@ function addFile(urlPath, relativeFilePath) {
   addFile(urlPath, urlPath.slice(1));
 });
 
-// 图片同时注册两种 URL：
-// 1) 原始文件名 URL（用于直接引用）
-// 2) URL 编码后的 basename URL（兼容中文/空格）
-//
-// 例：
-//   /datas/imgs/patterns_img/万字纹.jpg
-//   /datas/imgs/patterns_img/%E4%B8%87%E5%AD%97%E7%BA%B9.jpg
 function addImageFileBothUrls(urlPrefix, fileName) {
   const absPath = path.join(__dirname, urlPrefix.slice(1), fileName);
   if (!fs.existsSync(absPath)) return false;
@@ -61,48 +55,15 @@ function addImageFileBothUrls(urlPrefix, fileName) {
   return true;
 }
 
-// 遍历目录并注册所有建筑图片。
-function addBuildingImages() {
-  const urlPrefix = '/datas/imgs/buildings_img';
-  const absDir = path.join(__dirname, 'datas/imgs/buildings_img');
+function addFilesFromDir(urlPrefix, relativeDir) {
+  const absDir = path.join(__dirname, relativeDir);
   if (!fs.existsSync(absDir)) return;
 
   fs.readdirSync(absDir, { withFileTypes: true })
     .filter((entry) => entry.isFile())
     .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
 }
-// 遍历目录并注册所有地图图片。
-function addMapImages() {
-  const urlPrefix = '/datas/imgs/map';
-  const absDir = path.join(__dirname, 'datas/imgs/map');
-  if (!fs.existsSync(absDir)) return;
 
-  fs.readdirSync(absDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
-}
-// 遍历目录并注册衍生谱系用到的裙板纹样图片。
-function addApronImages() {
-  const urlPrefix = '/datas/imgs/apron';
-  const absDir = path.join(__dirname, 'datas/imgs/apron');
-  if (!fs.existsSync(absDir)) return;
-
-  fs.readdirSync(absDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
-}
-// 注册页面装饰图（导航灯笼、封面等）。
-function addArtDesignImages() {
-  const urlPrefix = '/datas/imgs/art_design';
-  const absDir = path.join(__dirname, 'datas/imgs/art_design');
-  if (!fs.existsSync(absDir)) return;
-
-  fs.readdirSync(absDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .forEach((entry) => addImageFileBothUrls(urlPrefix, entry.name));
-}
-// 根据 datas/patterns.csv 中的纹样名注册纹样图片。
-// 这样服务端可访问资源与数据集保持一致。
 function addPatternImagesFromCsv() {
   const csvPath = path.join(__dirname, 'datas/patterns.csv');
   const imageUrlPrefix = '/datas/imgs/patterns_img';
@@ -117,9 +78,7 @@ function addPatternImagesFromCsv() {
     const firstCommaIndex = line.indexOf(',');
     const rawType = firstCommaIndex >= 0 ? line.slice(0, firstCommaIndex) : line;
     const patternName = rawType.trim();
-    if (patternName) {
-      patternNames.add(patternName);
-    }
+    if (patternName) patternNames.add(patternName);
   });
 
   const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.svg'];
@@ -130,14 +89,15 @@ function addPatternImagesFromCsv() {
   });
 }
 
-addBuildingImages();
-addMapImages();
-addApronImages();
-addArtDesignImages();
+addFilesFromDir('/datas/imgs/buildings_img', 'datas/imgs/buildings_img');
+addFilesFromDir('/datas/imgs/map', 'datas/imgs/map');
+addFilesFromDir('/datas/imgs/apron', 'datas/imgs/apron');
+addFilesFromDir('/datas/imgs/art_design', 'datas/imgs/art_design');
+addFilesFromDir('/datas/imgs/variant/apron_variant', 'datas/imgs/variant/apron_variant');
+addFilesFromDir('/datas/imgs/variant/patterns_variant', 'datas/imgs/variant/patterns_variant');
 addPatternImagesFromCsv();
 files['/'] = files['/index.html'];
 
-// 项目内用到的最小 MIME 类型映射。
 const mimeTypes = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -152,47 +112,154 @@ const mimeTypes = {
   '.webp': 'image/webp',
 };
 
-// 轻量静态服务器：
-// - 去掉查询参数
-// - 先按原始 URL 查找，再尝试 decodeURI 后的 URL
-// - 从预加载内存表返回内容
-const server = http.createServer((req, res) => {
-  let url = (req.url || '/').split('?')[0];
-  if (url === '/') url = '/index.html';
+const isPackaged = Boolean(process.pkg);
+const lifecycleEnabled =
+  process.env.WINDOWSHOW_ENABLE_LIFECYCLE === '1' ||
+  (isPackaged && process.env.WINDOWSHOW_DISABLE_LIFECYCLE !== '1');
+const lifecycleToken = lifecycleEnabled
+  ? process.env.WINDOWSHOW_LIFECYCLE_TOKEN || crypto.randomBytes(16).toString('hex')
+  : '';
 
-  let decodedUrl = url;
-  try {
-    decodedUrl = decodeURI(url);
-  } catch (e) {
-    decodedUrl = url;
+const LIFECYCLE_PARAM = 'windowshowToken';
+const LIFECYCLE_PING_PATH = '/__windowshow__/ping';
+const LIFECYCLE_CLOSE_PATH = '/__windowshow__/close';
+const LIFECYCLE_CHECK_INTERVAL_MS = 2000;
+const LIFECYCLE_TIMEOUT_MS = 25000;
+const LIFECYCLE_BOOT_GRACE_MS = 45000;
+
+const lifecycleState = {
+  lastSeenAt: Date.now() + LIFECYCLE_BOOT_GRACE_MS,
+};
+
+let lifecycleTimer = null;
+let shuttingDown = false;
+const activeSockets = new Set();
+
+function isValidLifecycleRequest(urlObject) {
+  if (!lifecycleEnabled) return false;
+  return urlObject.searchParams.get(LIFECYCLE_PARAM) === lifecycleToken;
+}
+
+function noContent(res) {
+  res.writeHead(204, {
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    Pragma: 'no-cache',
+  });
+  res.end();
+}
+
+function shutdownServer(server) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  if (lifecycleTimer) {
+    clearInterval(lifecycleTimer);
+    lifecycleTimer = null;
   }
 
-  const ext = path.extname(url);
-  const contentType = mimeTypes[ext] || 'application/octet-stream';
-  const content = files[url] || files[decodedUrl];
+  const forceExitTimer = setTimeout(() => process.exit(0), 1200);
+  forceExitTimer.unref();
 
-  if (content) {
-    // 这里不额外拼接 charset：
-    // 该服务主要回传静态/二进制资源，浏览器默认处理即可。
-    res.writeHead(200, { 'Content-Type': contentType });
-    res.end(content);
-  } else {
+  activeSockets.forEach((socket) => socket.destroy());
+  activeSockets.clear();
+
+  server.close(() => {
+    process.exit(0);
+  });
+}
+
+const server = http.createServer((req, res) => {
+  const requestUrl = new URL(req.url || '/', 'http://127.0.0.1');
+  const requestPath = requestUrl.pathname;
+
+  if (requestPath === LIFECYCLE_PING_PATH) {
+    if (!isValidLifecycleRequest(requestUrl)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+
+    lifecycleState.lastSeenAt = Date.now();
+    noContent(res);
+    return;
+  }
+
+  if (requestPath === LIFECYCLE_CLOSE_PATH) {
+    if (!isValidLifecycleRequest(requestUrl)) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+
+    lifecycleState.lastSeenAt = 0;
+    noContent(res);
+    setTimeout(() => shutdownServer(server), 50);
+    return;
+  }
+
+  const urlPath = requestPath === '/' ? '/index.html' : requestPath;
+  let decodedUrl = urlPath;
+  try {
+    decodedUrl = decodeURI(urlPath);
+  } catch (error) {
+    decodedUrl = urlPath;
+  }
+
+  const ext = path.extname(urlPath);
+  const contentType = mimeTypes[ext] || 'application/octet-stream';
+  const content = files[urlPath] || files[decodedUrl];
+
+  if (!content) {
     res.writeHead(404);
     res.end('404 Not Found');
+    return;
+  }
+
+  res.writeHead(200, { 'Content-Type': contentType });
+  res.end(content);
+});
+
+server.on('connection', (socket) => {
+  activeSockets.add(socket);
+  socket.on('close', () => {
+    activeSockets.delete(socket);
+  });
+});
+
+if (lifecycleEnabled) {
+  lifecycleTimer = setInterval(() => {
+    if (Date.now() - lifecycleState.lastSeenAt > LIFECYCLE_TIMEOUT_MS) {
+      shutdownServer(server);
+    }
+  }, LIFECYCLE_CHECK_INTERVAL_MS);
+  lifecycleTimer.unref();
+}
+
+const requestedPort = Number.parseInt(process.env.PORT || '', 10);
+const port = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 0;
+const shouldOpenBrowser = process.env.WINDOWSHOW_SKIP_OPEN !== '1';
+
+server.listen(port, '127.0.0.1', async () => {
+  const address = server.address();
+  const activePort = typeof address === 'object' && address ? address.port : port;
+
+  let launchUrl = `http://127.0.0.1:${activePort}`;
+  if (lifecycleEnabled) {
+    launchUrl += `/?${LIFECYCLE_PARAM}=${encodeURIComponent(lifecycleToken)}`;
+  }
+
+  if (shouldOpenBrowser) {
+    try {
+      await open(launchUrl);
+    } catch (error) {
+      // Keep server running even if opening browser fails.
+    }
   }
 });
 
-// 默认使用系统分配端口，避免与本机已有服务冲突。
-// 如需固定端口，可通过环境变量 PORT 指定。
-const requestedPort = Number.parseInt(process.env.PORT || '', 10);
-const port = Number.isInteger(requestedPort) && requestedPort > 0 ? requestedPort : 0;
-
-server.listen(port, '127.0.0.1', async () => {
-  // 当 port=0 时，Node 会自动分配可用端口，需要从 address() 读取。
-  const address = server.address();
-  const activePort = typeof address === 'object' && address ? address.port : port;
-  const url = `http://127.0.0.1:${activePort}`;
-  console.log(`Server started: ${url}`);
-  // 自动打开浏览器，适配桌面端“双击启动即预览”的使用方式。
-  await open(url);
+server.on('error', () => {
+  shutdownServer(server);
 });
+
+process.on('SIGINT', () => shutdownServer(server));
+process.on('SIGTERM', () => shutdownServer(server));

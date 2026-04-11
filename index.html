@@ -15,6 +15,7 @@
     <script src="js/lineage.js"></script>
     <script src="js/hierarchy.js"></script>
     <script src="js/origin.js"></script>
+    <script src="js/lifecycle.js"></script>
 </head>
 <body class="landing-active">
     <div id="landing-screen" class="landing-screen">
@@ -414,7 +415,7 @@
 
             document.body.classList.add("landing-active");
             setActiveContentPage("origin");
-            setActiveNav("origin");
+            setActiveNav("home");
 
             startButton.addEventListener("click", function() {
                 hideLandingPage(true, "origin");

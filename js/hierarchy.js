@@ -25,6 +25,7 @@
 
     var HOUSE_TYPE_PREFERRED = ["宫门", "后殿", "正殿", "配殿", "耳房", "庑房"];
     var PYRAMID_LABEL_OFFSET_X = 280;// 金字塔层内文本标签相对于层中心的水平偏移，正值表示向右偏移，负值表示向左偏移。
+    var PYRAMID_TOP_BASE_VW = 6;//金字塔上底
     var MAP_AREA_PALETTE = [
         "#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0",
         "#E47C41", "#BD211B", "#82C3AA", "#2F2F2F", "#9A8473"
@@ -43,7 +44,8 @@
         miniMap: null,
         rowBridge: null,
         activeLevel: "",
-        tooltipElement: null
+        tooltipElement: null,
+        fixedCoordScale: null
     };
 
     function cleanText(value) {
@@ -812,11 +814,14 @@
         var apexY = layout.tierTop;
         var baseY = layout.tierBottom;
         var halfBase = layout.pyramidWidth * 0.43;
+        var viewportWidth = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || layout.pyramidWidth;
+        var topBaseWidth = viewportWidth * (PYRAMID_TOP_BASE_VW / 100);
+        var halfTop = clamp(topBaseWidth * 0.5, 0, halfBase);
         var fullHeight = Math.max(1, baseY - apexY);
 
         function widthAtY(y) {
             var t = clamp((y - apexY) / fullHeight, 0, 1);
-            return halfBase * t;
+            return halfTop + (halfBase - halfTop) * t;
         }
 
         // 金字塔坐标预计算：
@@ -851,6 +856,7 @@
             apexY: apexY,
             baseY: baseY,
             halfBase: halfBase,
+            halfTop: halfTop,
             tierData: tierData
         };
     }
@@ -871,17 +877,18 @@
         var apexY = geometry.apexY;
         var baseY = geometry.baseY;
         var halfBase = geometry.halfBase;
+        var halfTop = geometry.halfTop;
         var tierData = geometry.tierData;
 
         baseGroup.append("line")
-            .attr("x1", centerX)
+            .attr("x1", centerX - halfTop)
             .attr("y1", apexY)
             .attr("x2", centerX - halfBase)
             .attr("y2", baseY)
             .attr("class", "hierarchy-tier-divider");
 
         baseGroup.append("line")
-            .attr("x1", centerX)
+            .attr("x1", centerX + halfTop)
             .attr("y1", apexY)
             .attr("x2", centerX + halfBase)
             .attr("y2", baseY)
@@ -983,19 +990,82 @@
         tooltip.setAttribute("aria-hidden", "false");
     }
 
+    function resolveLayoutScale() {
+        return (typeof window.APP_LAYOUT_SCALE === "number" && window.APP_LAYOUT_SCALE > 0)
+            ? window.APP_LAYOUT_SCALE
+            : 1;
+    }
+
+    function resolveFixedCoordScale() {
+        if (hierarchyState.fixedCoordScale && hierarchyState.fixedCoordScale > 0) {
+            return hierarchyState.fixedCoordScale;
+        }
+
+        var fallbackScale = resolveLayoutScale();
+        var body = document.body;
+        if (!body) {
+            hierarchyState.fixedCoordScale = fallbackScale;
+            return hierarchyState.fixedCoordScale;
+        }
+
+        // 探测 fixed 坐标基准是否受 body transform 影响。
+        var probe = document.createElement("div");
+        probe.style.position = "fixed";
+        probe.style.left = "100px";
+        probe.style.top = "0";
+        probe.style.width = "1px";
+        probe.style.height = "1px";
+        probe.style.opacity = "0";
+        probe.style.pointerEvents = "none";
+        probe.style.zIndex = "-1";
+        body.appendChild(probe);
+
+        var rect = probe.getBoundingClientRect();
+        body.removeChild(probe);
+
+        var measuredScale = rect && isFinite(rect.left) ? rect.left / 100 : NaN;
+        if (!isFinite(measuredScale) || measuredScale <= 0) {
+            measuredScale = fallbackScale;
+        }
+
+        if (Math.abs(measuredScale - 1) < 0.02) {
+            hierarchyState.fixedCoordScale = 1;
+            return hierarchyState.fixedCoordScale;
+        }
+        if (Math.abs(measuredScale - fallbackScale) < 0.06) {
+            hierarchyState.fixedCoordScale = fallbackScale;
+            return hierarchyState.fixedCoordScale;
+        }
+
+        hierarchyState.fixedCoordScale = Math.max(0.1, Math.min(2, measuredScale));
+        return hierarchyState.fixedCoordScale;
+    }
+
     function moveTooltip() {
         if (!hierarchyState.tooltipElement) return;
         var tooltip = hierarchyState.tooltipElement;
         if (!tooltip.classList.contains("is-visible")) return;
         if (!d3.event) return;
 
-        var x = d3.event.clientX + 14;
-        var y = d3.event.clientY + 14;
+        var coordScale = resolveFixedCoordScale();
+        var visualOffset = 14;
+        var visualMargin = 10;
+        var minVisualMargin = 8;
+        var offset = visualOffset / coordScale;
+        var margin = visualMargin / coordScale;
+        var minMargin = minVisualMargin / coordScale;
+
+        var x = d3.event.clientX / coordScale + offset;
+        var y = d3.event.clientY / coordScale + offset;
         var rect = tooltip.getBoundingClientRect();
-        var maxX = window.innerWidth - rect.width - 10;
-        var maxY = window.innerHeight - rect.height - 10;
-        if (x > maxX) x = Math.max(8, maxX);
-        if (y > maxY) y = Math.max(8, maxY);
+        var tooltipWidth = rect.width / coordScale;
+        var tooltipHeight = rect.height / coordScale;
+        var viewportWidth = window.innerWidth / coordScale;
+        var viewportHeight = window.innerHeight / coordScale;
+        var maxX = viewportWidth - tooltipWidth - margin;
+        var maxY = viewportHeight - tooltipHeight - margin;
+        if (x > maxX) x = Math.max(minMargin, maxX);
+        if (y > maxY) y = Math.max(minMargin, maxY);
 
         tooltip.style.left = x + "px";
         tooltip.style.top = y + "px";

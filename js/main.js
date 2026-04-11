@@ -1245,34 +1245,69 @@ function create_CCS_chart() {
             .attr("xlink:href", default_center_image)
             .attr("height", 2 * image_radius)
             .attr("width", 2 * image_radius);
+        var cover_image_under = image_group.append("pattern")
+            .attr("id", "cover-image-under")
+            .attr("class", "cover-image cover-image-under")
+            .attr("patternUnits", "objectBoundingBox")
+            .attr("height", "100%")
+            .attr("width", "100%")
+            .append("image")
+            .attr("xlink:href", default_center_image)
+            .attr("height", 2 * image_radius)
+            .attr("width", 2 * image_radius);
 
-        var center_image_request_id = 0;
-        function show_default_center_image() {
-            center_image_request_id += 1;
-            cover_image.on("error", null).attr("xlink:href", default_center_image);
+        var center_image_request_id = { top: 0, under: 0 };
+
+        function get_cover_image_by_layer(layer_name) {
+            return layer_name === "under" ? cover_image_under : cover_image;
         }
-        function show_center_image_from_candidates(candidates) {
+
+        function promote_under_cover_to_top() {
+            center_image_request_id.top += 1;
+            cover_image
+                .on("error", null)
+                .attr("xlink:href", cover_image_under.attr("xlink:href") || default_center_image);
+        }
+
+        function show_center_image_from_candidates_on_layer(candidates, layer_name) {
             // 使用递增请求 id 避免异步竞态：
             // 快速切换悬浮目标时，旧回调会被自动忽略。
-            center_image_request_id += 1;
-            var request_id = center_image_request_id;
+            var layer_key = layer_name === "under" ? "under" : "top";
+            var target_image = get_cover_image_by_layer(layer_key);
+            if (!target_image) return;
+
+            center_image_request_id[layer_key] += 1;
+            var request_id = center_image_request_id[layer_key];
+
+            function set_default_layer_image() {
+                target_image.on("error", null).attr("xlink:href", default_center_image);
+            }
 
             function load_candidate(index) {
-                if (request_id !== center_image_request_id) return;
+                if (request_id !== center_image_request_id[layer_key]) return;
                 if (index >= candidates.length) {
-                    show_default_center_image();
+                    set_default_layer_image();
                     return;
                 }
-                cover_image
+                target_image
                     .on("error", function () { load_candidate(index + 1); })
                     .attr("xlink:href", candidates[index]);
             }
 
             if (!candidates.length) {
-                show_default_center_image();
+                set_default_layer_image();
                 return;
             }
             load_candidate(0);
+        }
+
+        function show_default_center_image() {
+            show_center_image_from_candidates_on_layer([], "top");
+            show_center_image_from_candidates_on_layer([], "under");
+        }
+
+        function show_center_image_from_candidates(candidates) {
+            show_center_image_from_candidates_on_layer(candidates, "top");
         }
         function show_center_image_for_chapter(chapter_id) {
             show_center_image_from_candidates(chapter_image_candidates[chapter_id] || []);
@@ -1282,8 +1317,8 @@ function create_CCS_chart() {
         }
 
         // "其他" slideshow timing (seconds) can be adjusted here.
-        var merged_pattern_show_seconds = 0.6;//展示秒数
-        var merged_pattern_fade_seconds = 0.2;//淡入淡出秒数
+        var merged_pattern_show_seconds = 0.5;//展示秒数
+        var merged_pattern_fade_seconds = 0.5;//淡入淡出秒数
         var merged_pattern_cycle_timer = null;
         var merged_pattern_cycle_index = 0;
 
@@ -1292,8 +1327,25 @@ function create_CCS_chart() {
                 clearTimeout(merged_pattern_cycle_timer);
                 merged_pattern_cycle_timer = null;
             }
+            if (cover_circle_under) {
+                var under_visible = parseFloat(cover_circle_under.style("opacity") || "0") > 0.01
+                    && cover_circle_under.style("fill") !== "none";
+                if (under_visible) {
+                    promote_under_cover_to_top();
+                }
+            }
+
             if (cover_circle) {
-                cover_circle.interrupt().style("opacity", 1);
+                cover_circle
+                    .interrupt()
+                    .style("fill", "url(#cover-image)")
+                    .style("opacity", 1);
+            }
+            if (cover_circle_under) {
+                cover_circle_under
+                    .interrupt()
+                    .style("opacity", 0)
+                    .style("fill", "none");
             }
         }
 
@@ -1311,31 +1363,60 @@ function create_CCS_chart() {
             var fade_ms = Math.max(120, merged_pattern_fade_seconds * 1000);
             merged_pattern_cycle_index = 0;
 
-            function render_current_pattern() {
-                var pattern_name = singleton_pattern_names[merged_pattern_cycle_index];
-                show_center_image_for_pattern(pattern_name);
-                cover_circle
-                    .style("fill", "url(#cover-image)")
-                    .interrupt()
-                    .transition()
-                    .duration(fade_ms)
-                    .style("opacity", 1);
-
+            function schedule_next_transition() {
+                if (singleton_pattern_names.length <= 1) return;
                 merged_pattern_cycle_timer = setTimeout(function () {
+                    var next_index = (merged_pattern_cycle_index + 1) % singleton_pattern_names.length;
+                    var next_pattern = singleton_pattern_names[next_index];
+
+                    show_center_image_from_candidates_on_layer(pattern_image_candidates[next_pattern] || [], "under");
+
+                    if (cover_circle_under) {
+                        cover_circle_under
+                            .style("fill", "url(#cover-image-under)")
+                            .interrupt()
+                            .style("opacity", 1);
+                    }
+                    if (!cover_circle) {
+                        merged_pattern_cycle_index = next_index;
+                        schedule_next_transition();
+                        return;
+                    }
+
+                    // 前一张淡出时，后一张已在底层可见，避免出现白底空窗。
                     cover_circle
                         .interrupt()
                         .transition()
                         .duration(fade_ms)
                         .style("opacity", 0)
                         .on("end", function () {
-                            merged_pattern_cycle_index = (merged_pattern_cycle_index + 1) % singleton_pattern_names.length;
-                            render_current_pattern();
+                            // 固定由上层执行淡出，避免隔次切换出现硬切。
+                            promote_under_cover_to_top();
+                            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
+                            if (cover_circle_under) {
+                                cover_circle_under.style("opacity", 0).style("fill", "none");
+                            }
+                            merged_pattern_cycle_index = next_index;
+                            schedule_next_transition();
                         });
                 }, show_ms);
             }
 
-            cover_circle.style("opacity", 0);
-            render_current_pattern();
+            var initial_pattern = singleton_pattern_names[merged_pattern_cycle_index];
+            show_center_image_from_candidates_on_layer(pattern_image_candidates[initial_pattern] || [], "top");
+            if (cover_circle) {
+                cover_circle
+                    .style("fill", "url(#cover-image)")
+                    .interrupt()
+                    .style("opacity", 1);
+            }
+            if (cover_circle_under) {
+                cover_circle_under
+                    .interrupt()
+                    .style("opacity", 0)
+                    .style("fill", "none");
+            }
+            schedule_next_transition();
         }
 
         ///////////////////////////////////////////////////////////////////////////
@@ -1640,6 +1721,13 @@ function create_CCS_chart() {
 
         //Add a circle at the center that will show the cover image on hover
         var cover_circle_group = chart.append("g").attr("class", "cover-circle-group");
+        var cover_circle_under = cover_circle_group.append("circle")
+            .attr("class", "cover-circle cover-circle-under")
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .attr("r", rad_image)
+            .style("fill", "none")
+            .style("opacity", 0);
         var cover_circle = cover_circle_group.append("circle")
             .attr("class", "cover-circle")
             .attr("cx", 0)

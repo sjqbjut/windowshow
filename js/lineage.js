@@ -71,9 +71,9 @@
         },
         layout: {
             centerXRatio: 0.5,        // 图谱中心横向位置比例（越小越靠左）
-            centerYRatio: 0.52,        // 图谱中心纵向位置比例（越小越靠上）
+            centerYRatio: 0.5,        // 图谱中心纵向位置比例（越小越靠上）
             typeRingRatio: 0.15,       // 中心到“apron类型层”的半径比例
-            variantRingRatio: 0.32,    // 中心到“variant层”的半径比例
+            variantRingRatio: 0.3,    // 中心到“variant层”的半径比例
             typeStartAngle: -Math.PI / 2,//起始角度
             variantSpreadMin: Math.PI / 15,//最小展开角度
             variantSpreadMax: Math.PI * 0.95,//最大展开角度

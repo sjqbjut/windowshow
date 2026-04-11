@@ -13,6 +13,7 @@
     <script src="plugins/webfont.js"></script>
     <script src="js/main.js"></script>
     <script src="js/lineage.js"></script>
+    <script src="js/hierarchy.js"></script>
     <script src="js/origin.js"></script>
 </head>
 <body class="landing-active">
@@ -26,6 +27,10 @@
     <span id="page-ripple" class="landing-ripple" aria-hidden="true"></span>
 
     <nav class="lantern-nav" aria-label="页面导航">
+        <button class="lantern-nav-button" type="button" data-page="home">
+            <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
+            <span class="lantern-nav-label">首页</span>
+        </button>
         <button class="lantern-nav-button" type="button" data-page="origin">
             <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
             <span class="lantern-nav-label">形制解析</span>
@@ -37,6 +42,10 @@
         <button class="lantern-nav-button" type="button" data-page="lineage">
             <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
             <span class="lantern-nav-label">衍生谱系</span>
+        </button>
+        <button class="lantern-nav-button" type="button" data-page="hierarchy">
+            <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
+            <span class="lantern-nav-label">等级尊卑</span>
         </button>
     </nav>
 
@@ -65,15 +74,43 @@
                     <div id="lineage-graph" class="lineage-graph" role="img" aria-label="裙板衍生谱系图"></div>
                 </div>
             </div>
-            <aside class="lineage-sidebar" aria-label="衍生谱系图片侧栏">
-                <div class="lineage-sidebar-header">
-                    <h2 class="lineage-sidebar-title">衍生谱系图录</h2>
-                    <p id="lineage-sidebar-focus" class="lineage-sidebar-focus">当前焦点：全部变体</p>
-                    <p class="lineage-sidebar-placeholder">点击节点可查看变体介绍、寓意与相关建筑</p>
-                </div>
-                <div id="lineage-gallery" class="lineage-gallery"></div>
-            </aside>
+            <div class="lineage-sidebar-dock">
+                <aside class="lineage-sidebar" aria-label="衍生谱系图片侧栏">
+                    <div class="lineage-sidebar-header">
+                        <h2 class="lineage-sidebar-title">衍生谱系图录</h2>
+                        <p id="lineage-sidebar-focus" class="lineage-sidebar-focus">当前焦点：全部变体</p>
+                        <p class="lineage-sidebar-placeholder">点击节点可查看变体介绍、寓意与相关建筑</p>
+                    </div>
+                    <div id="lineage-gallery" class="lineage-gallery"></div>
+                </aside>
+                <button id="lineage-hierarchy-button" class="lineage-hierarchy-button" type="button" aria-label="跳转到解码纹样等级页面">
+                    <img src="datas/imgs/art_design/button3.png" alt="" aria-hidden="true">
+                    <span class="lineage-hierarchy-button-label" aria-hidden="true">解码纹样等级</span>
+                </button>
+            </div>
         </div>
+    </section>
+
+    <section id="hierarchy-container" class="hierarchy-container" aria-hidden="true">
+        <div id="hierarchy-mini-map-panel" class="mini-map-panel hierarchy-mini-map-panel">
+            <div class="mini-map-frame">
+                <img class="mini-map-image" src="datas/imgs/map/map.png" alt="故宫建筑分区小地图">
+                <svg class="mini-map-overlay" aria-hidden="true"></svg>
+            </div>
+            <div class="mini-map-caption">小地图定位：移动到建筑等级名称或金字塔图片查看对应区域</div>
+        </div>
+        <div class="hierarchy-content-wrap">
+            <div class="hierarchy-main">
+                <div class="hierarchy-panel hierarchy-pyramid-panel">
+                    <svg id="hierarchy-pyramid" class="hierarchy-pyramid" role="img" aria-label="建筑等级金字塔布局"></svg>
+                </div>
+                <div class="hierarchy-panel hierarchy-heatmap-panel">
+                    <div id="hierarchy-legend" class="hierarchy-legend" role="group" aria-label="纹样图例筛选"></div>
+                    <svg id="hierarchy-heatmap" class="hierarchy-heatmap" role="img" aria-label="建筑等级与房屋类型热力图"></svg>
+                </div>
+            </div>
+        </div>
+        <div id="hierarchy-tooltip" class="hierarchy-tooltip" aria-hidden="true"></div>
     </section>
 
     <script>
@@ -110,6 +147,9 @@
                     if (typeof create_apron_lineage_graph === "function") {
                         create_apron_lineage_graph();
                     }
+                    if (typeof create_level_hierarchy_page === "function") {
+                        create_level_hierarchy_page();
+                    }
                 }, 200);
             }
         });
@@ -128,6 +168,9 @@
                         if (typeof create_apron_lineage_graph === "function") {
                             create_apron_lineage_graph();
                         }
+                        if (typeof create_level_hierarchy_page === "function") {
+                            create_level_hierarchy_page();
+                        }
                     }, 300);
                 }
             }
@@ -144,6 +187,8 @@
             var chartContainer = document.getElementById("chart-container");
             var chartLineageButton = document.getElementById("chart-lineage-button");
             var lineageContainer = document.getElementById("lineage-container");
+            var lineageHierarchyButton = document.getElementById("lineage-hierarchy-button");
+            var hierarchyContainer = document.getElementById("hierarchy-container");
             var navButtons = Array.prototype.slice.call(document.querySelectorAll(".lantern-nav-button"));
             if (!landingScreen || !startButton || !pageRipple) return;
 
@@ -206,6 +251,7 @@
                 var showOrigin = targetPage === "origin";
                 var showChart = targetPage === "chart";
                 var showLineage = targetPage === "lineage";
+                var showHierarchy = targetPage === "hierarchy";
 
                 if (originContainer) {
                     originContainer.classList.toggle("is-active", showOrigin);
@@ -236,6 +282,20 @@
 
                 if (showLineage && typeof create_apron_lineage_graph === "function") {
                     create_apron_lineage_graph();
+                }
+
+                if (lineageHierarchyButton) {
+                    lineageHierarchyButton.setAttribute("aria-hidden", showLineage ? "false" : "true");
+                    lineageHierarchyButton.disabled = !showLineage;
+                }
+
+                if (hierarchyContainer) {
+                    hierarchyContainer.classList.toggle("is-active", showHierarchy);
+                    hierarchyContainer.setAttribute("aria-hidden", showHierarchy ? "false" : "true");
+                }
+
+                if (showHierarchy && typeof create_level_hierarchy_page === "function") {
+                    create_level_hierarchy_page();
                 }
 
                 if (typeof window.set_origin_page_visibility === "function") {
@@ -317,6 +377,20 @@
                 }, landingZoomDuration);
             }
 
+            function showLandingPage() {
+                clearHideLandingTimer();
+                clearPageRippleTimer();
+                clearChartLineageTransitionTimer();
+                resetChartLineageTransitionState();
+
+                pageRipple.classList.remove("animate");
+                landingScreen.classList.remove("is-hidden", "is-leaving", "is-zooming");
+
+                document.body.classList.add("landing-active");
+                setActiveContentPage("origin");
+                setActiveNav("home");
+            }
+
             function openPageWithRipple(targetPage) {
                 var nextPage = targetPage || "chart";
                 var viewportWidth = window.innerWidth / layoutScale;
@@ -349,6 +423,10 @@
             navButtons.forEach(function(button) {
                 button.addEventListener("click", function() {
                     var targetPage = button.getAttribute("data-page");
+                    if (targetPage === "home") {
+                        showLandingPage();
+                        return;
+                    }
                     hideLandingPage(false, targetPage);
                 });
             });
@@ -367,6 +445,13 @@
                         chartLineageTransitionTimer = null;
                         hideLandingPage(false, "lineage");
                     }, chartLineageTransitionDuration);
+                });
+            }
+
+            if (lineageHierarchyButton) {
+                lineageHierarchyButton.addEventListener("click", function() {
+                    if (!lineageContainer || !lineageContainer.classList.contains("is-active")) return;
+                    hideLandingPage(false, "hierarchy");
                 });
             }
 

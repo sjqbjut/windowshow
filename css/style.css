@@ -939,7 +939,7 @@ body.landing-active .lantern-nav {
     --lineage-sidebar-inner-inset: 14px; /* 右侧图录内层虚线边距 */
     --lineage-layout-gap: clamp(48px, 3.2vw, 48px); /* 左右两栏间距 */
     --lineage-card-font-scale: 1.5; /* 右侧图录文字统一缩放倍率 */
-    --lineage-pan-x: -480px; /* 图谱+图录整体横向平移，正值向右*/
+    --lineage-pan-x: -580px; /* 图谱+图录整体横向平移，正值向右*/
     --lineage-pan-y: 40px; /* 图谱+图录整体纵向平移，正值向下*/
     position: fixed;
     inset: 0;
@@ -971,6 +971,14 @@ body.landing-active .lantern-nav {
     justify-content: space-between;
     gap: var(--lineage-layout-gap);
     transform: translate(var(--lineage-pan-x), var(--lineage-pan-y));
+}
+
+.lineage-sidebar-dock {
+    width: var(--lineage-sidebar-width);
+    height: var(--lineage-sidebar-height);
+    flex: 0 0 auto;
+    position: relative;
+    transform: translate(var(--lineage-sidebar-offset-x), var(--lineage-sidebar-offset-y));
 }
 
 .lineage-main {
@@ -1293,7 +1301,6 @@ body.landing-active .lantern-nav {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transform: translate(var(--lineage-sidebar-offset-x), var(--lineage-sidebar-offset-y));
 }
 
 .lineage-sidebar::before,
@@ -1321,6 +1328,75 @@ body.landing-active .lantern-nav {
 .lineage-sidebar > * {
     position: relative;
     z-index: 1;
+}
+
+.lineage-hierarchy-button {
+    position: absolute;
+    left: calc(100% + 90px);
+    top: 50%;
+    z-index: 3;
+    width: 176px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    transform: translate3d(0, -50%, 0) scale(2.2);/* 解码纹样等级按钮放大 */
+    transform-origin: center center;
+    transition: transform 0.24s ease, filter 0.24s ease, opacity 0.24s ease;
+    filter: saturate(1) contrast(1.05) brightness(1.05);
+}
+
+.lineage-hierarchy-button img {
+    display: block;
+    width: 100%;
+    height: auto;
+    right: 90px; 
+}
+
+.lineage-hierarchy-button-label {
+    position: absolute;
+    left: 48%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    width: auto;
+    max-width: none;
+    max-height: 74%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    white-space: nowrap;
+    color: rgba(96, 62, 34, 0.96);
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.1;
+    text-shadow:
+        0 1px 0 rgba(255, 250, 241, 0.88),
+        0 3px 6px rgba(100, 66, 37, 0.12);
+}
+
+.lineage-hierarchy-button:hover {
+    transform: translate3d(0, -52%, 0) scale(2.38);
+}
+
+.lineage-hierarchy-button:active {
+    transform: translate3d(0, -50%, 0) scale(2.38);
+}
+
+.lineage-hierarchy-button:focus-visible {
+    outline: 2px solid rgba(170, 114, 68, 0.88);
+    outline-offset: 5px;
+    border-radius: 999px;
+}
+
+.lineage-hierarchy-button:disabled {
+    pointer-events: none;
+    opacity: 0.6;
 }
 
 .lineage-sidebar-header {
@@ -1550,6 +1626,406 @@ body.landing-active .lantern-nav {
     transform: translate(var(--lineage-pan-x), var(--lineage-pan-y)) scale(0.992);
     transition: filter 0.2s ease, transform 0.2s ease;
     pointer-events: none;
+}
+
+.hierarchy-container {
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0 0;
+    background:
+        linear-gradient(180deg, rgba(248, 246, 243, 0.72), rgba(248, 246, 243, 0.78)),
+        radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%),
+        radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.24) 0%, rgba(220, 191, 153, 0) 52%),
+        url("../datas/imgs/art_design/background.jpg");
+    background-size: auto, auto, auto, cover;
+    background-position: center center, center center, center center, center center;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+    overflow: hidden;
+}
+
+.hierarchy-container.is-active {
+    display: flex;
+}
+
+.hierarchy-content-wrap {
+    width: 1700px;
+    height: 1100px;
+    transform: translate(60px, 28px);/*微调整体位置，正值向右向下*/
+}
+
+.hierarchy-main {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    gap: clamp(34px, 3.2vw, 56px);
+    padding: 20px 0px 20px;
+    border-radius: 20px;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        linear-gradient(130deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 44%),
+        repeating-linear-gradient(
+            -18deg,
+            rgba(177, 138, 95, 0.05) 0,
+            rgba(177, 138, 95, 0.05) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 17px
+        );
+}
+
+.hierarchy-main::before,
+.hierarchy-main::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.hierarchy-main::before {
+    inset: 0;
+    border: 1px solid rgba(150, 112, 73, 0.32);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+        inset 0 22px 30px rgba(255, 255, 255, 0.14),
+        inset 0 -14px 24px rgba(139, 101, 68, 0.1);
+}
+
+.hierarchy-main::after {
+    inset: 14px;
+    border: 1px dashed rgba(150, 113, 74, 0.28);
+}
+
+.hierarchy-main > * {
+    position: relative;
+    z-index: 1;
+}
+
+.hierarchy-main > .hierarchy-row-bridge-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hierarchy-row-bridge-band {
+    fill: rgba(238, 211, 173, 0.68);
+    stroke: rgba(176, 125, 72, 0.42);
+    stroke-width: 1.2;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.hierarchy-row-bridge-band.is-active {
+    opacity: 1;
+}
+
+.hierarchy-panel {
+    position: relative;
+    border-radius: 0;
+    overflow: visible;
+    isolation: auto;
+    background: transparent;
+}
+
+.hierarchy-panel::before,
+.hierarchy-panel::after {
+    content: none;
+}
+
+.hierarchy-pyramid-panel {
+    flex: 1 1 800px;/*金字塔宽度*/
+    min-width: 600px;
+    padding: 40px  0px 0px  0px;/*上,右,下,左*/
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hierarchy-heatmap-panel {
+    flex: 1 1 800px;/*热力图宽度*/
+    min-width: 0;
+    padding: 0px  40px 0px  0px;/*上,右,下,左*/
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hierarchy-pyramid-title {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 3px 0 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: rgba(82, 58, 35, 0.95);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(22px, 1.45vw, 28px);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+}
+
+.hierarchy-pyramid,
+.hierarchy-heatmap {
+    width: 100%;
+    display: block;
+    min-height: 0;
+}
+
+.hierarchy-pyramid {
+    flex: 1 1 auto;
+    height: auto;
+}
+
+.hierarchy-heatmap {
+    flex: 1 1 auto;
+    height: auto;
+    overflow: hidden;
+}
+
+.hierarchy-tier-outline {
+    fill: rgba(255, 251, 243, 0.08);
+    stroke: rgba(168, 124, 82, 0.52);
+    stroke-width: 1.25;
+}
+
+.hierarchy-tier-image {
+    filter: saturate(0.88) contrast(0.93) brightness(0.98);
+}
+
+.hierarchy-tier-divider {
+    stroke: rgba(149, 112, 73, 0.26);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 6;
+    fill: none;
+}
+
+.hierarchy-tier-label-bg {
+    fill: rgba(247, 238, 224, 0.83);
+    stroke: rgba(147, 111, 75, 0.24);
+    stroke-width: 1;
+}
+
+.hierarchy-tier-label {
+    fill: rgba(82, 58, 35, 0.95);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(18px, 1.4vw, 24px);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    pointer-events: none;
+}
+
+.hierarchy-pyramid-tier {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.hierarchy-pyramid-tier.is-active .hierarchy-tier-outline {
+    stroke: rgba(183, 129, 74, 0.95);
+    stroke-width: 2.2;
+    fill: rgba(246, 233, 208, 0.14);
+}
+
+.hierarchy-pyramid-tier.is-active .hierarchy-tier-label-bg {
+    fill: rgba(248, 232, 204, 0.92);
+    stroke: rgba(161, 112, 64, 0.36);
+}
+
+.hierarchy-legend {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    padding: 15px 0 0 0;
+}/*图例样式*/
+
+.hierarchy-legend-item {
+    border: 2px solid rgba(136, 99, 63, 0.34);
+    border-radius: 999px;
+    padding: 6px 20px 6px 14px;
+    background: rgba(255, 251, 244, 0.74);
+    color: rgba(88, 62, 38, 0.92);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 22px;
+    line-height: 1.3;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.hierarchy-legend-item:hover {
+    transform: translateY(-1px);
+}
+
+.hierarchy-legend-item.is-disabled {
+    opacity: 0.38;
+    border-color: rgba(132, 101, 73, 0.22);
+    background: rgba(246, 240, 230, 0.56);
+}
+
+.hierarchy-legend-item:focus-visible {
+    outline: 2px solid rgba(170, 114, 68, 0.88);
+    outline-offset: 3px;
+}
+
+.hierarchy-legend-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 2px rgba(71, 48, 28, 0.22);
+}
+
+.hierarchy-col-title {
+    fill: rgba(82, 58, 35, 0.93);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: 25px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.hierarchy-row-guide {
+    stroke: rgba(150, 113, 74, 0.42);
+    stroke-width: 1.05;
+    stroke-dasharray: 4 5;
+    vector-effect: non-scaling-stroke;
+}
+
+.hierarchy-col-guide {
+    stroke: rgba(150, 113, 74, 0.2);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.hierarchy-cell-base {
+    fill: rgba(255, 251, 245, 0.62);
+    stroke: rgba(153, 116, 78, 0.25);
+    stroke-width: 1;
+}
+
+.hierarchy-heatmap-row.is-active .hierarchy-cell-base {
+    fill: rgba(248, 235, 213, 0.76);
+    stroke: rgba(166, 118, 69, 0.52);
+}
+
+.hierarchy-cell-segment {
+    transition: opacity 0.2s ease;
+}
+
+.hierarchy-cell {
+    cursor: default;
+}
+
+.hierarchy-mini-map-panel {
+    z-index: 8;
+}
+
+.hierarchy-tooltip {
+    position: fixed;
+    z-index: 10025;
+    min-width: 210px;
+    max-width: min(500px, 80vw);
+    border: 1px solid rgba(134, 98, 61, 0.48);
+    border-radius: 10px;
+    background: rgba(255, 250, 242, 0.97);
+    box-shadow: 0 9px 22px rgba(64, 45, 25, 0.22);
+    padding: 10px 12px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.hierarchy-tooltip.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hierarchy-tooltip-title {
+    margin: 0 0 6px;
+    color: rgba(73, 50, 29, 0.95);
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}/*热力矩阵hover提示框*/
+
+.hierarchy-tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    color: rgba(84, 61, 39, 0.9);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 22px;
+    line-height: 1.45;
+}
+
+.hierarchy-tooltip-empty {
+    color: rgba(98, 74, 50, 0.78);
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 22px;
+    line-height: 1.4;
+}
+
+@media (max-width: 1460px) {
+    .lineage-hierarchy-button {
+        left: calc(100% + 58px);
+    }
+
+    .hierarchy-content-wrap {
+        transform: translate(74px, 18px);
+    }
+}
+
+@media (max-width: 1180px) {
+    .lineage-sidebar-dock {
+        overflow: visible;
+    }
+
+    .lineage-hierarchy-button {
+        left: 50%;
+        top: calc(100% + 18px);
+        transform: translate(-50%, 0) scale(2.5);
+    }
+
+    .lineage-hierarchy-button:hover {
+        transform: translate(-50%, -2px) scale(2.58);
+    }
+
+    .lineage-hierarchy-button:active {
+        transform: translate(-50%, 0) scale(2.5);
+    }
+
+    .hierarchy-content-wrap {
+        width: min(96vw, 980px);
+        height: min(92vh, 1220px);
+        transform: none;
+    }
+
+    .hierarchy-main {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .hierarchy-pyramid-panel {
+        flex: 0 0 min(45vh, 460px);
+        min-width: 0;
+    }
+
+    .hierarchy-heatmap-panel {
+        min-height: 420px;
+    }
 }
 
 .mini-map-panel {
@@ -2225,7 +2701,10 @@ canvas {
     .landing-ripple,
     .lantern-nav-icon,
     .chart-lineage-button,
-    .chart-lineage-button-label {
+    .chart-lineage-button-label,
+    .lineage-hierarchy-button,
+    .hierarchy-tooltip,
+    .hierarchy-cell-segment {
         transition: none;
         animation: none;
     }

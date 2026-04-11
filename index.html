@@ -116,6 +116,20 @@
 
     <script>
         function resolveLayoutScale() {
+            var searchParams;
+            try {
+                searchParams = new URLSearchParams(window.location.search || "");
+            } catch (error) {
+                searchParams = null;
+            }
+
+            if (searchParams) {
+                var layoutScaleFromQuery = parseFloat(searchParams.get("layoutScale"));
+                if (layoutScaleFromQuery > 0) {
+                    return layoutScaleFromQuery;
+                }
+            }
+
             var root_style = window.getComputedStyle(document.documentElement);
             var raw_value = root_style.getPropertyValue("--layout-scale");
             var parsed_value = parseFloat(raw_value);
@@ -123,6 +137,7 @@
         }
 
         var layoutScale = resolveLayoutScale();
+        document.documentElement.style.setProperty("--layout-scale", String(layoutScale));
         window.APP_LAYOUT_SCALE = layoutScale;
 
         // Lock browser zoom by preventing Ctrl + wheel.
@@ -132,6 +147,13 @@
                     event.preventDefault();
                 }
             }, { passive: false });
+            window.addEventListener("keydown", function(event) {
+                if (!event.ctrlKey) return;
+                var key = event.key;
+                if (key === "+" || key === "=" || key === "-" || key === "_" || key === "0") {
+                    event.preventDefault();
+                }
+            });
         })();
 
         // 首次渲染前等待字体加载完成，减少文字跳动和重排。

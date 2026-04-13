@@ -95,6 +95,7 @@ addFilesFromDir('/datas/imgs/apron', 'datas/imgs/apron');
 addFilesFromDir('/datas/imgs/art_design', 'datas/imgs/art_design');
 addFilesFromDir('/datas/imgs/variant/apron_variant', 'datas/imgs/variant/apron_variant');
 addFilesFromDir('/datas/imgs/variant/patterns_variant', 'datas/imgs/variant/patterns_variant');
+addFilesFromDir('/datas/imgs/summary', 'datas/imgs/summary');
 addPatternImagesFromCsv();
 files['/'] = files['/index.html'];
 

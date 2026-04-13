@@ -1,12 +1,4 @@
 ﻿
-//TODO: Fix x and y of color circles?
-// var data_save;
-// var data_new = []
-// data_save.forEach(function(d) {
-//     data_new.push({country_id: d.country_id, x: round(d.x,2), y: round(d.y,2)})
-// })
-// copy(data_new)
-
 // 主渲染流程：
 // 1) 根据当前视口宽度计算响应式几何参数；
 // 2) 加载并规整数据，生成各图层可直接使用的视图模型；

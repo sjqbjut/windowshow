@@ -28,10 +28,6 @@
     <span id="page-ripple" class="landing-ripple" aria-hidden="true"></span>
 
     <nav class="lantern-nav" aria-label="页面导航">
-        <button class="lantern-nav-button" type="button" data-page="home">
-            <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
-            <span class="lantern-nav-label">首页</span>
-        </button>
         <button class="lantern-nav-button" type="button" data-page="origin">
             <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
             <span class="lantern-nav-label">形制解析</span>
@@ -48,6 +44,11 @@
             <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
             <span class="lantern-nav-label">等级尊卑</span>
         </button>
+        <button class="lantern-nav-button" type="button" data-page="summary">
+            <img class="lantern-nav-icon" src="datas/imgs/art_design/navigation1.png" alt="" aria-hidden="true">
+            <span class="lantern-nav-label">纹落紫禁</span>
+        </button>
+
     </nav>
 
     <section id="origin-container" class="origin-container" aria-hidden="true"></section>
@@ -113,6 +114,138 @@
         </div>
         <div id="hierarchy-tooltip" class="hierarchy-tooltip" aria-hidden="true"></div>
     </section>
+
+    <section id="summary-container" class="summary-container" aria-hidden="true">
+        <div class="summary-page">
+            <header class="summary-hd">
+                <h2 class="summary-title">纹样数据档案</h2>
+                <div class="summary-stats">
+                    <div class="summary-stat">
+                        <b class="summary-stat-num" data-target="13">0</b>
+                        <span class="summary-stat-text">种窗棂纹样<em>及11种变体</em></span>
+                    </div>
+                    <span class="summary-stat-sep" aria-hidden="true"></span>
+                    <div class="summary-stat">
+                        <b class="summary-stat-num" data-target="5">0</b>
+                        <span class="summary-stat-text">种裙板纹样<em>及13种变体</em></span>
+                    </div>
+                    <span class="summary-stat-sep" aria-hidden="true"></span>
+                    <div class="summary-stat">
+                        <b class="summary-stat-num" data-target="4">0</b>
+                        <span class="summary-stat-text">层等级</span>
+                    </div>
+                    <span class="summary-stat-sep" aria-hidden="true"></span>
+                    <div class="summary-stat">
+                        <b class="summary-stat-num" data-target="8">0</b>
+                        <span class="summary-stat-text">个区域</span>
+                    </div>
+                    <span class="summary-stat-sep" aria-hidden="true"></span>
+                    <div class="summary-stat">
+                        <b class="summary-stat-num" data-target="6">0</b>
+                        <span class="summary-stat-text">种房屋</span>
+                    </div>
+                    <span class="summary-stat-sep" aria-hidden="true"></span>
+                    <div class="summary-stat">
+                        <b class="summary-stat-num" data-target="49">0</b>
+                        <span class="summary-stat-text">所建筑</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="summary-body">
+                <!-- Card 01 -->
+                <article class="summary-card" style="--sd: 0.06s">
+                    <div class="summary-card-hd">
+                        <span class="summary-card-num">01</span>
+                        <span class="summary-card-tag">礼制等级</span>
+                    </div>
+                    <p class="summary-card-body">故宫窗棂与裙板纹样严格遵循清代皇家建筑等级规制，其形制、题材与建筑等级一一对应，是彰显宫廷礼制秩序的核心视觉符号。</p>
+                    <div class="summary-card-vis">
+                        <div class="summary-pairs">
+                            <div class="summary-pair">
+                                <img src="datas/imgs/summary/t1.png" class="summary-pair-img" alt="窗棂纹样示例">
+                                <svg class="summary-arr-h" viewBox="0 0 80 22" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <line class="summary-arr-line" x1="3" y1="11" x2="65" y2="11" stroke="#8b6a3e" stroke-width="2.5" stroke-linecap="round"/>
+                                    <polyline points="57,5 71,11 57,17" fill="none" stroke="#8b6a3e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                                </svg>
+                                <img src="datas/imgs/summary/t11.png" class="summary-pair-img" alt="对应变体">
+                            </div>
+                            <div class="summary-pair">
+                                <img src="datas/imgs/summary/t2.png" class="summary-pair-img" alt="裙板纹样示例">
+                                <svg class="summary-arr-h" viewBox="0 0 80 22" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <line class="summary-arr-line" x1="3" y1="11" x2="65" y2="11" stroke="#8b6a3e" stroke-width="2.5" stroke-linecap="round"/>
+                                    <polyline points="57,5 71,11 57,17" fill="none" stroke="#8b6a3e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                                </svg>
+                                <img src="datas/imgs/summary/t22.png" class="summary-pair-img" alt="对应变体">
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 02 -->
+                <article class="summary-card" style="--sd: 0.18s">
+                    <div class="summary-card-hd">
+                        <span class="summary-card-num">02</span>
+                        <span class="summary-card-tag">功能适配</span>
+                    </div>
+                    <p class="summary-card-body">同一建筑内，不同功能的房屋匹配专属窗棂样式：正殿纹样繁复，彰显主人地位；庑房形制简约，注重实用朴素，窗棂设计精准适配建筑功能。</p>
+                    <div class="summary-card-vis">
+                        <div class="summary-fork summary-fork--side">
+                            <div class="summary-fork-layout">
+                                <div class="summary-fork-src">
+                                    <img src="datas/imgs/summary/t3.png" class="summary-fork-main" alt="建筑对比图">
+                                    <span class="summary-fork-dot" style="left:54%; top:60%;"></span>
+                                    <span class="summary-fork-dot" style="left:68%; top:72%;"></span>
+                                </div>
+                                <div class="summary-fork-targets">
+                                    <img src="datas/imgs/summary/t31.png" class="summary-fork-sub" alt="正殿窗棂">
+                                    <img src="datas/imgs/summary/t32.png" class="summary-fork-sub" alt="庑房窗棂">
+                                </div>
+                                <svg class="summary-fork-svg" viewBox="0 0 1000 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path class="summary-fork-path" d="M 289 216 C 390 190, 510 124, 590 88" stroke="#8b6a3e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                    <polyline points="572,76 590,88 572,100" fill="none" stroke="#8b6a3e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" class="summary-fork-tip"/>
+                                    <path class="summary-fork-path" d="M 371 259 C 440 272, 530 282, 590 272" stroke="#8b6a3e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                    <polyline points="572,260 590,272 572,284" fill="none" stroke="#8b6a3e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" class="summary-fork-tip"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Card 03 -->
+                <article class="summary-card" style="--sd: 0.3s">
+                    <div class="summary-card-hd">
+                        <span class="summary-card-num">03</span>
+                        <span class="summary-card-tag">内外分区</span>
+                    </div>
+                    <p class="summary-card-body">故宫窗棂在不同建筑的空间分布呈现鲜明的内外分区特征：外朝纹样多雄浑大气，凸显政务空间的皇权威仪，内廷纹样则多细腻私密，适配居住空间的生活需求。</p>
+                    <div class="summary-card-vis">
+                        <div class="summary-fork summary-fork--side">
+                            <div class="summary-fork-layout">
+                                <div class="summary-fork-src">
+                                    <img src="datas/imgs/summary/t4.png" class="summary-fork-main" alt="内外廷对比图">
+                                    <span class="summary-fork-dot" style="left:39%; top:28%;"></span>
+                                    <span class="summary-fork-dot" style="left:39%; top:67%;"></span>
+                                </div>
+                                <div class="summary-fork-targets">
+                                    <img src="datas/imgs/summary/t41.png" class="summary-fork-sub" alt="外朝纹样">
+                                    <img src="datas/imgs/summary/t42.png" class="summary-fork-sub" alt="内廷纹样">
+                                </div>
+                                <svg class="summary-fork-svg" viewBox="0 0 1000 360" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path class="summary-fork-path" d="M 200 101 C 360 100, 510 96, 590 88" stroke="#8b6a3e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                    <polyline points="572,76 590,88 572,100" fill="none" stroke="#8b6a3e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" class="summary-fork-tip"/>
+                                    <path class="summary-fork-path" d="M 200 241 C 360 248, 510 266, 590 272" stroke="#8b6a3e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                    <polyline points="572,260 590,272 572,284" fill="none" stroke="#8b6a3e" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" class="summary-fork-tip"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div><!-- /.summary-body -->
+        </div><!-- /.summary-page -->
+    </section>
+
+
 
     <script>
         function resolveLayoutScale() {
@@ -275,6 +408,8 @@
                 var showChart = targetPage === "chart";
                 var showLineage = targetPage === "lineage";
                 var showHierarchy = targetPage === "hierarchy";
+                var summaryContainer = document.getElementById("summary-container");
+                var showSummary = targetPage === "summary";
 
                 if (originContainer) {
                     originContainer.classList.toggle("is-active", showOrigin);
@@ -317,6 +452,30 @@
                     hierarchyContainer.setAttribute("aria-hidden", showHierarchy ? "false" : "true");
                 }
 
+                if (summaryContainer) {
+                    if (showSummary) {
+                        // Reset animation state by removing active first
+                        summaryContainer.classList.remove("is-active", "is-entered");
+                        summaryContainer.setAttribute("aria-hidden", "true");
+                        // Force reflow to reset animations
+                        void summaryContainer.offsetWidth;
+                        summaryContainer.classList.add("is-active");
+                        summaryContainer.setAttribute("aria-hidden", "false");
+                        // Trigger entrance animations
+                        requestAnimationFrame(function() {
+                            requestAnimationFrame(function() {
+                                summaryContainer.classList.add("is-entered");
+                                if (typeof window.startSummaryCountUp === "function") {
+                                    window.startSummaryCountUp();
+                                }
+                            });
+                        });
+                    } else {
+                        summaryContainer.classList.remove("is-active", "is-entered");
+                        summaryContainer.setAttribute("aria-hidden", "true");
+                    }
+                }
+
                 if (showHierarchy && typeof create_level_hierarchy_page === "function") {
                     create_level_hierarchy_page();
                 }
@@ -325,6 +484,23 @@
                     window.set_origin_page_visibility(showOrigin);
                 }
             }
+
+            window.startSummaryCountUp = function() {
+                var nums = document.querySelectorAll("#summary-container .summary-stat-num");
+                nums.forEach(function(el) {
+                    var target = parseInt(el.getAttribute("data-target"), 10);
+                    var duration = 900;
+                    var start = performance.now();
+                    function tick(now) {
+                        var t = Math.min(1, (now - start) / duration);
+                        var eased = 1 - Math.pow(1 - t, 3); // ease out cubic
+                        el.textContent = Math.round(eased * target);
+                        if (t < 1) requestAnimationFrame(tick);
+                    }
+                    requestAnimationFrame(tick);
+                });
+            };
+
 
             function applyPageState(nextPage) {
                 document.body.classList.remove("landing-active");
@@ -400,20 +576,6 @@
                 }, landingZoomDuration);
             }
 
-            function showLandingPage() {
-                clearHideLandingTimer();
-                clearPageRippleTimer();
-                clearChartLineageTransitionTimer();
-                resetChartLineageTransitionState();
-
-                pageRipple.classList.remove("animate");
-                landingScreen.classList.remove("is-hidden", "is-leaving", "is-zooming");
-
-                document.body.classList.add("landing-active");
-                setActiveContentPage("origin");
-                setActiveNav("home");
-            }
-
             function openPageWithRipple(targetPage) {
                 var nextPage = targetPage || "chart";
                 var viewportWidth = window.innerWidth / layoutScale;
@@ -437,7 +599,7 @@
 
             document.body.classList.add("landing-active");
             setActiveContentPage("origin");
-            setActiveNav("home");
+            setActiveNav("origin");
 
             startButton.addEventListener("click", function() {
                 hideLandingPage(true, "origin");
@@ -446,10 +608,6 @@
             navButtons.forEach(function(button) {
                 button.addEventListener("click", function() {
                     var targetPage = button.getAttribute("data-page");
-                    if (targetPage === "home") {
-                        showLandingPage();
-                        return;
-                    }
                     hideLandingPage(false, targetPage);
                 });
             });

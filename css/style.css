@@ -33,6 +33,12 @@ body.landing-active {
     overflow: hidden;
 }
 
+
+body.landing-active .lantern-nav {
+    display: none;
+}
+
+
 .landing-screen {
     position: fixed;
     inset: 0;
@@ -1697,7 +1703,7 @@ body.landing-active {
     text-align: center;
     color: rgba(82, 58, 35, 0.95);
     font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
-    font-size: clamp(15px, 1.82vw, 55px);
+    font-size: clamp(30px, 2.35vw, 80px);
     font-weight: 700;
     letter-spacing: 0.08em;
     line-height: 1.2;
@@ -2644,5 +2650,462 @@ canvas {
     .landing-ripple::before,
     .landing-ripple::after {
         animation: none;
+    }
+}
+
+/* ================================================================
+   纹落紫禁 · 纹样数据档案页  summary
+   ================================================================ */
+
+/* ---- 容器 ---- */
+.summary-container {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    display: none;
+    align-items: stretch;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(248, 246, 243, 0.78), rgba(248, 246, 243, 0.84)),
+        radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.60) 0%, rgba(255, 248, 236, 0) 44%),
+        radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.22) 0%, rgba(220, 191, 153, 0) 52%),
+        url("../datas/imgs/art_design/background.jpg");
+    background-size: auto, auto, auto, cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.summary-container.is-active {
+    display: flex;
+}
+
+/* ---- 整页 flex 列 ---- */
+.summary-page {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(138px, 17.4074vh, 238px) clamp(2px, 2.7083vw, 102px) clamp(0px, 2.4074vh, 76px);
+    gap: clamp(0px, 1.4815vh, 66px);
+    box-sizing: border-box;
+}
+
+/* ================================================================
+   顶部标题区
+   ================================================================ */
+.summary-hd {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 clamp(10px, 3.125vw, 110px);
+    gap: clamp(0px, 1.6667vh, 68px);
+    opacity: 0;
+    transform: translateY(clamp(-30px, 1.8519vh, 70px));
+    transition: opacity 0s, transform 0s;
+}
+
+.summary-container.is-entered .summary-hd {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.52s ease 0.04s, transform 0.52s cubic-bezier(0.2, 0.8, 0.2, 1) 0.04s;
+}
+
+/* 标题文字 */
+.summary-title {
+    margin: 0;
+    padding-bottom: clamp(0px, 3.7037vh, 90px);
+    position: relative;
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(80px, 5.2083vw, 120px);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1.1;
+    background: linear-gradient(180deg, #ff9a3c 0%, #d4601e 44%, #a83010 78%, #7a1f08 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    white-space: nowrap;
+}
+
+.summary-title::after {
+    content: "";
+    position: absolute;
+    bottom: clamp(0px, 2.9vh, 90px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 52%;
+    height: clamp(0px, 0.1852vh, 52px);
+    background: linear-gradient(90deg, transparent, rgba(139, 106, 62, 0.65) 30%, rgba(139, 106, 62, 0.65) 70%, transparent);
+}
+
+/* 数据统计条 */
+.summary-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: clamp(0px, 1.6667vh, 68px) clamp(0px, 1.875vw, 86px);
+    background: linear-gradient(135deg, rgba(253, 247, 237, 0.92), rgba(244, 233, 214, 0.88));
+    border: clamp(0px, 0.0521vw, 51px) dashed rgba(149, 113, 77, 0.32);
+    border-radius: clamp(0px, 0.8333vw, 66px);
+    box-shadow:
+        inset 0 clamp(0px, 0.0521vw, 51px) 0 rgba(255, 255, 255, 0.72),
+        0 clamp(0px, 0.1042vw, 52px) clamp(0px, 0.8333vw, 66px) rgba(139, 106, 62, 0.08);
+}
+
+.summary-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(0px, 0.3704vh, 54px);
+}
+
+.summary-stat-num {
+    font-family: "Barlow Semi Condensed", sans-serif;
+    font-size: clamp(60px, 4.1667vw, 100px);
+    font-weight: 700;
+    line-height: 1;
+    color: #8b6a3e;
+    letter-spacing: -0.02em;
+    display: block;
+    font-style: normal;
+}
+
+.summary-stat-text {
+    font-family: "STSong", "SimSun", "Songti SC", "Noto Serif SC", serif;
+    font-size: clamp(20px, 2.0833vw, 60px);
+    color: rgba(58, 42, 20, 0.86);
+    letter-spacing: 0.06em;
+    text-align: center;
+    display: block;
+}
+
+.summary-stat-text em {
+    display: block;
+    font-style: normal;
+    font-size: clamp(10px, 1.5625vw, 50px);
+    color: rgba(100, 72, 42, 0.6);
+    margin-top: clamp(0px, 0.2778vh, 53px);
+}
+
+.summary-stat-sep {
+    flex: 0 0 clamp(0px, 0.0521vw, 51px);
+    align-self: stretch;
+    margin: clamp(0px, 0.6481vh, 57px) 0;
+    background: linear-gradient(180deg, transparent, rgba(139, 106, 62, 0.28), transparent);
+}
+
+/* ================================================================
+   三列结论区
+   ================================================================ */
+.summary-body {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 0 clamp(0px, 2.6042vw, 100px);/* 控制整体左右空白 */
+    display: flex;
+    align-items: stretch; /* 关键修改：从 flex-start 改为 stretch */
+}
+
+/* ---- 结论卡片 ---- */
+.summary-card {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    margin: clamp(0px, 1.3889vh, 65px) clamp(0px, 0.7292vw, 64px) clamp(50px, 9.2593vh, 150px) clamp(0px, 0.7292vw, 64px);/* 控制卡片之间的间距和卡片底部空白 */
+    padding: clamp(0px, 1.8519vh, 70px) clamp(0px, 1.0417vw, 70px);/* 控制卡片元素距卡片边缘 */
+    background: linear-gradient(150deg, rgba(253, 248, 240, 0.95), rgba(244, 234, 216, 0.90));
+    border: clamp(0px, 0.0521vw, 51px) solid rgba(149, 113, 77, 0.22);
+    border-radius: clamp(0px, 0.625vw, 62px);
+    box-shadow:
+        inset 0 clamp(0px, 0.0521vw, 51px) 0 rgba(255, 255, 255, 0.75),
+        0 clamp(0px, 0.1042vw, 52px) clamp(0px, 0.7292vw, 64px) rgba(139, 106, 62, 0.06);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(clamp(-24px, 2.4074vh, 76px));
+    transition: opacity 0s, transform 0s;
+}
+
+.summary-container.is-entered .summary-card {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+        opacity 0.58s ease var(--sd, 0.1s),
+        transform 0.58s cubic-bezier(0.2, 0.8, 0.2, 1) var(--sd, 0.1s);
+}
+
+/* 卡片顶部 */
+.summary-card-hd {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+
+}
+
+.summary-card-num {
+    font-family: "Barlow Semi Condensed", sans-serif;
+    font-size: clamp(18px, 1.9792vw, 58px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: rgba(139, 106, 62, 0.28);
+}
+
+.summary-card-tag {
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: clamp(12px, 1.82vw, 52px);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(88, 55, 24, 0.78);
+    border-left: clamp(0px, 0.1042vw, 52px) solid rgba(139, 106, 62, 0.5);
+    padding-left: clamp(0px, 0.5208vw, 60px);
+    line-height: 1.2;
+}/* 卡片标题 */
+
+/* 结论正文 */
+.summary-card-body,
+.summary-card-text {
+    flex: 0 0 auto;
+    margin: 0;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: clamp(8px, 1.6vw, 48px);
+    line-height: 1.82;
+    letter-spacing: 0.05em;
+    color: rgba(55, 28, 10, 0.9);
+    text-shadow: 0 clamp(0px, 0.0521vw, 51px) 0 rgba(255, 255, 255, 0.48);
+}
+
+/* 可视化区域 */
+.summary-card-vis {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ================================================================
+   结论01：两对横向箭头
+   ================================================================ */
+.summary-pairs {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0px, 0.7407vh, 58px);
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.summary-pair {
+    display: flex;
+    align-items: center;
+    gap: clamp(0px, 0.3125vw, 56px);
+    justify-content: center;
+}
+
+.summary-pair-img {
+    width: 100%;
+    height: clamp(150px, 18.5185vh, 250px);
+    object-fit: cover;
+    max-width: clamp(250px, 15.625vw, 350px);
+    max-height: clamp(550px, 55.5556vh, 650px);
+    border-radius: clamp(0px, 0.4167vw, 58px);
+    border: clamp(0px, 0.0521vw, 51px) solid rgba(139, 106, 62, 0.22);
+    box-shadow: 0 clamp(0px, 0.1042vw, 52px) clamp(0px, 0.5208vw, 60px) rgba(58, 42, 20, 0.12);
+    background: #e8dece;
+    flex-shrink: 0;
+}
+
+/* 水平箭头 SVG */
+.summary-arr-h {
+    width: clamp(0px, 2.6042vw, 100px);
+    height: clamp(0px, 2.037vh, 72px);
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.summary-arr-line {
+    stroke-dasharray: 70;
+    stroke-dashoffset: 70;
+}
+
+.summary-arr-tip {
+    opacity: 0;
+}
+
+.summary-container.is-entered .summary-arr-line {
+    animation: summary-draw-line 0.55s ease 0.52s forwards;
+}
+
+.summary-container.is-entered .summary-arr-tip {
+    animation: summary-fade-in 0.18s ease 1.05s forwards;
+}
+
+@keyframes summary-draw-line {
+    to { stroke-dashoffset: 0; }
+}
+
+/* ================================================================
+   结论02/03：大图 + 分叉箭头 + 两张小图
+   ================================================================ */
+.summary-fork {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch; /* 确保子元素拉伸 */
+    width: 100%; 
+}
+
+.summary-fork-layout {
+    position: relative;
+    width: 100%;
+    min-height: clamp(164px, 19.82vh, 264px);
+    display: flex;
+    align-items: stretch;
+}
+
+/* 源图区（相对定位，用于放置指示点） */
+.summary-fork-src {
+    position: relative;
+    flex: 0 0 52%;
+    min-width: 0;
+    z-index: 2;
+}
+
+.summary-fork-main {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-width: clamp(275px, 16.9271vw, 375px);
+    max-height: clamp(400px, 41.6667vh, 500px);/* 图片高度 */
+    border-radius: clamp(0px, 0.4167vw, 58px);
+    border: clamp(0px, 0.0521vw, 51px) solid rgba(139, 106, 62, 0.22);
+    box-shadow: 0 clamp(0px, 0.1042vw, 52px) clamp(0px, 0.5208vw, 60px) rgba(58, 42, 20, 0.11);
+    background: #e8dece;
+}
+
+/* 图像上的来源指示点 */
+.summary-fork-dot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: clamp(0px, 0.7292vw, 64px);
+    height: clamp(0px, 0.7292vw, 64px);
+    border-radius: 50%;
+    background: rgba(139, 106, 62, 0.9);
+    box-shadow:
+        0 0 0 clamp(0px, 0.1563vw, 53px) rgba(248, 246, 243, 0.95),
+        0 0 0 clamp(0px, 0.2604vw, 55px) rgba(139, 106, 62, 0.22);
+    z-index: 4;
+    pointer-events: none;
+}
+
+.summary-container.is-entered .summary-fork-dot {
+    animation: summary-dot-pulse 2.4s ease-in-out 0.9s infinite;
+}
+
+@keyframes summary-dot-pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 clamp(0px, 0.1563vw, 53px) rgba(248, 246, 243, 0.95),
+            0 0 0 clamp(0px, 0.2604vw, 55px) rgba(139, 106, 62, 0.22);
+    }
+    50% {
+        box-shadow:
+            0 0 0 clamp(0px, 0.1563vw, 53px) rgba(248, 246, 243, 0.95),
+            0 0 0 clamp(0px, 0.4688vw, 59px) rgba(139, 106, 62, 0.08),
+            0 0 clamp(0px, 0.7292vw, 64px) rgba(139, 106, 62, 0.35);
+    }
+}
+
+/* 分叉箭头 SVG */
+.summary-fork-svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.summary-fork-path {
+    stroke-dasharray: 500;
+    stroke-dashoffset: 500;
+}
+
+.summary-fork-tip {
+    opacity: 0;
+}
+
+.summary-container.is-entered .summary-fork-path {
+    animation: summary-draw-fork 0.65s ease 0.72s forwards;
+}
+
+.summary-container.is-entered .summary-fork-tip {
+    animation: summary-fade-in 0.18s ease 1.35s forwards;
+}
+
+@keyframes summary-draw-fork {
+    to { stroke-dashoffset: 0; }
+}
+
+/* 目标小图行 */
+.summary-fork-targets {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: clamp(0px, 0.7407vh, 58px);
+    z-index: 2;
+}
+
+.summary-fork-sub {
+    width: 100%;
+    height: clamp(156px, 19.0741vh, 256px);
+    object-fit: cover;
+    border-radius: clamp(0px, 0.4167vw, 58px);
+    border: clamp(0px, 0.0521vw, 51px) solid rgba(139, 106, 62, 0.22);
+    box-shadow: 0 clamp(0px, 0.1042vw, 52px) clamp(0px, 0.5208vw, 60px) rgba(58, 42, 20, 0.12);
+    background: #e8dece;
+    opacity: 0;
+    transform: translateY(clamp(-42px, 0.7407vh, 58px));
+}
+
+.summary-container.is-entered .summary-fork-sub {
+    animation: summary-sub-in 0.48s ease 1.08s forwards;
+}
+
+@keyframes summary-sub-in {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 通用淡入 */
+@keyframes summary-fade-in {
+    to { opacity: 1; }
+}
+
+/* ---- reduced-motion 兼容 ---- */
+@media (prefers-reduced-motion: reduce) {
+    .summary-hd,
+    .summary-card,
+    .summary-arr-line,
+    .summary-arr-tip,
+    .summary-fork-path,
+    .summary-fork-tip,
+    .summary-fork-sub,
+    .summary-fork-dot {
+        transition: none;
+        animation: none;
+        opacity: 1;
+        transform: none;
+        stroke-dashoffset: 0;
     }
 }

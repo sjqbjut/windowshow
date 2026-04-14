@@ -1073,97 +1073,47 @@ body.landing-active .lantern-nav {
     letter-spacing: 0.06em;
 }
 
-.lineage-link-shadow {
-    fill: none;
-    stroke: rgba(106, 74, 43, 0.19);
-    stroke-linecap: round;
-    mix-blend-mode: multiply;
-}
-
-.lineage-link-shadow.lineage-link-level-1 {
-    stroke-width: 4;
-}
-
-.lineage-link-shadow.lineage-link-level-2 {
-    stroke-width: 3;
-}
 
 .lineage-link {
     fill: none;
-    stroke: rgba(157, 115, 74, 0.72);
     stroke-linecap: round;
-    stroke-width: 2;
-    transition: opacity 0.24s ease, stroke-width 0.24s ease, stroke 0.24s ease;
+    stroke-width: 3;
+    mix-blend-mode: multiply;
+    transition: opacity 0.24s ease, stroke 0.24s ease;
 }
 
+
 .lineage-link.lineage-link-level-1 {
-    stroke-width: 2.4;
-    stroke: rgba(140, 96, 56, 0.74);
+    stroke-width: 4;
 }
 
 .lineage-link.is-active {
-    stroke: rgba(176, 125, 76, 0.94);
+    opacity: 1;
 }
 
-.lineage-link.is-dim,
-.lineage-link-shadow.is-dim {
-    opacity: 0.13;
+
+.lineage-link.is-dim {
+    opacity: 0.08;
 }
 
-.lineage-graph[data-lineage-view="pattern"] .lineage-link-shadow {
-    stroke: rgba(141, 43, 34, 0.2);
-}
 
-.lineage-graph[data-lineage-view="pattern"] .lineage-link {
-    stroke: rgba(174, 52, 40, 0.72);
-}
-
-.lineage-graph[data-lineage-view="pattern"] .lineage-link.lineage-link-level-1 {
-    stroke: rgba(160, 44, 34, 0.74);
-}
-
-.lineage-graph[data-lineage-view="pattern"] .lineage-link.is-active {
-    stroke: rgba(205, 72, 54, 0.94);
-}
 
 .lineage-node {
     cursor: pointer;
     transition: opacity 0.22s ease;
 }
 
-.lineage-node-shadow {
-    fill: rgba(91, 62, 32, 0.2);
-    filter: blur(clamp(0px, 0.026vw, 50.5px));
-}
-
-.lineage-node-halo {
-    fill: rgba(255, 243, 224, 0.4);
-    stroke: rgba(156, 116, 74, 0.21);
-    stroke-width: 1.2;
-}
+/* shadow / halo / specular 不再渲染，保留空规则防止残留元素可见 */
+.lineage-node-shadow { display: none; }
+.lineage-node-halo   { display: none; }
+.lineage-node-specular { display: none; }
 
 .lineage-node-core {
-    stroke: rgba(129, 89, 52, 0.54);
-    stroke-width: 1.2;
-    transition: stroke 0.22s ease, stroke-width 0.22s ease, transform 0.22s ease;
+    stroke: white;
+    stroke-width: 2.5;
+    transition: opacity 0.22s ease;
 }
 
-.lineage-graph[data-lineage-view="pattern"] .lineage-node-shadow {
-    fill: rgba(116, 30, 24, 0.2);
-}
-
-.lineage-graph[data-lineage-view="pattern"] .lineage-node-halo {
-    fill: rgba(255, 238, 229, 0.42);
-    stroke: rgba(171, 54, 43, 0.24);
-}
-
-.lineage-graph[data-lineage-view="pattern"] .lineage-node-core {
-    stroke: rgba(156, 44, 35, 0.56);
-}
-
-.lineage-node-specular {
-    fill: rgba(255, 255, 255, 0.62);
-}
 
 .lineage-center-text {
     fill: rgba(74, 50, 29, 0.95);
@@ -1175,13 +1125,10 @@ body.landing-active .lantern-nav {
 
 .lineage-node.is-active .lineage-node-core,
 .lineage-node:focus-visible .lineage-node-core {
-    stroke: rgba(253, 245, 232, 0.98);
-    stroke-width: 2.5;
+    stroke: white;
+    stroke-width: 3.5;
 }
 
-.lineage-node.is-active .lineage-node-halo {
-    fill: rgba(255, 246, 233, 0.64);
-}
 
 .lineage-node.is-dim {
     opacity: 0.18;
@@ -1193,22 +1140,19 @@ body.landing-active .lantern-nav {
 }
 
 .lineage-label-bg {
-    fill: rgba(247, 238, 224, 0.83);
-    stroke: rgba(147, 111, 75, 0.26);
-    stroke-width: 1;
+    display: none;
 }
 
 .lineage-label-text {
-    fill: rgba(82, 58, 35, 0.92);
     font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
-    font-weight: 600;
-    font-size: clamp(15px, 1.3vw, 18px);/*13变体名字字体大小*/
+    font-weight: 400;
+    font-size: clamp(15px, 1.37vw, 50px);
     letter-spacing: 0.02em;
 }
 
 .lineage-label-level-1 .lineage-label-text {
-    font-weight: 700;
-    font-size: clamp(17px, 1.4vw, 20px);/*5属性名字字体大小*/
+    font-weight: 500;
+    font-size: clamp(17px, 1.42vw, 50px);/*5属性名字字体大小*/
 }
 
 .lineage-label.is-dim {

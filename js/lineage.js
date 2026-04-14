@@ -53,7 +53,8 @@
                 meaningKeys: ["style", "meaning", "meanings", "风格", "寓意"],
                 buildingsKeys: ["buildings", "building", "architecture", "建筑", "关联建筑"],
                 imageKeys: ["image", "img", "photo", "图片"],
-                imageAliasKeys: ["image_alias", "image_name", "图片名", "old_variant", "legacy_variant", "原始变体"]
+                imageAliasKeys: ["image_alias", "image_name", "图片名", "old_variant", "legacy_variant", "原始变体"],
+                typePalette: ["#4fa2c2", "#cd4242", "#8a4b2c", "#F6B42B", "#5865B0", "#E47C41", "#BD211B", "#82C3AA"]
             }
         },
         text: {
@@ -97,7 +98,8 @@
             center: [{ offset: "0%", color: "#fff4e0" }, { offset: "100%", color: "#dd9f67" }],
             type: [{ offset: "0%", color: "#f3dfc2" }, { offset: "100%", color: "#c9975f" }],
             variant: [{ offset: "0%", color: "#f9f0e2" }, { offset: "100%", color: "#d5b080" }]
-        }
+        },
+        typePalette: ["#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0", "#E47C41", "#BD211B", "#82C3AA"]
     };
 
     var lineageState = {
@@ -506,13 +508,15 @@
                 var sortedVariants = item.variants.slice().sort(function (a, b) {
                     return a.label.localeCompare(b.label, "zh-Hans-CN", { numeric: true });
                 });
+                var palette = viewConfig.typePalette || lineageState.tuning.typePalette || ["#EB5580","#2C9AC6","#4FB127","#F6B42B","#5865B0","#E47C41","#BD211B","#82C3AA"];
                 return {
                     id: "type-" + index,
                     label: item.label,
                     level: 1,
                     nodeType: viewKey,
                     variants: sortedVariants,
-                    count: sortedVariants.length
+                    count: sortedVariants.length,
+                    color: palette[index % palette.length]
                 };
             });
 
@@ -538,7 +542,8 @@
                     meaning: variantMeta.meaning,
                     buildings: variantMeta.buildings,
                     image: variantMeta.image,
-                    imageAlias: variantMeta.imageAlias
+                    imageAlias: variantMeta.imageAlias,
+                    color: typeNode.color
                 };
                 variantNodes.push(variantNode);
                 variantsByType[typeNode.id].push(variantNode);
@@ -873,23 +878,26 @@
         var linkCurve = lineageState.tuning.visual.linkCurve;
         var linkLayer = svg.append("g").attr("class", "lineage-links");
         var renderedLinks = data.links.map(function (link) {
+            var targetNode = data.nodeById[link.target];
+            var sourceNode = data.nodeById[link.source];
             return {
                 id: link.id,
                 level: link.level,
                 source: link.source,
                 target: link.target,
-                path: buildLinkPath(data.nodeById[link.source], data.nodeById[link.target], link.level)
+                path: buildLinkPath(sourceNode, targetNode, link.level),
+                color: (targetNode && targetNode.color) || (sourceNode && sourceNode.color) || null
             };
         });
 
-        var linkShadowSelection = linkLayer.selectAll(".lineage-link-shadow").data(renderedLinks).enter().append("path")
-            .attr("class", function (d) { return "lineage-link-shadow lineage-link-level-" + d.level; })
-            .attr("d", function (d) { return d.path; })
-            .attr("transform", "translate(0," + linkCurve.shadowYOffset + ")");
+        /* 平面风格：不再绘制 link-shadow，用空选择占位保持接口兼容 */
+        var linkShadowSelection = linkLayer.selectAll(".lineage-link-shadow").data([]);
 
         var linkSelection = linkLayer.selectAll(".lineage-link").data(renderedLinks).enter().append("path")
             .attr("class", function (d) { return "lineage-link lineage-link-level-" + d.level; })
-            .attr("d", function (d) { return d.path; });
+            .attr("d", function (d) { return d.path; })
+            .style("stroke", function (d) { return d.color; })
+            .style("opacity", 0.7);
 
         return { linkSelection: linkSelection, linkShadowSelection: linkShadowSelection };
     }
@@ -906,9 +914,10 @@
     }
     function nodeGradientFill(node) {
         if (node.level === 0) return "url(#lineage-gradient-center)";
-        if (node.level === 1) return "url(#lineage-gradient-type)";
+        if (node.color) return node.color;
         return "url(#lineage-gradient-variant)";
     }
+
 
     function renderNodes(svg, data) {
         var visual = lineageState.tuning.visual;
@@ -921,21 +930,12 @@
             .attr("role", "button")
             .attr("aria-label", nodeAriaLabel);
 
-        nodeSelection.append("ellipse").attr("class", "lineage-node-shadow")
-            .attr("cx", 0)
-            .attr("cy", function (d) { return getNodeRadius(d) * visual.nodeShadow.cyRatio; })
-            .attr("rx", function (d) { return getNodeRadius(d) * visual.nodeShadow.rxRatio; })
-            .attr("ry", function (d) { return Math.max(visual.nodeShadow.minRy, getNodeRadius(d) * visual.nodeShadow.ryRatio); });
-
-        nodeSelection.append("circle").attr("class", "lineage-node-halo")
-            .attr("r", function (d) { return getNodeRadius(d) + (d.level === 0 ? visual.nodeHaloExtra.center : visual.nodeHaloExtra.other); });
-
-        nodeSelection.append("circle").attr("class", "lineage-node-core").attr("r", getNodeRadius).style("fill", nodeGradientFill);
-
-        nodeSelection.append("circle").attr("class", "lineage-node-specular")
-            .attr("cx", function (d) { return getNodeRadius(d) * visual.nodeSpecular.cxRatio; })
-            .attr("cy", function (d) { return getNodeRadius(d) * visual.nodeSpecular.cyRatio; })
-            .attr("r", function (d) { return Math.max(visual.nodeSpecular.minR, getNodeRadius(d) * visual.nodeSpecular.rRatio); });
+        /* 平面风格：只保留 core 圆，纯色 + 白描边，与 main.js type-dot 一致 */
+        nodeSelection.append("circle").attr("class", "lineage-node-core")
+            .attr("r", getNodeRadius)
+            .style("fill", nodeGradientFill)
+            .style("stroke", "white")
+            .style("stroke-width", function (d) { return d.level === 0 ? 3 : 2.5; });
 
         nodeSelection.filter(function (d) { return d.level === 0; }).append("text")
             .attr("class", "lineage-center-text")
@@ -951,7 +951,8 @@
         var text = labelGroup.append("text")
             .attr("class", "lineage-label-text")
             .attr("text-anchor", node.labelAnchor)
-            .attr("dominant-baseline", "middle");
+            .attr("dominant-baseline", "middle")
+            /*.style("fill", node.color || null);字体多彩*/
 
         var lines = node.labelLines || [node.label];
         var firstOffsetEm = -((lines.length - 1) * visual.labelFirstLineFactor);

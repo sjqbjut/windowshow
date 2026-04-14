@@ -1092,9 +1092,12 @@ body.landing-active .lantern-nav {
 }
 
 
-.lineage-link.is-dim {
-    opacity: 0.08;
+.lineage-link.is-dim,
+.lineage-link-shadow.is-dim {
+    opacity: 0.05;
+    filter: blur(8px);
 }
+
 
 
 

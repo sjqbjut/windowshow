@@ -516,7 +516,7 @@
                     nodeType: viewKey,
                     variants: sortedVariants,
                     count: sortedVariants.length,
-                    color: palette[index % palette.length]
+                    color: palette[index % palette.length]/*自主配颜色*/
                 };
             });
 
@@ -543,7 +543,7 @@
                     buildings: variantMeta.buildings,
                     image: variantMeta.image,
                     imageAlias: variantMeta.imageAlias,
-                    color: typeNode.color
+                    color: typeNode.color/*颜色*/
                 };
                 variantNodes.push(variantNode);
                 variantsByType[typeNode.id].push(variantNode);
@@ -673,20 +673,36 @@
     }
 
     function buildLinkPath(source, target, level) {
-        var linkCurve = lineageState.tuning.visual.linkCurve;
+        /*
+         * 弧形样条——与 main.js create_lines 同系列造型：
+         * 两个控制点沿径向外推到弧段位置，形成"鼓肚"弧线。
+         * level-1（中心→类型）弯曲较小；level-2（类型→变体）弯曲更明显。
+         */
         var dx = target.x - source.x;
         var dy = target.y - source.y;
         var distance = Math.sqrt(dx * dx + dy * dy) || 1;
         var normalX = -dy / distance;
         var normalY = dx / distance;
-        var midpointX = (source.x + target.x) / 2;
-        var midpointY = (source.y + target.y) / 2;
-        var bendAmount = level === 1 ? distance * linkCurve.centerBendRatio : distance * linkCurve.variantBendRatio;
+
+        /* 弯曲幅度：level-1 轻弯，level-2 明显弧形 */
+        var bendRatio = level === 1 ? 0.08 : 0.35;
         var bendSign = level === 1 ? 1 : (Math.sin(target.angle || 0) >= 0 ? 1 : -1);
-        var controlX = midpointX + normalX * bendAmount * bendSign;
-        var controlY = midpointY + normalY * bendAmount * bendSign;
-        return "M" + source.x + "," + source.y + " Q" + controlX + "," + controlY + " " + target.x + "," + target.y;
+        var bend = distance * bendRatio * bendSign;
+
+        /* 控制点 1：靠近源点 1/3 处，沿法线外推 */
+        var cp1x = source.x + dx * 0.25 + normalX * bend;
+        var cp1y = source.y + dy * 0.25 + normalY * bend;
+
+        /* 控制点 2：靠近目标点 2/3 处，沿法线外推 */
+        var cp2x = source.x + dx * 0.75 - normalX * bend;
+        var cp2y = source.y + dy * 0.75 - normalY * bend;
+
+        return "M" + source.x + "," + source.y
+             + " C" + cp1x + "," + cp1y
+             + " "  + cp2x + "," + cp2y
+             + " "  + target.x + "," + target.y;
     }
+
 
     function createOrUpdateSidebar(data) {
         var tuning = lineageState.tuning;
@@ -886,7 +902,7 @@
                 source: link.source,
                 target: link.target,
                 path: buildLinkPath(sourceNode, targetNode, link.level),
-                color: (targetNode && targetNode.color) || (sourceNode && sourceNode.color) || null
+                color: (targetNode && targetNode.color) || (sourceNode && sourceNode.color) || null/*连线颜色*/
             };
         });
 
@@ -914,9 +930,11 @@
     }
     function nodeGradientFill(node) {
         if (node.level === 0) return "url(#lineage-gradient-center)";
-        if (node.color) return node.color;
-        return "url(#lineage-gradient-variant)";
+        /*if (node.color) return "url(#lineage-gradient-type)";与中心同色*/
+        if (node.color) return "url(#lineage-gradient-node-" + node.id + ")";
+        return "url(#lineage-gradient-variant)";/*节点颜色*/
     }
+
 
 
     function renderNodes(svg, data) {
@@ -1037,6 +1055,23 @@
         appendLinearGradient(defs, "lineage-gradient-center", activeGradients.center);
         appendLinearGradient(defs, "lineage-gradient-type", activeGradients.type);
         appendLinearGradient(defs, "lineage-gradient-variant", activeGradients.variant);
+
+        /* 为每个带 color 的节点生成与中心节点同结构的渐变（浅 → 深，上 → 下） */
+        data.nodes.forEach(function (node) {
+            if (!node.color) return;
+            var base = d3.rgb(node.color);
+            var light = d3.rgb(
+                Math.min(255, base.r + (255 - base.r) * 0.72),
+                Math.min(255, base.g + (255 - base.g) * 0.72),
+                Math.min(255, base.b + (255 - base.b) * 0.72)
+            );
+            var dark = base.darker(0.3);
+            appendLinearGradient(defs, "lineage-gradient-node-" + node.id, [
+                { offset: "0%",   color: light.toString() },
+                { offset: "100%", color: dark.toString() }
+            ]);
+        });
+
 
         renderRingsAndTrend(svg, data);
         var linkSelections = renderLinks(svg, data);

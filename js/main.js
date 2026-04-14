@@ -537,7 +537,7 @@ function create_CCS_chart() {
 
         var pattern_palette = d3.scaleOrdinal()
             .domain(visible_pattern_data.map(function (d) { return +d.pattern; }))
-            .range(["#cd4242", "#f9c314", "#E47C41", "#8a4b2c", "#4fa2c2", "#c885c8", "#b2c382", "#64b753","#a17fc7"]);//纹样颜色列表，按 pattern 字段顺序分配颜色
+            .range(["#cd4242", "#F6B42B", "#E47C41", "#8a4b2c", "#4fa2c2", "#c885c8", "#b2c382", "#64b753","#a17fc7"]);//纹样颜色列表，按 pattern 字段顺序分配颜色
 
         var area_palette = [
             "#EB5580", "#2C9AC6", "#4FB127", "#F6B42B", "#5865B0",

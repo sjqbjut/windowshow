@@ -1145,13 +1145,13 @@ body.landing-active .lantern-nav {
 
 .lineage-label-text {
     font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
-    font-weight: 400;
+    font-weight: 320;
     font-size: clamp(15px, 1.37vw, 50px);
     letter-spacing: 0.02em;
 }
 
 .lineage-label-level-1 .lineage-label-text {
-    font-weight: 500;
+    font-weight: 400;
     font-size: clamp(17px, 1.42vw, 50px);/*5属性名字字体大小*/
 }
 

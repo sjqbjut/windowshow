@@ -28,6 +28,8 @@ function addFile(urlPath, relativeFilePath) {
   '/data/fc_pattern_hierarchy.json',
   '/data/fc_pattern_total.json',
   '/data/map_layout.json',
+  '/data/preload_images.json',
+  '/js/preload-images.js',
   '/js/main.js',
   '/js/hierarchy.js',
   '/js/origin.js',

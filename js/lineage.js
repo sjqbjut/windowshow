@@ -398,8 +398,26 @@
         waiters.forEach(function (callback) { callback(resolvedHref); });
     }
 
+    function getGlobalImagePreloadStatus(href) {
+        var globalPreload = window.__GLOBAL_IMAGE_PRELOAD__;
+        if (!globalPreload || typeof globalPreload.getStatus !== "function") return "";
+        return globalPreload.getStatus(href) || "";
+    }
+
     function probeLineageImageUrl(href, onDone) {
         if (!href) {
+            onDone(false);
+            return;
+        }
+
+        var globalStatus = getGlobalImagePreloadStatus(href);
+        if (globalStatus === "ok") {
+            lineageImageCache.urlStatus[href] = "ok";
+            onDone(true);
+            return;
+        }
+        if (globalStatus === "fail") {
+            lineageImageCache.urlStatus[href] = "fail";
             onDone(false);
             return;
         }

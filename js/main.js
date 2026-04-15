@@ -1051,8 +1051,26 @@ function create_CCS_chart() {
             });
         }
 
+        function get_global_image_preload_status(href) {
+            var global_preload = window.__GLOBAL_IMAGE_PRELOAD__;
+            if (!global_preload || typeof global_preload.getStatus !== "function") return "";
+            return global_preload.getStatus(href) || "";
+        }
+
         function probe_center_image_url(href, on_done) {
             if (!href) {
+                on_done(false);
+                return;
+            }
+
+            var global_status = get_global_image_preload_status(href);
+            if (global_status === "ok") {
+                center_image_cache.urlStatus[href] = "ok";
+                on_done(true);
+                return;
+            }
+            if (global_status === "fail") {
+                center_image_cache.urlStatus[href] = "fail";
                 on_done(false);
                 return;
             }

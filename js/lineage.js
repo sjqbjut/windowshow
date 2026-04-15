@@ -19,6 +19,7 @@
             apron: {
                 csvPath: "data/apron_variant.csv",
                 imagePath: "data/imgs/variant/apron_variant/",
+                imageExts: [".png", ".jpg", ".jpeg", ".webp"],
                 centerLabel: "裙板",
                 typeNodeLabelPrefix: "裙板属性类型：",
                 variantNodeLabelPrefix: "裙板变体：",
@@ -36,6 +37,7 @@
             pattern: {
                 csvPath: "data/pattern_variant.csv",
                 imagePath: "data/imgs/variant/patterns_variant/",
+                imageExts: [".jpg", ".jpeg", ".png", ".webp"],
                 centerLabel: "窗棂",
                 typeNodeLabelPrefix: "窗棂纹样类型：",
                 variantNodeLabelPrefix: "窗棂变体：",
@@ -116,6 +118,23 @@
         previewCardId: "",
         tuning: buildTuning()
     };
+    var lineageImageCache = window.__LINEAGE_IMAGE_CACHE__;
+    if (!lineageImageCache) {
+        lineageImageCache = {
+            resolvedByKey: {},
+            pendingByKey: {},
+            urlStatus: {},
+            urlPending: {},
+            warmByView: {}
+        };
+        window.__LINEAGE_IMAGE_CACHE__ = lineageImageCache;
+    } else {
+        lineageImageCache.resolvedByKey = lineageImageCache.resolvedByKey || {};
+        lineageImageCache.pendingByKey = lineageImageCache.pendingByKey || {};
+        lineageImageCache.urlStatus = lineageImageCache.urlStatus || {};
+        lineageImageCache.urlPending = lineageImageCache.urlPending || {};
+        lineageImageCache.warmByView = lineageImageCache.warmByView || {};
+    }
 
     function isPlainObject(value) { return Object.prototype.toString.call(value) === "[object Object]"; }
     function cloneValue(value) {
@@ -369,6 +388,107 @@
         nameList.push(cleanName);
     }
 
+    function getLineageImageCacheKey(candidates) {
+        if (!candidates || !candidates.length) return "__LINEAGE_DEFAULT__";
+        return candidates.join("||");
+    }
+
+    function flushLineageImageWaiters(waiters, resolvedHref) {
+        if (!waiters || !waiters.length) return;
+        waiters.forEach(function (callback) { callback(resolvedHref); });
+    }
+
+    function probeLineageImageUrl(href, onDone) {
+        if (!href) {
+            onDone(false);
+            return;
+        }
+
+        var status = lineageImageCache.urlStatus[href];
+        if (status === "ok") {
+            onDone(true);
+            return;
+        }
+        if (status === "fail") {
+            onDone(false);
+            return;
+        }
+
+        if (lineageImageCache.urlPending[href]) {
+            lineageImageCache.urlPending[href].push(onDone);
+            return;
+        }
+
+        lineageImageCache.urlPending[href] = [onDone];
+        var probeImage = new Image();
+        probeImage.decoding = "async";
+        probeImage.onload = function () {
+            lineageImageCache.urlStatus[href] = "ok";
+            var callbacks = lineageImageCache.urlPending[href] || [];
+            delete lineageImageCache.urlPending[href];
+            callbacks.forEach(function (callback) { callback(true); });
+        };
+        probeImage.onerror = function () {
+            lineageImageCache.urlStatus[href] = "fail";
+            var callbacks = lineageImageCache.urlPending[href] || [];
+            delete lineageImageCache.urlPending[href];
+            callbacks.forEach(function (callback) { callback(false); });
+        };
+        probeImage.src = href;
+    }
+
+    function resolveLineageImageCandidates(candidates, onResolved) {
+        var list = candidates && candidates.length ? candidates : [];
+        var cacheKey = getLineageImageCacheKey(list);
+
+        if (Object.prototype.hasOwnProperty.call(lineageImageCache.resolvedByKey, cacheKey)) {
+            onResolved(lineageImageCache.resolvedByKey[cacheKey]);
+            return;
+        }
+        if (lineageImageCache.pendingByKey[cacheKey]) {
+            lineageImageCache.pendingByKey[cacheKey].push(onResolved);
+            return;
+        }
+        lineageImageCache.pendingByKey[cacheKey] = [onResolved];
+
+        function finish(resolvedHref) {
+            lineageImageCache.resolvedByKey[cacheKey] = resolvedHref || "";
+            var waiters = lineageImageCache.pendingByKey[cacheKey];
+            delete lineageImageCache.pendingByKey[cacheKey];
+            flushLineageImageWaiters(waiters, lineageImageCache.resolvedByKey[cacheKey]);
+        }
+
+        if (!list.length) {
+            finish("");
+            return;
+        }
+
+        function tryCandidate(index) {
+            if (index >= list.length) {
+                finish("");
+                return;
+            }
+            var href = list[index];
+            probeLineageImageUrl(href, function (ok) {
+                if (ok) {
+                    finish(href);
+                    return;
+                }
+                tryCandidate(index + 1);
+            });
+        }
+
+        tryCandidate(0);
+    }
+
+    function markLineageImageMissing(imageElement) {
+        var tuning = lineageState.tuning;
+        imageElement.classList.add("is-missing");
+        if (imageElement.alt.indexOf(tuning.data.missingImageSuffix) < 0) {
+            imageElement.alt = imageElement.alt + tuning.data.missingImageSuffix;
+        }
+    }
+
     function collectImageNameCandidates(name) {
         var baseName = cleanText(name);
         if (!baseName) return [];
@@ -384,10 +504,11 @@
         return candidates;
     }
 
-    function buildImageCandidates(variantNode) {
+    function buildImageCandidates(variantNode, customViewConfig) {
         var tuning = lineageState.tuning;
-        var viewConfig = getActiveViewConfig();
+        var viewConfig = customViewConfig || getActiveViewConfig();
         var imagePath = cleanText(viewConfig.imagePath) || cleanText(tuning.data.imagePath);
+        var imageExts = viewConfig.imageExts || tuning.data.imageExts;
         var nameCandidates = [];
 
         [variantNode.image, variantNode.imageAlias, variantNode.label].forEach(function (name) {
@@ -401,7 +522,7 @@
         nameCandidates.forEach(function (name) {
             var baseRaw = imagePath + name;
             var baseEncoded = imagePath + encodeURIComponent(name);
-            tuning.data.imageExts.forEach(function (ext) {
+            imageExts.forEach(function (ext) {
                 candidates.push(baseRaw + ext);
                 candidates.push(baseEncoded + ext);
             });
@@ -411,14 +532,67 @@
     }
 
     function applyImageFallback(imageElement, candidates, index) {
-        var tuning = lineageState.tuning;
-        if (index >= candidates.length) {
-            imageElement.classList.add("is-missing");
-            imageElement.alt = imageElement.alt + tuning.data.missingImageSuffix;
+        var list = candidates && candidates.length ? candidates.slice(index || 0) : [];
+        var cacheKey = getLineageImageCacheKey(list);
+
+        function setImageSource(href) {
+            imageElement.classList.remove("is-missing");
+            imageElement.onerror = function () {
+                lineageImageCache.urlStatus[href] = "fail";
+                loadImmediateCandidate(0);
+            };
+            imageElement.onload = function () {
+                lineageImageCache.urlStatus[href] = "ok";
+                lineageImageCache.resolvedByKey[cacheKey] = href;
+                imageElement.onload = null;
+            };
+            imageElement.src = href;
+        }
+
+        function loadImmediateCandidate(startIndex) {
+            if (!list.length) {
+                markLineageImageMissing(imageElement);
+                return;
+            }
+
+            for (var i = startIndex; i < list.length; i++) {
+                var href = list[i];
+                if (lineageImageCache.urlStatus[href] === "fail") continue;
+                setImageSource(href);
+                return;
+            }
+            markLineageImageMissing(imageElement);
+        }
+
+        if (!list.length) {
+            markLineageImageMissing(imageElement);
             return;
         }
-        imageElement.onerror = function () { applyImageFallback(imageElement, candidates, index + 1); };
-        imageElement.src = candidates[index];
+
+        if (Object.prototype.hasOwnProperty.call(lineageImageCache.resolvedByKey, cacheKey)) {
+            var cachedHref = lineageImageCache.resolvedByKey[cacheKey];
+            if (!cachedHref) {
+                markLineageImageMissing(imageElement);
+                return;
+            }
+            imageElement.classList.remove("is-missing");
+            imageElement.onerror = function () {
+                lineageImageCache.urlStatus[cachedHref] = "fail";
+                delete lineageImageCache.resolvedByKey[cacheKey];
+                loadImmediateCandidate(0);
+            };
+            imageElement.onload = function () {
+                lineageImageCache.urlStatus[cachedHref] = "ok";
+                imageElement.onload = null;
+            };
+            imageElement.src = cachedHref;
+            return;
+        }
+
+        loadImmediateCandidate(0);
+        resolveLineageImageCandidates(list, function (resolvedHref) {
+            lineageImageCache.resolvedByKey[cacheKey] = resolvedHref || "";
+        });
     }
 
     function pickRowText(row, keyCandidates) {
@@ -567,10 +741,52 @@
         };
     }
 
+    function warmLineageImageCandidates(data) {
+        if (!data || !data.variantNodes || !data.variantNodes.length) return;
+        var warmViewConfig = getViewConfig(data.viewKey || lineageState.activeView || "apron");
+
+        var warmSignature = (data.viewKey || lineageState.activeView || "lineage")
+            + "|"
+            + data.variantNodes.map(function (node) { return node.id; }).join(",");
+        if (lineageImageCache.warmByView[warmSignature]) return;
+        lineageImageCache.warmByView[warmSignature] = true;
+
+        var candidateGroups = data.variantNodes.map(function (variantNode) {
+            return buildImageCandidates(variantNode, warmViewConfig);
+        });
+
+        var queueIndex = 0;
+        var maxConcurrency = 2;
+        function runNext() {
+            if (queueIndex >= candidateGroups.length) return;
+            var currentCandidates = candidateGroups[queueIndex++];
+            resolveLineageImageCandidates(currentCandidates, function () {
+                runNext();
+            });
+        }
+
+        for (var i = 0; i < maxConcurrency; i++) {
+            runNext();
+        }
+    }
+
+    function scheduleLineageImageWarmup(data) {
+        if (typeof window.requestIdleCallback === "function") {
+            window.requestIdleCallback(function () {
+                warmLineageImageCandidates(data);
+            }, { timeout: 1800 });
+            return;
+        }
+        window.setTimeout(function () {
+            warmLineageImageCandidates(data);
+        }, 500);
+    }
+
     function ensureLineageData(viewKey, callback) {
         var tuning = lineageState.tuning;
 
         if (lineageState.dataByView[viewKey]) {
+            scheduleLineageImageWarmup(lineageState.dataByView[viewKey]);
             callback(null, lineageState.dataByView[viewKey]);
             return;
         }
@@ -595,6 +811,7 @@
             }
             var builtData = buildLineageData(rows || [], viewConfig, viewKey);
             lineageState.dataByView[viewKey] = builtData;
+            scheduleLineageImageWarmup(builtData);
             callback(null, builtData);
         });
     }
@@ -738,6 +955,8 @@
             var imageWrap = createElement("div", "lineage-card-image-wrap");
             var image = createElement("img", "lineage-card-image");
             image.alt = variantNode.label;
+            image.loading = "lazy";
+            image.decoding = "async";
             imageWrap.appendChild(image);
 
             var body = createElement("div", "lineage-card-body");
@@ -755,7 +974,7 @@
             card.appendChild(body);
             fragment.appendChild(card);
 
-            applyImageFallback(image, buildImageCandidates(variantNode), 0);
+            applyImageFallback(image, buildImageCandidates(variantNode, viewConfig), 0);
         });
 
         gallery.appendChild(fragment);

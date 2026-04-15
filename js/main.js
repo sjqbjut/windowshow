@@ -1145,15 +1145,15 @@ function create_CCS_chart() {
             center_image_cache.warmSignatures[warm_signature] = true;
 
             var candidate_groups = [];
-            Object.keys(chapter_image_candidates).forEach(function (key) {
-                candidate_groups.push(chapter_image_candidates[key]);
-            });
             Object.keys(pattern_image_candidates).forEach(function (key) {
                 candidate_groups.push(pattern_image_candidates[key]);
             });
+            Object.keys(chapter_image_candidates).forEach(function (key) {
+                candidate_groups.push(chapter_image_candidates[key]);
+            });
 
             var queue_index = 0;
-            var max_concurrency = 3;
+            var max_concurrency = 2;
             function run_next() {
                 if (queue_index >= candidate_groups.length) return;
                 var current_candidates = candidate_groups[queue_index++];
@@ -1428,15 +1428,57 @@ function create_CCS_chart() {
 
             center_image_request_id[layer_key] += 1;
             var request_id = center_image_request_id[layer_key];
+            var list = candidates && candidates.length ? candidates : [];
+            var cache_key = get_center_image_candidate_key(list);
 
-            resolve_center_image_candidate(candidates, function (resolved_href) {
+            function set_default_layer_image() {
                 if (request_id !== center_image_request_id[layer_key]) return;
+                target_image.on("error", null).on("load", null).attr("xlink:href", default_center_image);
+            }
+
+            if (!list.length) {
+                set_default_layer_image();
+                return;
+            }
+
+            if (Object.prototype.hasOwnProperty.call(center_image_cache.resolvedByKey, cache_key)) {
+                var cached_href = center_image_cache.resolvedByKey[cache_key] || default_center_image;
+                target_image
+                    .on("error", function () { set_default_layer_image(); })
+                    .on("load", null)
+                    .attr("xlink:href", cached_href);
+                return;
+            }
+
+            function load_candidate_immediately(index) {
+                if (request_id !== center_image_request_id[layer_key]) return;
+                if (index >= list.length) {
+                    set_default_layer_image();
+                    return;
+                }
+
+                var href = list[index];
+                if (center_image_cache.urlStatus[href] === "fail") {
+                    load_candidate_immediately(index + 1);
+                    return;
+                }
+
                 target_image
                     .on("error", function () {
-                        if (request_id !== center_image_request_id[layer_key]) return;
-                        target_image.on("error", null).attr("xlink:href", default_center_image);
+                        center_image_cache.urlStatus[href] = "fail";
+                        load_candidate_immediately(index + 1);
                     })
-                    .attr("xlink:href", resolved_href || default_center_image);
+                    .on("load", function () {
+                        center_image_cache.urlStatus[href] = "ok";
+                        center_image_cache.resolvedByKey[cache_key] = href;
+                    })
+                    .attr("xlink:href", href);
+            }
+
+            // 交互首帧优先：先立即尝试候选，再让解析缓存在后台补齐。
+            load_candidate_immediately(0);
+            resolve_center_image_candidate(list, function (resolved_href) {
+                center_image_cache.resolvedByKey[cache_key] = resolved_href || default_center_image;
             });
         }
 

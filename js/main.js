@@ -989,7 +989,7 @@ function create_CCS_chart() {
 
         // 中心预览图的兜底图与候选表。
         // 每个建筑/纹样对应一组候选 URL，按扩展名依次重试，失败再回退。
-        var default_center_image = "img/white-square.jpg";
+        var default_center_image = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
         var chapter_image_candidates = {};
         var pattern_image_candidates = {};
         var singleton_pattern_names = pattern_total_data.slice()
@@ -997,8 +997,9 @@ function create_CCS_chart() {
             .map(function (d) { return cleanText(d.type); })
             .filter(function (type) { return !!singleton_pattern_types[type]; });
         var merged_other_pattern_types = singleton_pattern_names.filter(function (type) { return !!cleanText(type); });
-        var building_image_extensions = [".jpg", ".jpeg", ".png", ".webp"];
-        var pattern_image_extensions = [".jpg", ".jpeg", ".png", ".webp"];
+        // 建筑实图中 .png 占比更高，优先尝试可减少首屏 hover 的无效 404。
+        var building_image_extensions = [".png", ".jpg", ".jpeg", ".webp"];
+        var pattern_image_extensions = [".jpg", ".png", ".jpeg", ".webp"];
         chapter_total_data.forEach(function (d) {
             var building_name_encoded = encodeURIComponent(d.card_captured);
             chapter_image_candidates[d.chapter] = building_image_extensions.map(function (ext) {
@@ -1019,6 +1020,164 @@ function create_CCS_chart() {
             }
             pattern_image_candidates[pattern_type] = candidates;
         });
+        // 中心图解析缓存（跨重绘复用），避免每次 hover 都重复试错请求。
+        var center_image_cache = window.__CCS_CENTER_IMAGE_CACHE__;
+        if (!center_image_cache) {
+            center_image_cache = {
+                resolvedByKey: {},
+                pendingByKey: {},
+                urlStatus: {},
+                urlPending: {},
+                warmSignatures: {}
+            };
+            window.__CCS_CENTER_IMAGE_CACHE__ = center_image_cache;
+        } else {
+            center_image_cache.resolvedByKey = center_image_cache.resolvedByKey || {};
+            center_image_cache.pendingByKey = center_image_cache.pendingByKey || {};
+            center_image_cache.urlStatus = center_image_cache.urlStatus || {};
+            center_image_cache.urlPending = center_image_cache.urlPending || {};
+            center_image_cache.warmSignatures = center_image_cache.warmSignatures || {};
+        }
+
+        function get_center_image_candidate_key(candidates) {
+            if (!candidates || !candidates.length) return "__DEFAULT__";
+            return candidates.join("||");
+        }
+
+        function flush_center_image_waiters(waiters, resolved_href) {
+            if (!waiters || !waiters.length) return;
+            waiters.forEach(function (callback) {
+                callback(resolved_href);
+            });
+        }
+
+        function probe_center_image_url(href, on_done) {
+            if (!href) {
+                on_done(false);
+                return;
+            }
+
+            var status = center_image_cache.urlStatus[href];
+            if (status === "ok") {
+                on_done(true);
+                return;
+            }
+            if (status === "fail") {
+                on_done(false);
+                return;
+            }
+
+            if (center_image_cache.urlPending[href]) {
+                center_image_cache.urlPending[href].push(on_done);
+                return;
+            }
+
+            center_image_cache.urlPending[href] = [on_done];
+            var probe_image = new Image();
+            probe_image.decoding = "async";
+            probe_image.onload = function () {
+                center_image_cache.urlStatus[href] = "ok";
+                var callbacks = center_image_cache.urlPending[href] || [];
+                delete center_image_cache.urlPending[href];
+                callbacks.forEach(function (callback) { callback(true); });
+            };
+            probe_image.onerror = function () {
+                center_image_cache.urlStatus[href] = "fail";
+                var callbacks = center_image_cache.urlPending[href] || [];
+                delete center_image_cache.urlPending[href];
+                callbacks.forEach(function (callback) { callback(false); });
+            };
+            probe_image.src = href;
+        }
+
+        function resolve_center_image_candidate(candidates, on_resolved) {
+            var list = candidates && candidates.length ? candidates : [];
+            var cache_key = get_center_image_candidate_key(list);
+
+            if (Object.prototype.hasOwnProperty.call(center_image_cache.resolvedByKey, cache_key)) {
+                on_resolved(center_image_cache.resolvedByKey[cache_key]);
+                return;
+            }
+
+            if (center_image_cache.pendingByKey[cache_key]) {
+                center_image_cache.pendingByKey[cache_key].push(on_resolved);
+                return;
+            }
+            center_image_cache.pendingByKey[cache_key] = [on_resolved];
+
+            if (!list.length) {
+                center_image_cache.resolvedByKey[cache_key] = default_center_image;
+                flush_center_image_waiters(center_image_cache.pendingByKey[cache_key], default_center_image);
+                delete center_image_cache.pendingByKey[cache_key];
+                return;
+            }
+
+            function finish_with(resolved_href) {
+                center_image_cache.resolvedByKey[cache_key] = resolved_href || default_center_image;
+                var waiters = center_image_cache.pendingByKey[cache_key];
+                delete center_image_cache.pendingByKey[cache_key];
+                flush_center_image_waiters(waiters, center_image_cache.resolvedByKey[cache_key]);
+            }
+
+            function try_candidate(index) {
+                if (index >= list.length) {
+                    finish_with(default_center_image);
+                    return;
+                }
+                var current_href = list[index];
+                probe_center_image_url(current_href, function (ok) {
+                    if (ok) {
+                        finish_with(current_href);
+                        return;
+                    }
+                    try_candidate(index + 1);
+                });
+            }
+
+            try_candidate(0);
+        }
+
+        function warm_center_image_candidates() {
+            var warm_signature = Object.keys(chapter_image_candidates).sort().join(",")
+                + "|"
+                + Object.keys(pattern_image_candidates).sort().join(",");
+            if (center_image_cache.warmSignatures[warm_signature]) return;
+            center_image_cache.warmSignatures[warm_signature] = true;
+
+            var candidate_groups = [];
+            Object.keys(chapter_image_candidates).forEach(function (key) {
+                candidate_groups.push(chapter_image_candidates[key]);
+            });
+            Object.keys(pattern_image_candidates).forEach(function (key) {
+                candidate_groups.push(pattern_image_candidates[key]);
+            });
+
+            var queue_index = 0;
+            var max_concurrency = 3;
+            function run_next() {
+                if (queue_index >= candidate_groups.length) return;
+                var current_candidates = candidate_groups[queue_index++];
+                resolve_center_image_candidate(current_candidates, function () {
+                    run_next();
+                });
+            }
+
+            for (var i = 0; i < max_concurrency; i++) {
+                run_next();
+            }
+        }
+
+        function schedule_center_image_warmup() {
+            if (typeof window.requestIdleCallback === "function") {
+                window.requestIdleCallback(function () {
+                    warm_center_image_candidates();
+                }, { timeout: 1800 });
+                return;
+            }
+            setTimeout(warm_center_image_candidates, 600);
+        }
+
+        schedule_center_image_warmup();
         // 颜色点数据：每个建筑拆成三档权重颜色。
         // 后续通过力导向把颜色点聚拢到该建筑对应角度附近。
         var color_data = [];
@@ -1270,26 +1429,15 @@ function create_CCS_chart() {
             center_image_request_id[layer_key] += 1;
             var request_id = center_image_request_id[layer_key];
 
-            function set_default_layer_image() {
-                target_image.on("error", null).attr("xlink:href", default_center_image);
-            }
-
-            function load_candidate(index) {
+            resolve_center_image_candidate(candidates, function (resolved_href) {
                 if (request_id !== center_image_request_id[layer_key]) return;
-                if (index >= candidates.length) {
-                    set_default_layer_image();
-                    return;
-                }
                 target_image
-                    .on("error", function () { load_candidate(index + 1); })
-                    .attr("xlink:href", candidates[index]);
-            }
-
-            if (!candidates.length) {
-                set_default_layer_image();
-                return;
-            }
-            load_candidate(0);
+                    .on("error", function () {
+                        if (request_id !== center_image_request_id[layer_key]) return;
+                        target_image.on("error", null).attr("xlink:href", default_center_image);
+                    })
+                    .attr("xlink:href", resolved_href || default_center_image);
+            });
         }
 
         function show_default_center_image() {

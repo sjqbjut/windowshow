@@ -16,7 +16,7 @@
     "assets": [
       "index.html",
       "css/**/*",
-      "datas/**/*",
+      "data/**/*",
       "js/**/*",
       "plugins/**/*"
     ]

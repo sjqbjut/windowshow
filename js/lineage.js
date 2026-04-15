@@ -5,8 +5,8 @@
     // 2) 这里仅保留数据/布局计算/文案等 JS 配置，不再写入样式变量，避免与 CSS 调参互相覆盖。
     var DEFAULT_TUNING = {
         data: {
-            csvPath: "datas/apron_variant.csv",
-            imagePath: "datas/imgs/variant/apron_variant/",
+            csvPath: "data/apron_variant.csv",
+            imagePath: "data/imgs/variant/apron_variant/",
             imageExts: [".png", ".jpg", ".jpeg", ".webp"],
             minRenderWidth: 220,
             minRenderHeight: 220,
@@ -17,8 +17,8 @@
         },
         views: {
             apron: {
-                csvPath: "datas/apron_variant.csv",
-                imagePath: "datas/imgs/variant/apron_variant/",
+                csvPath: "data/apron_variant.csv",
+                imagePath: "data/imgs/variant/apron_variant/",
                 centerLabel: "裙板",
                 typeNodeLabelPrefix: "裙板属性类型：",
                 variantNodeLabelPrefix: "裙板变体：",
@@ -34,8 +34,8 @@
                 imageAliasKeys: ["image_alias", "image_name", "图片名", "old_variant", "legacy_variant", "原始变体"]
             },
             pattern: {
-                csvPath: "datas/pattern_variant.csv",
-                imagePath: "datas/imgs/variant/patterns_variant/",
+                csvPath: "data/pattern_variant.csv",
+                imagePath: "data/imgs/variant/patterns_variant/",
                 centerLabel: "窗棂",
                 typeNodeLabelPrefix: "窗棂纹样类型：",
                 variantNodeLabelPrefix: "窗棂变体：",

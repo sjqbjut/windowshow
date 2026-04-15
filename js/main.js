@@ -49,7 +49,7 @@ function create_CCS_chart() {
 
         mini_map_frame.append("img")
             .attr("class", "mini-map-image")
-            .attr("src", "datas/imgs/map/map.png")
+            .attr("src", "data/imgs/map/map.png")
             .attr("alt", "故宫建筑分区小地图");
 
         mini_map_frame.append("svg")
@@ -360,13 +360,13 @@ function create_CCS_chart() {
     // - building_per_pattern：建筑与纹样的多对多关系
     // - building_total：建筑元数据
     d3.queue()
-        .defer(d3.json, "datas/fc_pattern_total.json")
-        .defer(d3.json, "datas/fc_building_per_pattern.json")
-        .defer(d3.json, "datas/fc_building_total.json")
-        .defer(d3.json, "datas/map_layout.json")
-        .defer(d3.csv, "datas/buildings.csv")
-        .defer(d3.csv, "datas/patterns.csv")
-        .defer(d3.csv, "datas/area_introduction.csv")
+        .defer(d3.json, "data/fc_pattern_total.json")
+        .defer(d3.json, "data/fc_building_per_pattern.json")
+        .defer(d3.json, "data/fc_building_total.json")
+        .defer(d3.json, "data/map_layout.json")
+        .defer(d3.csv, "data/buildings.csv")
+        .defer(d3.csv, "data/patterns.csv")
+        .defer(d3.csv, "data/area_introduction.csv")
         .await(draw);
 
     function draw(error, pattern_total_data, building_per_pattern_data, building_total_data, map_layout_data, buildings_csv_data, patterns_csv_data, area_intro_csv_data) {
@@ -716,7 +716,7 @@ function create_CCS_chart() {
                 var point = d3.mouse(this);
                 var x = Math.round(point[0]);
                 var y = Math.round(point[1]);
-                mini_map_caption.text("调试坐标 x:" + x + " y:" + y + "（写入 datas/map_layout.json）");
+                mini_map_caption.text("调试坐标 x:" + x + " y:" + y + "（写入 data/map_layout.json）");
                 if (window.console && window.console.log) {
                     window.console.log("[mini-map-debug] x=" + x + ", y=" + y);
                 }
@@ -895,7 +895,7 @@ function create_CCS_chart() {
 
             if (mini_map_caption.empty()) return;
             if (!mini_map_building_data.length) {
-                mini_map_caption.text("小地图定位：请在 datas/map_layout.json 补充建筑坐标");
+                mini_map_caption.text("小地图定位：请在 data/map_layout.json 补充建筑坐标");
                 return;
             }
             if (status_text) {
@@ -1002,7 +1002,7 @@ function create_CCS_chart() {
         chapter_total_data.forEach(function (d) {
             var building_name_encoded = encodeURIComponent(d.card_captured);
             chapter_image_candidates[d.chapter] = building_image_extensions.map(function (ext) {
-                return "datas/imgs/buildings_img/" + building_name_encoded + ext;
+                return "data/imgs/buildings_img/" + building_name_encoded + ext;
             });
         });
         pattern_total_data.forEach(function (d) {
@@ -1010,11 +1010,11 @@ function create_CCS_chart() {
             if (!pattern_type) return;
             var pattern_name_encoded = encodeURIComponent(pattern_type);
             var candidates = pattern_image_extensions.map(function (ext) {
-                return "datas/imgs/patterns_img/" + pattern_name_encoded + ext;
+                return "data/imgs/patterns_img/" + pattern_name_encoded + ext;
             });
             if (d.pattern !== undefined && d.pattern !== null) {
                 candidates = candidates.concat(pattern_image_extensions.map(function (ext) {
-                    return "datas/imgs/patterns_img/" + d.pattern + ext;
+                    return "data/imgs/patterns_img/" + d.pattern + ext;
                 }));
             }
             pattern_image_candidates[pattern_type] = candidates;

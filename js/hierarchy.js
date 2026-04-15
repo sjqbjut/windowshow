@@ -39,7 +39,7 @@
     var hierarchyState = {
         loading: false,
         waiting: [],
-        dataset: null,
+        dataet: null,
         patternVisibility: {},
         miniMap: null,
         rowBridge: null,
@@ -229,7 +229,7 @@
         return normalizedEntries;
     }
 
-    function buildDataset(levelRows, mapLayoutData, buildingTotalData) {
+    function builddataet(levelRows, mapLayoutData, buildingTotalData) {
         var houseTypes = resolveHouseTypes(levelRows);
         var rowByLevelKey = {};
         var orderedRows = Array.isArray(levelRows) ? levelRows.slice() : [];
@@ -250,7 +250,7 @@
                 name: levelName,
                 index: index,
                 row: row,
-                imageUrl: "datas/imgs/art_design/" + encodeURIComponent(levelName) + ".jpg"
+                imageUrl: "data/imgs/art_design/" + encodeURIComponent(levelName) + ".jpg"
             };
         });
 
@@ -363,8 +363,8 @@
     }
 
     function loadData(callback) {
-        if (hierarchyState.dataset) {
-            callback(null, hierarchyState.dataset);
+        if (hierarchyState.dataet) {
+            callback(null, hierarchyState.dataet);
             return;
         }
 
@@ -373,9 +373,9 @@
         hierarchyState.loading = true;
 
         d3.queue()
-            .defer(d3.csv, "datas/level.csv")
-            .defer(d3.json, "datas/map_layout.json")
-            .defer(d3.json, "datas/fc_building_total.json")
+            .defer(d3.csv, "data/level.csv")
+            .defer(d3.json, "data/map_layout.json")
+            .defer(d3.json, "data/fc_building_total.json")
             .await(function (error, levelRows, mapLayoutData, buildingTotalData) {
                 hierarchyState.loading = false;
                 var callbacks = hierarchyState.waiting.slice();
@@ -386,14 +386,14 @@
                     return;
                 }
 
-                hierarchyState.dataset = buildDataset(levelRows, mapLayoutData, buildingTotalData);
-                callbacks.forEach(function (fn) { fn(null, hierarchyState.dataset); });
+                hierarchyState.dataet = builddataet(levelRows, mapLayoutData, buildingTotalData);
+                callbacks.forEach(function (fn) { fn(null, hierarchyState.dataet); });
             });
     }
 
-    function ensurePatternVisibility(dataset) {
+    function ensurePatternVisibility(dataet) {
         var nextState = {};
-        dataset.patterns.forEach(function (patternName) {
+        dataet.patterns.forEach(function (patternName) {
             var current = hierarchyState.patternVisibility[patternName];
             nextState[patternName] = current === undefined ? true : !!current;
         });
@@ -435,7 +435,7 @@
         titleElement.style.height = Math.ceil(legendHeight) + "px";
     }
 
-    function computePyramidLayout(container, dataset) {
+    function computePyramidLayout(container, dataet) {
         var pyramidPanel = container ? container.querySelector(".hierarchy-pyramid-panel") : null;
         var pyramidSvg = container ? container.querySelector("#hierarchy-pyramid") : null;
         if (!pyramidPanel || !pyramidSvg) return null;
@@ -445,7 +445,7 @@
         var pyramidHeight = pyramidSvg.clientHeight;
         if (pyramidWidth < 40 || pyramidHeight < 40) return null;
 
-        var rowCount = dataset.levels.length || 4;
+        var rowCount = dataet.levels.length || 4;
         var topPadding = 20;
         var bottomPadding = 20;
 
@@ -463,7 +463,7 @@
         };
     }
 
-    function computeHeatmapLayout(container, dataset) {
+    function computeHeatmapLayout(container, dataet) {
         var heatmapPanel = container ? container.querySelector(".hierarchy-heatmap-panel") : null;
         var heatmapSvg = container ? container.querySelector("#hierarchy-heatmap") : null;
         if (!heatmapPanel || !heatmapSvg) return null;
@@ -473,8 +473,8 @@
         var heatmapHeight = heatmapSvg.clientHeight;
         if (heatmapWidth < 40 || heatmapHeight < 40) return null;
 
-        var rowCount = dataset.levels.length || 4;
-        var colCount = dataset.houseTypes.length || 1;
+        var rowCount = dataet.levels.length || 4;
+        var colCount = dataet.houseTypes.length || 1;
 
         // 四周边距用于放置列标题、网格边界与底部留白。
         var leftPad = 8;
@@ -508,11 +508,11 @@
         return MAP_AREA_PALETTE[index % MAP_AREA_PALETTE.length];
     }
 
-    function renderMiniMap(dataset) {
+    function renderMiniMap(dataet) {
         var overlay = d3.select("#hierarchy-mini-map-panel .mini-map-overlay");
         if (overlay.empty()) return;
 
-        var mapData = dataset.map || {};
+        var mapData = dataet.map || {};
         var areaData = Array.isArray(mapData.areas) ? mapData.areas : [];
         var buildingData = Array.isArray(mapData.buildings) ? mapData.buildings : [];
 
@@ -711,7 +711,7 @@
             .style("pointer-events", "none");
     }
 
-    function buildRowBridgeGeometry(container, dataset, pyramidLayout, heatmapLayout) {
+    function buildRowBridgeGeometry(container, dataet, pyramidLayout, heatmapLayout) {
         var main = container ? container.querySelector(".hierarchy-main") : null;
         var pyramidSvg = container ? container.querySelector("#hierarchy-pyramid") : null;
         var heatmapSvg = container ? container.querySelector("#hierarchy-heatmap") : null;
@@ -723,7 +723,7 @@
 
         if (!mainRect.width || !mainRect.height || !pyramidRect.width || !heatmapRect.width) return null;
 
-        var pyramidGeometry = computePyramidTierGeometry(dataset, pyramidLayout);
+        var pyramidGeometry = computePyramidTierGeometry(dataet, pyramidLayout);
         var pyramidScaleX = pyramidRect.width / Math.max(1, pyramidLayout.pyramidWidth);
         var pyramidScaleY = pyramidRect.height / Math.max(1, pyramidLayout.pyramidHeight);
         var heatmapScaleX = heatmapRect.width / Math.max(1, heatmapLayout.heatmapWidth);
@@ -732,7 +732,7 @@
 
         // 为每个等级行计算“金字塔右边界 -> 热力矩阵左边界”的连接四边形。
         var rows = pyramidGeometry.tierData.map(function (tier, rowIndex) {
-            var level = dataset.levels[rowIndex];
+            var level = dataet.levels[rowIndex];
             if (!level) return null;
 
             var pyramidTopX = pyramidRect.left + (pyramidGeometry.centerX + tier.w0) * pyramidScaleX - mainRect.left;
@@ -764,14 +764,14 @@
         };
     }
 
-    function renderRowBridge(container, dataset, pyramidLayout, heatmapLayout) {
+    function renderRowBridge(container, dataet, pyramidLayout, heatmapLayout) {
         var overlay = ensureRowBridgeOverlay(container);
         if (!overlay) {
             hierarchyState.rowBridge = null;
             return;
         }
 
-        var geometry = buildRowBridgeGeometry(container, dataset, pyramidLayout, heatmapLayout);
+        var geometry = buildRowBridgeGeometry(container, dataet, pyramidLayout, heatmapLayout);
         if (!geometry) {
             hierarchyState.rowBridge = null;
             return;
@@ -809,7 +809,7 @@
         hierarchyState.rowBridge.update(hierarchyState.activeLevel);
     }
 
-    function computePyramidTierGeometry(dataset, layout) {
+    function computePyramidTierGeometry(dataet, layout) {
         var centerX = layout.pyramidWidth * 0.5;
         var apexY = layout.tierTop;
         var baseY = layout.tierBottom;
@@ -828,7 +828,7 @@
         // 1) 先根据 y 位置映射出该高度处的半宽；
         // 2) 再为每个等级层生成梯形四个顶点与路径；
         // 3) 渲染阶段仅消费这些几何结果，不再参与坐标推导。
-        var tierData = dataset.levels.map(function (levelItem, index) {
+        var tierData = dataet.levels.map(function (levelItem, index) {
             var y0 = apexY + layout.rowHeight * index;
             var y1 = y0 + layout.rowHeight;
             var w0 = widthAtY(y0);
@@ -861,7 +861,7 @@
         };
     }
 
-    function renderPyramid(dataset, layout) {
+    function renderPyramid(dataet, layout) {
         var svg = d3.select("#hierarchy-pyramid");
         if (svg.empty()) return;
 
@@ -872,7 +872,7 @@
 
         var defs = svg.append("defs");
         var baseGroup = svg.append("g");
-        var geometry = computePyramidTierGeometry(dataset, layout);
+        var geometry = computePyramidTierGeometry(dataet, layout);
         var centerX = geometry.centerX;
         var apexY = geometry.apexY;
         var baseY = geometry.baseY;
@@ -1077,7 +1077,7 @@
         hierarchyState.tooltipElement.setAttribute("aria-hidden", "true");
     }
 
-    function computeHeatmapGeometry(dataset, layout) {
+    function computeHeatmapGeometry(dataet, layout) {
         var cellPaddingX = 2.5;
         var cellPaddingY = 2.5;
 
@@ -1085,11 +1085,11 @@
         // 1) 先按“等级”生成每一行的 y 位置；
         // 2) 再按“建筑类型”生成每个单元格的 x 位置与内边距盒；
         // 3) 绘制阶段直接消费这些结果，避免在绘制循环中重复推导坐标。
-        var rowData = dataset.levels.map(function (levelItem) {
+        var rowData = dataet.levels.map(function (levelItem) {
             var rowY = layout.gridTop + layout.rowHeight * levelItem.index;
-            var cells = dataset.houseTypes.map(function (houseType, colIndex) {
+            var cells = dataet.houseTypes.map(function (houseType, colIndex) {
                 var key = levelItem.name + "||" + houseType;
-                var cell = dataset.cellsByKey[key] || {
+                var cell = dataet.cellsByKey[key] || {
                     levelName: levelItem.name,
                     houseType: houseType,
                     entries: []
@@ -1122,7 +1122,7 @@
         };
     }
 
-    function renderHeatmap(dataset, layout) {
+    function renderHeatmap(dataet, layout) {
         var svg = d3.select("#hierarchy-heatmap");
         if (svg.empty()) return;
 
@@ -1134,7 +1134,7 @@
         var chart = svg.append("g");
         var colCount = layout.colCount;
         var rowCount = layout.rowCount;
-        var heatmapGeometry = computeHeatmapGeometry(dataset, layout);
+        var heatmapGeometry = computeHeatmapGeometry(dataet, layout);
         var rowData = heatmapGeometry.rowData;
 
         var colGuides = chart.append("g");
@@ -1163,7 +1163,7 @@
 
         chart.append("g")
             .selectAll(".hierarchy-col-title")
-            .data(dataset.houseTypes)
+            .data(dataet.houseTypes)
             .enter().append("text")
             .attr("class", "hierarchy-col-title")
             .attr("x", function (houseType, index) {
@@ -1220,7 +1220,7 @@
                         .attr("y", cell.innerY)
                         .attr("width", Math.max(0, segmentWidth))
                         .attr("height", cell.innerHeight)
-                        .style("fill", tintByPercentage(dataset.patternColors[entry.pattern], entry.percentage))
+                        .style("fill", tintByPercentage(dataet.patternColors[entry.pattern], entry.percentage))
                         .style("opacity", isVisible ? 1 : 0);
                     cursor += segmentWidth;
                 });
@@ -1246,13 +1246,13 @@
         }
     }
 
-    function renderLegend(dataset, container) {
+    function renderLegend(dataet, container) {
         var legend = d3.select("#hierarchy-legend");
         if (legend.empty()) return;
         var hostContainer = container || document.getElementById("hierarchy-container");
 
         var items = legend.selectAll(".hierarchy-legend-item")
-            .data(dataset.patterns, function (name) { return name; });
+            .data(dataet.patterns, function (name) { return name; });
 
         items.exit().remove();
 
@@ -1264,13 +1264,13 @@
                 var current = hierarchyState.patternVisibility[patternName] !== false;
                 hierarchyState.patternVisibility[patternName] = !current;
                 hideTooltip();
-                renderLegend(dataset, hostContainer);
+                renderLegend(dataet, hostContainer);
 
                 // 图例按钮换行高度可能变化，先同步左侧标题高度，再重算热力矩阵布局并重绘。
                 syncPyramidTitleHeight(hostContainer);
-                var nextHeatmapLayout = computeHeatmapLayout(hostContainer, dataset);
+                var nextHeatmapLayout = computeHeatmapLayout(hostContainer, dataet);
                 if (nextHeatmapLayout) {
-                    renderHeatmap(dataset, nextHeatmapLayout);
+                    renderHeatmap(dataet, nextHeatmapLayout);
                 }
             });
 
@@ -1286,25 +1286,25 @@
 
         items.select(".hierarchy-legend-swatch")
             .style("background-color", function (patternName) {
-                return dataset.patternColors[patternName];
+                return dataet.patternColors[patternName];
             });
 
         items.select(".hierarchy-legend-label")
             .text(function (patternName) { return patternName; });
     }
 
-    function renderHierarchyCharts(container, dataset) {
-        renderLegend(dataset, container);
+    function renderHierarchyCharts(container, dataet) {
+        renderLegend(dataet, container);
         syncPyramidTitleHeight(container);
 
-        var pyramidLayout = computePyramidLayout(container, dataset);
-        var heatmapLayout = computeHeatmapLayout(container, dataset);
+        var pyramidLayout = computePyramidLayout(container, dataet);
+        var heatmapLayout = computeHeatmapLayout(container, dataet);
         if (!pyramidLayout || !heatmapLayout) return false;
 
-        renderMiniMap(dataset);
-        renderPyramid(dataset, pyramidLayout);
-        renderHeatmap(dataset, heatmapLayout);
-        renderRowBridge(container, dataset, pyramidLayout, heatmapLayout);
+        renderMiniMap(dataet);
+        renderPyramid(dataet, pyramidLayout);
+        renderHeatmap(dataet, heatmapLayout);
+        renderRowBridge(container, dataet, pyramidLayout, heatmapLayout);
         setActiveLevel("");
         hideTooltip();
         return true;
@@ -1315,7 +1315,7 @@
         if (!container) return;
         if (!container.classList.contains("is-active")) return;
 
-        loadData(function (error, dataset) {
+        loadData(function (error, dataet) {
             if (error) {
                 if (window.console && window.console.error) {
                     window.console.error("[hierarchy] 数据加载失败", error);
@@ -1323,16 +1323,16 @@
                 return;
             }
 
-            ensurePatternVisibility(dataset);
+            ensurePatternVisibility(dataet);
             hierarchyState.tooltipElement = document.getElementById("hierarchy-tooltip");
             ensurePyramidTitleElement(container);
 
-            if (renderHierarchyCharts(container, dataset)) return;
+            if (renderHierarchyCharts(container, dataet)) return;
 
             // 页面刚切入时若尺寸尚未稳定，下一帧再尝试一次，避免首次进入渲染尺寸异常。
             window.requestAnimationFrame(function () {
                 if (!container.classList.contains("is-active")) return;
-                renderHierarchyCharts(container, dataset);
+                renderHierarchyCharts(container, dataet);
             });
         });
     }

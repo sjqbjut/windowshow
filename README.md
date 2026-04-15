@@ -1,6 +1,6 @@
 # windowshow
 
-这个项目是纯静态网页（`index.html` + `css/` + `js/` + `datas/` + `plugins/`），可以直接部署到 GitHub Pages。
+这个项目是纯静态网页（`index.html` + `css/` + `js/` + `data/` + `plugins/`），可以直接部署到 GitHub Pages。
 
 ## GitHub Pages 发布（推荐）
 

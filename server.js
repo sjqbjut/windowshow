@@ -16,18 +16,18 @@ function addFile(urlPath, relativeFilePath) {
   '/index.html',
   '/css/style.css',
   '/css/animeace2_reg.otf',
-  '/datas/apron.csv',
-  '/datas/apron_variant.csv',
-  '/datas/pattern_variant.csv',
-  '/datas/buildings.csv',
-  '/datas/patterns.csv',
-  '/datas/level.csv',
-  '/datas/area_introduction.csv',
-  '/datas/fc_building_per_pattern.json',
-  '/datas/fc_building_total.json',
-  '/datas/fc_pattern_hierarchy.json',
-  '/datas/fc_pattern_total.json',
-  '/datas/map_layout.json',
+  '/data/apron.csv',
+  '/data/apron_variant.csv',
+  '/data/pattern_variant.csv',
+  '/data/buildings.csv',
+  '/data/patterns.csv',
+  '/data/level.csv',
+  '/data/area_introduction.csv',
+  '/data/fc_building_per_pattern.json',
+  '/data/fc_building_total.json',
+  '/data/fc_pattern_hierarchy.json',
+  '/data/fc_pattern_total.json',
+  '/data/map_layout.json',
   '/js/main.js',
   '/js/hierarchy.js',
   '/js/origin.js',
@@ -65,8 +65,8 @@ function addFilesFromDir(urlPrefix, relativeDir) {
 }
 
 function addPatternImagesFromCsv() {
-  const csvPath = path.join(__dirname, 'datas/patterns.csv');
-  const imageUrlPrefix = '/datas/imgs/patterns_img';
+  const csvPath = path.join(__dirname, 'data/patterns.csv');
+  const imageUrlPrefix = '/data/imgs/patterns_img';
   if (!fs.existsSync(csvPath)) return;
 
   const csv = fs.readFileSync(csvPath, 'utf8');
@@ -89,13 +89,13 @@ function addPatternImagesFromCsv() {
   });
 }
 
-addFilesFromDir('/datas/imgs/buildings_img', 'datas/imgs/buildings_img');
-addFilesFromDir('/datas/imgs/map', 'datas/imgs/map');
-addFilesFromDir('/datas/imgs/apron', 'datas/imgs/apron');
-addFilesFromDir('/datas/imgs/art_design', 'datas/imgs/art_design');
-addFilesFromDir('/datas/imgs/variant/apron_variant', 'datas/imgs/variant/apron_variant');
-addFilesFromDir('/datas/imgs/variant/patterns_variant', 'datas/imgs/variant/patterns_variant');
-addFilesFromDir('/datas/imgs/summary', 'datas/imgs/summary');
+addFilesFromDir('/data/imgs/buildings_img', 'data/imgs/buildings_img');
+addFilesFromDir('/data/imgs/map', 'data/imgs/map');
+addFilesFromDir('/data/imgs/apron', 'data/imgs/apron');
+addFilesFromDir('/data/imgs/art_design', 'data/imgs/art_design');
+addFilesFromDir('/data/imgs/variant/apron_variant', 'data/imgs/variant/apron_variant');
+addFilesFromDir('/data/imgs/variant/patterns_variant', 'data/imgs/variant/patterns_variant');
+addFilesFromDir('/data/imgs/summary', 'data/imgs/summary');
 addPatternImagesFromCsv();
 files['/'] = files['/index.html'];
 

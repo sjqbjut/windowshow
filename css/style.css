@@ -59,7 +59,7 @@ body.landing-active .lantern-nav {
     /* 首屏背景单独放在伪元素上，便于做“镜头推进”且不影响文案层。 */
     background-image:
         linear-gradient(180deg, rgba(255, 250, 238, 0.32) 0%, rgba(252, 245, 230, 0.12) 36%, rgba(245, 236, 217, 0.1) 100%),
-        url("../datas/imgs/art_design/cover1.jpg");
+        url("../data/imgs/art_design/cover1.jpg");
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -363,7 +363,7 @@ body.landing-active .lantern-nav {
         linear-gradient(180deg, rgba(248, 246, 243, 0.72), rgba(248, 246, 243, 0.76)),
         radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%),
         radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.24) 0%, rgba(220, 191, 153, 0) 52%),
-        url("../datas/imgs/art_design/background.jpg");
+        url("../data/imgs/art_design/background.jpg");
     background-size: auto, auto, auto, cover;
     background-position: center center, center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
@@ -568,7 +568,7 @@ body.landing-active .lantern-nav {
     border: 0;
     border-radius: 0;
     padding: 0;
-    background: url("../datas/imgs/art_design/button2.png") no-repeat center center / 100% 100%;
+    background: url("../data/imgs/art_design/button2.png") no-repeat center center / 100% 100%;
     color: rgba(95, 60, 33, 0.95);
     font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
     font-size: clamp(1.32rem, 1.7vw, 2.1rem);
@@ -604,7 +604,7 @@ body.landing-active .lantern-nav {
     border: 0;
     border-radius: 0;
     padding: 0;
-    background: url("../datas/imgs/art_design/button2.png") no-repeat center center / 100% 100%;
+    background: url("../data/imgs/art_design/button2.png") no-repeat center center / 100% 100%;
     color: rgba(95, 60, 33, 0.95);
     font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
     font-size: clamp(1.32rem, 1.7vw, 2.1rem);
@@ -729,7 +729,7 @@ body.landing-active .lantern-nav {
         linear-gradient(180deg, rgba(248, 246, 243, 0.68), rgba(248, 246, 243, 0.74)),
         radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.58) 0%, rgba(255, 248, 236, 0) 44%),
         radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.2) 0%, rgba(220, 191, 153, 0) 52%),
-        url("../datas/imgs/art_design/background.jpg");
+        url("../data/imgs/art_design/background.jpg");
     background-size: auto, auto, auto, cover;
     background-position: center center, center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
@@ -893,7 +893,7 @@ body.landing-active .lantern-nav {
         linear-gradient(180deg, rgba(248, 246, 243, 0.72), rgba(248, 246, 243, 0.78)),
         radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%),
         radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.24) 0%, rgba(220, 191, 153, 0) 52%),
-        url("../datas/imgs/art_design/background.jpg");
+        url("../data/imgs/art_design/background.jpg");
     background-size: auto, auto, auto, cover;
     background-position: center center, center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
@@ -1523,7 +1523,7 @@ body.landing-active .lantern-nav {
         linear-gradient(180deg, rgba(248, 246, 243, 0.72), rgba(248, 246, 243, 0.78)),
         radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.6) 0%, rgba(255, 248, 236, 0) 44%),
         radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.24) 0%, rgba(220, 191, 153, 0) 52%),
-        url("../datas/imgs/art_design/background.jpg");
+        url("../data/imgs/art_design/background.jpg");
     background-size: auto, auto, auto, cover;
     background-position: center center, center center, center center, center center;
     background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
@@ -2616,7 +2616,7 @@ canvas {
         linear-gradient(180deg, rgba(248, 246, 243, 0.78), rgba(248, 246, 243, 0.84)),
         radial-gradient(circle at 15% 20%, rgba(255, 248, 236, 0.60) 0%, rgba(255, 248, 236, 0) 44%),
         radial-gradient(circle at 78% 84%, rgba(220, 191, 153, 0.22) 0%, rgba(220, 191, 153, 0) 52%),
-        url("../datas/imgs/art_design/background.jpg");
+        url("../data/imgs/art_design/background.jpg");
     background-size: auto, auto, auto, cover;
     background-position: center center;
     background-repeat: no-repeat;

@@ -1425,6 +1425,27 @@ function create_CCS_chart() {
             .attr("width", 2 * image_radius);
 
         var center_image_request_id = { top: 0, under: 0 };
+        // 中心图悬浮切换时，先给一个“等待态”再淡入，降低突兀感。
+        var center_image_wait_opacity = 0.35;
+        var center_image_reveal_duration_ms = 160;//中心图淡入动画时长
+
+        function prepare_center_cover_for_loading() {
+            if (!cover_circle) return;
+            cover_circle
+                .interrupt()
+                .style("fill", "url(#cover-image)")
+                .style("opacity", center_image_wait_opacity);
+        }
+
+        function reveal_center_cover_after_load() {
+            if (!cover_circle) return;
+            cover_circle
+                .interrupt()
+                .style("fill", "url(#cover-image)")
+                .transition()
+                .duration(center_image_reveal_duration_ms)
+                .style("opacity", 1);
+        }
 
         function get_cover_image_by_layer(layer_name) {
             return layer_name === "under" ? cover_image_under : cover_image;
@@ -1461,9 +1482,25 @@ function create_CCS_chart() {
 
             if (Object.prototype.hasOwnProperty.call(center_image_cache.resolvedByKey, cache_key)) {
                 var cached_href = center_image_cache.resolvedByKey[cache_key] || default_center_image;
+                var current_href = target_image.attr("xlink:href");
+                if (layer_key === "top") {
+                    if (current_href === cached_href) {
+                        reveal_center_cover_after_load();
+                    } else {
+                        prepare_center_cover_for_loading();
+                    }
+                }
                 target_image
-                    .on("error", function () { set_default_layer_image(); })
-                    .on("load", null)
+                    .on("error", function () {
+                        if (request_id !== center_image_request_id[layer_key]) return;
+                        set_default_layer_image();
+                        if (layer_key === "top") reveal_center_cover_after_load();
+                    })
+                    .on("load", function () {
+                        if (request_id !== center_image_request_id[layer_key]) return;
+                        center_image_cache.urlStatus[cached_href] = "ok";
+                        if (layer_key === "top") reveal_center_cover_after_load();
+                    })
                     .attr("xlink:href", cached_href);
                 return;
             }
@@ -1472,6 +1509,7 @@ function create_CCS_chart() {
                 if (request_id !== center_image_request_id[layer_key]) return;
                 if (index >= list.length) {
                     set_default_layer_image();
+                    if (layer_key === "top") reveal_center_cover_after_load();
                     return;
                 }
 
@@ -1483,17 +1521,21 @@ function create_CCS_chart() {
 
                 target_image
                     .on("error", function () {
+                        if (request_id !== center_image_request_id[layer_key]) return;
                         center_image_cache.urlStatus[href] = "fail";
                         load_candidate_immediately(index + 1);
                     })
                     .on("load", function () {
+                        if (request_id !== center_image_request_id[layer_key]) return;
                         center_image_cache.urlStatus[href] = "ok";
                         center_image_cache.resolvedByKey[cache_key] = href;
+                        if (layer_key === "top") reveal_center_cover_after_load();
                     })
                     .attr("xlink:href", href);
             }
 
             // 交互首帧优先：先立即尝试候选，再让解析缓存在后台补齐。
+            if (layer_key === "top") prepare_center_cover_for_loading();
             load_candidate_immediately(0);
             resolve_center_image_candidate(list, function (resolved_href) {
                 center_image_cache.resolvedByKey[cache_key] = resolved_href || default_center_image;
@@ -2029,8 +2071,8 @@ function create_CCS_chart() {
             if (d.character === "其他") {
                 start_merged_pattern_cycle();
             } else {
+                prepare_center_cover_for_loading();
                 show_center_image_for_pattern(d.character);
-                cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
             }
 
             //Show the hover circle
@@ -2422,8 +2464,8 @@ function create_CCS_chart() {
 
             // 选中具体种类后，中心图固定到该纹样，避免继续自动轮播。
             stop_merged_pattern_cycle();
+            prepare_center_cover_for_loading();
             show_center_image_for_pattern(resolved_type);
-            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
         }
 
         function update_pattern_info_sidebar(pattern_name, preferred_other_type) {
@@ -2542,8 +2584,8 @@ function create_CCS_chart() {
                 .style("stroke-width", chapter_dot_rad * 0.5 * 1.5)
                 .style("fill", color_sakura);
 
+            prepare_center_cover_for_loading();
             show_center_image_for_chapter(d.chapter);
-            cover_circle.style("fill", "url(#cover-image)").style("opacity", 1);
 
             hover_circle.style("opacity", 0);
             if (show_cover_ring) {

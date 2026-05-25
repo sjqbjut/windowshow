@@ -249,7 +249,13 @@
 
 
     <script>
-        function resolveLayoutScale() {
+        function readRootCssNumber(name, fallbackValue) {
+            var rootStyle = window.getComputedStyle(document.documentElement);
+            var parsedValue = parseFloat(rootStyle.getPropertyValue(name));
+            return parsedValue > 0 ? parsedValue : fallbackValue;
+        }
+
+        function readForcedLayoutScale() {
             var searchParams;
             try {
                 searchParams = new URLSearchParams(window.location.search || "");
@@ -264,15 +270,44 @@
                 }
             }
 
-            var root_style = window.getComputedStyle(document.documentElement);
-            var raw_value = root_style.getPropertyValue("--layout-scale");
-            var parsed_value = parseFloat(raw_value);
-            return parsed_value > 0 ? parsed_value : 1;
+            return 0;
         }
 
-        var layoutScale = resolveLayoutScale();
-        document.documentElement.style.setProperty("--layout-scale", String(layoutScale));
-        window.APP_LAYOUT_SCALE = layoutScale;
+        function resolveLayoutScale() {
+            var forcedScale = readForcedLayoutScale();
+            if (forcedScale > 0) return forcedScale;
+
+            var cssScale = readRootCssNumber("--layout-scale", 1);
+            var maxScale = readRootCssNumber("--layout-max-scale", cssScale);
+            var fitWidth = readRootCssNumber("--layout-fit-width", 1600);
+            var fitHeight = readRootCssNumber("--layout-fit-height", 1600);
+            var viewportWidth = window.innerWidth || document.documentElement.clientWidth || fitWidth;
+            var viewportHeight = window.innerHeight || document.documentElement.clientHeight || fitHeight;
+            var fitScale = Math.min(viewportWidth / fitWidth, viewportHeight / fitHeight);
+
+            if (!isFinite(fitScale) || fitScale <= 0) fitScale = maxScale;
+            return Math.max(0.2, Math.min(maxScale, fitScale));
+        }
+
+        function applyLayoutScale() {
+            var previousScale = typeof window.APP_LAYOUT_SCALE === "number" ? window.APP_LAYOUT_SCALE : 0;
+            var nextScale = Math.round(resolveLayoutScale() * 10000) / 10000;
+            document.documentElement.style.setProperty("--layout-scale", String(nextScale));
+            window.APP_LAYOUT_SCALE = nextScale;
+
+            if (previousScale > 0 && Math.abs(previousScale - nextScale) > 0.0001) {
+                window.dispatchEvent(new CustomEvent("app:layout-scale-change", {
+                    detail: {
+                        previousScale: previousScale,
+                        scale: nextScale
+                    }
+                }));
+            }
+
+            return nextScale;
+        }
+
+        var layoutScale = applyLayoutScale();
 
         // Lock browser zoom by preventing Ctrl + wheel.
         (function lockPageZoom() {
@@ -311,13 +346,27 @@
             }
         });
 
-        // 仅在宽度变化时（防抖）重建图表，因为几何尺寸和标签布局都依赖宽度。
-        var current_width = window.innerWidth / layoutScale;
+        // Rebuild charts when viewport size or layout scale changes.
+        function getScaledViewportState() {
+            layoutScale = applyLayoutScale();
+            return {
+                width: Math.round(window.innerWidth / layoutScale),
+                height: Math.round(window.innerHeight / layoutScale),
+                scale: layoutScale
+            };
+        }
+
+        var currentViewportState = getScaledViewportState();
         var eventTimeout;
-        d3.select(window).on("resize", function() {
-            var next_width = window.innerWidth / layoutScale;
-            if (next_width !== current_width) {
-                current_width = next_width;
+        function handleViewportResize() {
+            var nextViewportState = getScaledViewportState();
+            var viewportChanged =
+                nextViewportState.width !== currentViewportState.width ||
+                nextViewportState.height !== currentViewportState.height ||
+                Math.abs(nextViewportState.scale - currentViewportState.scale) > 0.0001;
+
+            if (viewportChanged) {
+                currentViewportState = nextViewportState;
                 if (!eventTimeout) {
                     eventTimeout = setTimeout(function() {
                         eventTimeout = null;
@@ -331,7 +380,11 @@
                     }, 300);
                 }
             }
-        });
+        }
+        d3.select(window).on("resize", handleViewportResize);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", handleViewportResize);
+        }
 
         // 过渡流程：
         // 1) 点击“开始”按钮，播放背景中心放大并淡出的离场动画
@@ -510,8 +563,9 @@
             }
 
             function runRippleFromPoint(centerX, centerY, onDone, customRadius) {
-                var viewportWidth = window.innerWidth / layoutScale;
-                var viewportHeight = window.innerHeight / layoutScale;
+                var currentScale = applyLayoutScale();
+                var viewportWidth = window.innerWidth / currentScale;
+                var viewportHeight = window.innerHeight / currentScale;
                 var maxX = Math.max(centerX, viewportWidth - centerX);
                 var maxY = Math.max(centerY, viewportHeight - centerY);
                 var rippleRadius = Math.hypot(maxX, maxY);
@@ -579,8 +633,9 @@
 
             function openPageWithRipple(targetPage) {
                 var nextPage = targetPage || "chart";
-                var viewportWidth = window.innerWidth / layoutScale;
-                var viewportHeight = window.innerHeight / layoutScale;
+                var currentScale = applyLayoutScale();
+                var viewportWidth = window.innerWidth / currentScale;
+                var viewportHeight = window.innerHeight / currentScale;
                 var centerX = viewportWidth / 2;
                 var centerY = viewportHeight / 2;
                 // 与主图相同的响应式宽度基准（见 create_CCS_chart）。

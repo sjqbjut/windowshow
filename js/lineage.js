@@ -1109,22 +1109,6 @@
         var tuning = lineageState.tuning;
         var layout = data.layout;
         var trendOffset = tuning.visual.trendOffset;
-
-        var ringLayer = svg.append("g").attr("class", "lineage-rings");
-        ringLayer.append("circle").attr("class", "lineage-ring lineage-ring-inner").attr("cx", layout.centerX).attr("cy", layout.centerY).attr("r", layout.typeRingRadius);
-        ringLayer.append("circle").attr("class", "lineage-ring lineage-ring-outer").attr("cx", layout.centerX).attr("cy", layout.centerY).attr("r", layout.variantRingRadius);
-
-        var trendData = [
-            { x: layout.centerX + trendOffset.center.dx, y: layout.centerY + trendOffset.center.dy, text: tuning.text.trendCenterLabel },
-            { x: layout.centerX - layout.typeRingRadius + trendOffset.type.dx, y: layout.centerY - layout.typeRingRadius + trendOffset.type.dy, text: data.typeNodes.length + tuning.text.typeCountSuffix },
-            { x: layout.centerX - layout.variantRingRadius + trendOffset.variant.dx, y: layout.centerY - layout.variantRingRadius + trendOffset.variant.dy, text: data.variantNodes.length + tuning.text.variantCountSuffix }
-        ];
-
-        ringLayer.selectAll(".lineage-trend-label").data(trendData).enter().append("text")
-            .attr("class", "lineage-trend-label")
-            .attr("x", function (d) { return d.x; })
-            .attr("y", function (d) { return d.y; })
-            .text(function (d) { return d.text; });
     }
 
     function renderLinks(svg, data) {

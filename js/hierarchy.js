@@ -1041,6 +1041,11 @@
         return hierarchyState.fixedCoordScale;
     }
 
+    window.addEventListener("app:layout-scale-change", function () {
+        hierarchyState.fixedCoordScale = null;
+        hideTooltip();
+    });
+
     function moveTooltip() {
         if (!hierarchyState.tooltipElement) return;
         var tooltip = hierarchyState.tooltipElement;

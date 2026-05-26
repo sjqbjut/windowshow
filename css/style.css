@@ -2653,6 +2653,28 @@ canvas {
     align-items: center;
     gap: 4px;
 }
+/* 数据统计按钮，点击可跳转到对应的表格*/
+.summary-stat-button {
+    border: 0;
+    margin: 0;
+    padding: 8px 10px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: transform 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.summary-stat-button:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 250, 242, 0.62);
+    box-shadow: inset 0 0 0 1px rgba(178, 126, 76, 0.26);
+}
+
+.summary-stat-button:focus-visible {
+    outline: 3px solid rgba(139, 106, 62, 0.62);
+    outline-offset: 4px;
+}
 
 .summary-stat-num {
     font-family: "Barlow Semi Condensed", sans-serif;
@@ -2983,6 +3005,350 @@ canvas {
     to { opacity: 1; }
 }
 
+/* ================================================================
+   统计数据原始表格弹窗
+   ================================================================ */
+.summary-data-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 132px 100px 76px;
+    pointer-events: none;
+}
+
+.summary-data-modal.is-open {
+    display: flex;
+    pointer-events: auto;
+}
+
+.summary-data-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(72, 54, 36, 0.24);
+    backdrop-filter: blur(8px);
+}
+
+.summary-data-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(1480px, calc(100% - 120px));
+    max-height: calc(100% - 38px);
+    min-height: 920px;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 48px 30px;
+    border: 1px solid rgba(201, 151, 92, 0.4);
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, rgba(255, 250, 241, 0.98), rgba(246, 236, 220, 0.97));
+    box-shadow:
+        0 26px 70px rgba(74, 46, 20, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    color: #4f3218;
+    overflow: hidden;
+}
+
+.summary-data-dialog::before,
+.summary-data-dialog::after {
+    content: "";
+    position: absolute;
+    width: 86px;
+    height: 86px;
+    pointer-events: none;
+    opacity: 0.56;
+}
+
+.summary-data-dialog::before {
+    left: 16px;
+    top: 16px;
+    border-left: 2px solid rgba(213, 158, 96, 0.48);
+    border-top: 2px solid rgba(213, 158, 96, 0.48);
+}
+
+.summary-data-dialog::after {
+    right: 16px;
+    bottom: 16px;
+    border-right: 2px solid rgba(213, 158, 96, 0.48);
+    border-bottom: 2px solid rgba(213, 158, 96, 0.48);
+}
+
+.summary-data-close {
+    position: absolute;
+    top: 34px;
+    right: 40px;
+    z-index: 2;
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #6a421f;
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 46px;
+    line-height: 38px;
+    cursor: pointer;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.summary-data-close:hover,
+.summary-data-close:focus-visible {
+    background: rgba(158, 103, 50, 0.1);
+    transform: rotate(8deg);
+    outline: none;
+}
+
+.summary-data-tabs {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: calc(100% - 68px);
+    margin-bottom: 8px;
+    padding-right: 10px;
+}
+
+.summary-data-tab {
+    min-width: 106px;
+    padding: 11px 15px;
+    border: 1px solid rgba(201, 151, 92, 0.34);
+    border-radius: 999px;
+    background: rgba(255, 249, 239, 0.7);
+    color: rgba(92, 59, 27, 0.74);
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.summary-data-tab.is-active {
+    background: linear-gradient(180deg, rgba(248, 227, 194, 0.88), rgba(231, 191, 133, 0.7));
+    color: #5a3515;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.summary-data-header {
+    flex: 0 0 auto;
+    padding: 14px 90px 18px;
+    text-align: center;
+}
+
+.summary-data-title {
+    margin: 0;
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 58px;
+    line-height: 1.08;
+    letter-spacing: 0.12em;
+    color: #5b381b;
+}
+
+.summary-data-subtitle {
+    margin: 14px 0 0;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 22px;
+    line-height: 1.2;
+    color: rgba(78, 53, 30, 0.64);
+}
+
+.summary-data-toolbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+.summary-data-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 360px;
+}
+
+.summary-data-search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(88, 55, 24, 0.74);
+    font-size: 25px;
+    pointer-events: none;
+}
+
+.summary-data-search input {
+    width: 100%;
+    height: 52px;
+    padding: 0 18px 0 54px;
+    border: 1px solid rgba(202, 153, 93, 0.46);
+    border-radius: 8px;
+    background: rgba(255, 250, 243, 0.82);
+    color: #4d3017;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 22px;
+    outline: none;
+}
+
+.summary-data-search input:focus {
+    border-color: rgba(143, 89, 38, 0.68);
+    box-shadow: 0 0 0 3px rgba(214, 166, 105, 0.18);
+}
+
+.summary-data-reset {
+    height: 52px;
+    padding: 0 22px;
+    border: 1px solid rgba(202, 153, 93, 0.32);
+    border-radius: 8px;
+    background: rgba(246, 228, 199, 0.64);
+    color: #65401f;
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.summary-data-reset:hover,
+.summary-data-reset:focus-visible {
+    background: rgba(239, 211, 170, 0.76);
+    outline: none;
+}
+
+.summary-data-table-shell {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 1px solid rgba(205, 163, 112, 0.34);
+    border-radius: 8px;
+    background: rgba(255, 249, 241, 0.46);
+    overflow: auto;
+}
+
+.summary-data-table {
+    width: 100%;
+    min-width: 1220px;
+    border-collapse: collapse;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 19px;
+    line-height: 1.48;
+    color: #362514;
+}
+
+.summary-data-table th,
+.summary-data-table td {
+    border-right: 1px solid rgba(205, 163, 112, 0.26);
+    border-bottom: 1px solid rgba(205, 163, 112, 0.24);
+    padding: 12px 16px;
+    vertical-align: top;
+}
+
+.summary-data-table th:last-child,
+.summary-data-table td:last-child {
+    border-right: 0;
+}
+
+.summary-data-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: linear-gradient(180deg, rgba(247, 232, 207, 0.98), rgba(239, 218, 186, 0.98));
+    color: #553415;
+    font-family: "STKaiti", "Kaiti SC", "DFKai-SB", "KaiTi", serif;
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.summary-data-table td {
+    background: rgba(255, 250, 243, 0.34);
+}
+
+.summary-data-table tbody tr:nth-child(even) td {
+    background: rgba(248, 236, 218, 0.28);
+}
+
+.summary-data-table .is-index {
+    width: 72px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.summary-data-table .is-long {
+    min-width: 360px;
+}
+
+.summary-data-message-cell {
+    height: 220px;
+    text-align: center;
+    vertical-align: middle;
+    color: rgba(78, 53, 30, 0.62);
+    font-size: 24px;
+}
+
+.summary-data-empty {
+    position: absolute;
+    inset: 120px 0 auto;
+    margin: 0;
+    text-align: center;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 24px;
+    color: rgba(78, 53, 30, 0.62);
+    pointer-events: none;
+}
+
+.summary-data-pagination {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding-top: 22px;
+    color: #6a421f;
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 24px;
+}
+
+.summary-data-page-button {
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: rgba(106, 66, 31, 0.74);
+    font-size: 48px;
+    line-height: 44px;
+    cursor: pointer;
+}
+
+.summary-data-page-button:hover:not(:disabled),
+.summary-data-page-button:focus-visible:not(:disabled) {
+    background: rgba(143, 89, 38, 0.1);
+    outline: none;
+}
+
+.summary-data-page-button:disabled {
+    cursor: default;
+    color: rgba(106, 66, 31, 0.28);
+}
+
+.summary-data-page-current {
+    min-width: 60px;
+    height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(208, 149, 85, 0.62);
+    border-radius: 8px;
+    background: rgba(255, 245, 231, 0.72);
+}
+
+.summary-data-page-total {
+    min-width: 58px;
+}
+
 /* ---- reduced-motion 兼容 ---- */
 @media (prefers-reduced-motion: reduce) {
     .summary-hd,
@@ -2992,7 +3358,9 @@ canvas {
     .summary-fork-path,
     .summary-fork-tip,
     .summary-fork-sub,
-    .summary-fork-dot {
+    .summary-fork-dot,
+    .summary-stat-button,
+    .summary-data-close {
         transition: none;
         animation: none;
         opacity: 1;

@@ -121,35 +121,35 @@
             <header class="summary-hd">
                 <h2 class="summary-title">纹样数据档案</h2>
                 <div class="summary-stats">
-                    <div class="summary-stat">
+                    <button class="summary-stat summary-stat-button" type="button" data-summary-table-trigger="patterns" aria-label="查看13种窗棂纹样及12种变体原始数据">
                         <b class="summary-stat-num" data-target="13">0</b>
                         <span class="summary-stat-text">种窗棂纹样<em>及12种变体</em></span>
-                    </div>
+                    </button>
                     <span class="summary-stat-sep" aria-hidden="true"></span>
-                    <div class="summary-stat">
+                    <button class="summary-stat summary-stat-button" type="button" data-summary-table-trigger="apronVariants" aria-label="查看5种裙板纹样及13种变体原始数据">
                         <b class="summary-stat-num" data-target="5">0</b>
                         <span class="summary-stat-text">种裙板纹样<em>及13种变体</em></span>
-                    </div>
+                    </button>
                     <span class="summary-stat-sep" aria-hidden="true"></span>
-                    <div class="summary-stat">
+                    <button class="summary-stat summary-stat-button" type="button" data-summary-table-trigger="levels" aria-label="查看4层等级原始数据">
                         <b class="summary-stat-num" data-target="4">0</b>
                         <span class="summary-stat-text">层等级</span>
-                    </div>
+                    </button>
                     <span class="summary-stat-sep" aria-hidden="true"></span>
-                    <div class="summary-stat">
+                    <button class="summary-stat summary-stat-button" type="button" data-summary-table-trigger="areas" aria-label="查看8个区域原始数据">
                         <b class="summary-stat-num" data-target="8">0</b>
                         <span class="summary-stat-text">个区域</span>
-                    </div>
+                    </button>
                     <span class="summary-stat-sep" aria-hidden="true"></span>
-                    <div class="summary-stat">
+                    <button class="summary-stat summary-stat-button" type="button" data-summary-table-trigger="houseTypes" aria-label="查看6种房屋原始数据">
                         <b class="summary-stat-num" data-target="6">0</b>
                         <span class="summary-stat-text">种房屋</span>
-                    </div>
+                    </button>
                     <span class="summary-stat-sep" aria-hidden="true"></span>
-                    <div class="summary-stat">
+                    <button class="summary-stat summary-stat-button" type="button" data-summary-table-trigger="buildings" aria-label="查看49所建筑原始数据">
                         <b class="summary-stat-num" data-target="49">0</b>
                         <span class="summary-stat-text">所建筑</span>
-                    </div>
+                    </button>
                 </div>
             </header>
 
@@ -245,6 +245,46 @@
             </div><!-- /.summary-body -->
         </div><!-- /.summary-page -->
     </section>
+
+    <div id="summary-data-modal" class="summary-data-modal" aria-hidden="true">
+        <div class="summary-data-backdrop" data-summary-data-close aria-hidden="true"></div>
+        <section class="summary-data-dialog" role="dialog" aria-modal="true" aria-labelledby="summary-data-title">
+            <button class="summary-data-close" type="button" data-summary-data-close aria-label="关闭原始数据表格">×</button>
+            <div class="summary-data-tabs" role="tablist" aria-label="原始数据表切换">
+                <button class="summary-data-tab is-active" type="button" role="tab" aria-selected="true" data-summary-table-tab="patterns">13种窗棂纹样</button>
+                <button class="summary-data-tab" type="button" role="tab" aria-selected="false" data-summary-table-tab="variants">12种变体</button>
+                <button class="summary-data-tab" type="button" role="tab" aria-selected="false" data-summary-table-tab="apronVariants">裙板变体</button>
+                <button class="summary-data-tab" type="button" role="tab" aria-selected="false" data-summary-table-tab="levels">等级</button>
+                <button class="summary-data-tab" type="button" role="tab" aria-selected="false" data-summary-table-tab="areas">区域</button>
+                <button class="summary-data-tab" type="button" role="tab" aria-selected="false" data-summary-table-tab="houseTypes">房屋</button>
+                <button class="summary-data-tab" type="button" role="tab" aria-selected="false" data-summary-table-tab="buildings">建筑</button>
+            </div>
+            <header class="summary-data-header">
+                <h3 id="summary-data-title" class="summary-data-title">13种窗棂纹样</h3>
+                <p id="summary-data-subtitle" class="summary-data-subtitle">patterns.csv · 13 条记录</p>
+            </header>
+            <div class="summary-data-toolbar">
+                <label class="summary-data-search">
+                    <span class="summary-data-search-icon" aria-hidden="true">⌕</span>
+                    <input id="summary-data-search-input" type="search" autocomplete="off" placeholder="查找纹样 / 寓意">
+                </label>
+                <button id="summary-data-reset" class="summary-data-reset" type="button">⟳ 重置筛选</button>
+            </div>
+            <div class="summary-data-table-shell">
+                <table class="summary-data-table">
+                    <thead id="summary-data-table-head"></thead>
+                    <tbody id="summary-data-table-body"></tbody>
+                </table>
+                <p id="summary-data-empty" class="summary-data-empty" hidden>未找到匹配记录</p>
+            </div>
+            <footer class="summary-data-pagination" aria-label="表格分页">
+                <button id="summary-data-prev" class="summary-data-page-button" type="button" aria-label="上一页">‹</button>
+                <span id="summary-data-page-current" class="summary-data-page-current">1</span>
+                <button id="summary-data-next" class="summary-data-page-button" type="button" aria-label="下一页">›</button>
+                <span id="summary-data-page-total" class="summary-data-page-total">/ 1</span>
+            </footer>
+        </section>
+    </div>
 
 
 
@@ -465,6 +505,10 @@
                 var summaryContainer = document.getElementById("summary-container");
                 var showSummary = targetPage === "summary";
 
+                if (!showSummary && typeof window.closeSummaryDataModal === "function") {
+                    window.closeSummaryDataModal();
+                }
+
                 if (originContainer) {
                     originContainer.classList.toggle("is-active", showOrigin);
                     originContainer.setAttribute("aria-hidden", showOrigin ? "false" : "true");
@@ -554,6 +598,376 @@
                     requestAnimationFrame(tick);
                 });
             };
+
+            (function setupSummaryDataModal() {
+                var modal = document.getElementById("summary-data-modal");
+                var openTriggers = document.querySelectorAll("[data-summary-table-trigger]");
+                var closeControls = document.querySelectorAll("[data-summary-data-close]");
+                var tabs = document.querySelectorAll("[data-summary-table-tab]");
+                var title = document.getElementById("summary-data-title");
+                var subtitle = document.getElementById("summary-data-subtitle");
+                var searchInput = document.getElementById("summary-data-search-input");
+                var resetButton = document.getElementById("summary-data-reset");
+                var tableHead = document.getElementById("summary-data-table-head");
+                var tableBody = document.getElementById("summary-data-table-body");
+                var emptyMessage = document.getElementById("summary-data-empty");
+                var prevButton = document.getElementById("summary-data-prev");
+                var nextButton = document.getElementById("summary-data-next");
+                var pageCurrent = document.getElementById("summary-data-page-current");
+                var pageTotal = document.getElementById("summary-data-page-total");
+
+                if (!modal || !openTriggers.length || !tableHead || !tableBody) return;
+
+                var datasets = {
+                    patterns: {
+                        title: "13种窗棂纹样",
+                        path: "data/patterns.csv",
+                        fileLabel: "patterns.csv",
+                        pageSize: 13,
+                        searchPlaceholder: "查找纹样 / 寓意",
+                        columns: [
+                            { key: "__rowIndex", label: "序号", className: "is-index" },
+                            { key: "type", label: "纹样类型" },
+                            { key: "populartime", label: "流行时期" },
+                            { key: "intruductions", label: "介绍", className: "is-long" },
+                            { key: "meanings", label: "寓意", className: "is-long" }
+                        ]
+                    },
+                    variants: {
+                        title: "12种窗棂变体",
+                        path: "data/pattern_variant.csv",
+                        fileLabel: "pattern_variant.csv",
+                        pageSize: 12,
+                        searchPlaceholder: "查找变体 / 建筑",
+                        columns: [
+                            { key: "__rowIndex", label: "序号", className: "is-index" },
+                            { key: "pattern", label: "基础纹样" },
+                            { key: "variant", label: "变体名称" },
+                            { key: "introduction", label: "介绍", className: "is-long" },
+                            { key: "style", label: "风格" },
+                            { key: "buildings", label: "所属建筑" }
+                        ]
+                    },
+                    apronVariants: {
+                        title: "5种裙板纹样及13种变体",
+                        path: "data/apron_variant.csv",
+                        fileLabel: "apron_variant.csv",
+                        pageSize: 13,
+                        searchPlaceholder: "查找裙板 / 变体 / 建筑",
+                        columns: [
+                            { key: "__rowIndex", label: "序号", className: "is-index" },
+                            { key: "apron", label: "裙板纹样" },
+                            { key: "variant", label: "变体名称" },
+                            { key: "introduction", label: "介绍", className: "is-long" },
+                            { key: "meaning", label: "寓意", className: "is-long" },
+                            { key: "buildings", label: "所属建筑" }
+                        ]
+                    },
+                    levels: {
+                        title: "4层等级",
+                        path: "data/leveldata.csv",
+                        fileLabel: "leveldata.csv",
+                        pageSize: 13,
+                        searchPlaceholder: "查找等级 / 建筑 / 区域",
+                        columns: [
+                            { key: "__rowIndex", label: "序号", className: "is-index" },
+                            { key: "level", label: "等级" },
+                            { key: "representative_arch", label: "代表建筑" },
+                            { key: "area", label: "区域" },
+                            { key: "introduction", label: "介绍", className: "is-long" }
+                        ]
+                    },
+                    areas: {
+                        title: "8个区域",
+                        path: "data/area_introduction.csv",
+                        fileLabel: "area_introduction.csv",
+                        pageSize: 13,
+                        searchPlaceholder: "查找区域 / 介绍",
+                        columns: [
+                            { key: "__rowIndex", label: "序号", className: "is-index" },
+                            { key: "area", keys: ["区域", "\ufeff区域", "area"], label: "区域" },
+                            { key: "introduction", keys: ["介绍", "introduction", "description"], label: "介绍", className: "is-long" }
+                        ]
+                    },
+                    houseTypes: {
+                        title: "6种房屋",
+                        path: "data/house_type.csv",
+                        fileLabel: "house_type.csv",
+                        pageSize: 13,
+                        searchPlaceholder: "查找房屋 / 纹样 / 区域",
+                        columns: [
+                            { key: "__rowIndex", label: "序号", className: "is-index" },
+                            { key: "id", label: "ID" },
+                            { key: "buildings", label: "建筑" },
+                            { key: "type", label: "房屋类型" },
+                            { key: "level", label: "区域" },
+                            { key: "patterns", label: "纹样" },
+                            { key: "time", label: "出现次数" }
+                        ]
+                    },
+                    buildings: {
+                        title: "49所建筑",
+                        path: "data/buildings.csv",
+                        fileLabel: "buildings.csv",
+                        pageSize: 13,
+                        searchPlaceholder: "查找建筑 / 区域 / 纹样",
+                        columns: [
+                            { key: "__rowIndex", label: "序号", className: "is-index" },
+                            { key: "building_id", label: "建筑ID" },
+                            { key: "area", label: "区域" },
+                            { key: "architecture", label: "建筑" },
+                            { key: "time", label: "年代" },
+                            { key: "pattern", label: "纹样" },
+                            { key: "introduction", label: "简介", className: "is-long" },
+                            { key: "introduction_details", label: "详细介绍", className: "is-long" }
+                        ]
+                    }
+                };
+
+                var state = {
+                    activeKey: "patterns",
+                    rowsByKey: {},
+                    loadingCallbacksByKey: {},
+                    errorsByKey: {},
+                    queriesByKey: {},
+                    pagesByKey: {},
+                    lastFocusedElement: null
+                };
+
+                function cleanText(value) {
+                    return value === undefined || value === null ? "" : String(value).trim();
+                }
+
+                function getCellValue(row, column) {
+                    if (!row || !column) return "";
+                    if (column.key === "__rowIndex") return row.__rowIndex;
+                    var keys = column.keys || [column.key];
+                    for (var i = 0; i < keys.length; i++) {
+                        var value = cleanText(row[keys[i]]);
+                        if (value) return value;
+                    }
+                    return "";
+                }
+
+                function clearElement(element) {
+                    while (element && element.firstChild) {
+                        element.removeChild(element.firstChild);
+                    }
+                }
+
+                function renderTableHead(config) {
+                    clearElement(tableHead);
+                    var row = document.createElement("tr");
+                    config.columns.forEach(function(column) {
+                        var cell = document.createElement("th");
+                        cell.scope = "col";
+                        if (column.className) cell.className = column.className;
+                        cell.textContent = column.label;
+                        row.appendChild(cell);
+                    });
+                    tableHead.appendChild(row);
+                }
+
+                function renderMessageRow(config, text) {
+                    clearElement(tableBody);
+                    var row = document.createElement("tr");
+                    var cell = document.createElement("td");
+                    cell.className = "summary-data-message-cell";
+                    cell.colSpan = config.columns.length;
+                    cell.textContent = text;
+                    row.appendChild(cell);
+                    tableBody.appendChild(row);
+                }
+
+                function loadDataset(key, onDone) {
+                    if (state.rowsByKey[key]) {
+                        onDone();
+                        return;
+                    }
+                    if (state.loadingCallbacksByKey[key]) {
+                        state.loadingCallbacksByKey[key].push(onDone);
+                        return;
+                    }
+
+                    var config = datasets[key];
+                    state.loadingCallbacksByKey[key] = [onDone];
+                    d3.csv(config.path, function(error, rows) {
+                        state.errorsByKey[key] = error || null;
+                        state.rowsByKey[key] = (rows || []).map(function(row, index) {
+                            row.__rowIndex = index + 1;
+                            return row;
+                        });
+
+                        var callbacks = state.loadingCallbacksByKey[key] || [];
+                        state.loadingCallbacksByKey[key] = null;
+                        callbacks.forEach(function(callback) {
+                            callback();
+                        });
+                    });
+                }
+
+                function rowMatchesQuery(row, config, query) {
+                    if (!query) return true;
+                    var normalizedQuery = query.toLowerCase();
+                    return config.columns.some(function(column) {
+                        if (column.key === "__rowIndex") return false;
+                        return cleanText(getCellValue(row, column)).toLowerCase().indexOf(normalizedQuery) >= 0;
+                    });
+                }
+
+                function updateTabs() {
+                    tabs.forEach(function(tab) {
+                        var isActive = tab.getAttribute("data-summary-table-tab") === state.activeKey;
+                        tab.classList.toggle("is-active", isActive);
+                        tab.setAttribute("aria-selected", isActive ? "true" : "false");
+                    });
+                }
+
+                function updatePager(currentPage, totalPages) {
+                    pageCurrent.textContent = String(currentPage);
+                    pageTotal.textContent = "/ " + totalPages;
+                    prevButton.disabled = currentPage <= 1;
+                    nextButton.disabled = currentPage >= totalPages;
+                }
+
+                function renderCurrentTable() {
+                    var config = datasets[state.activeKey];
+                    var query = cleanText(state.queriesByKey[state.activeKey]);
+                    var rows = state.rowsByKey[state.activeKey];
+                    var isLoading = !!state.loadingCallbacksByKey[state.activeKey] && !rows;
+
+                    updateTabs();
+                    title.textContent = config.title;
+                    searchInput.placeholder = config.searchPlaceholder;
+                    searchInput.value = query;
+                    renderTableHead(config);
+
+                    if (isLoading) {
+                        subtitle.textContent = config.fileLabel + " · 正在加载";
+                        renderMessageRow(config, "正在加载数据...");
+                        emptyMessage.hidden = true;
+                        updatePager(1, 1);
+                        return;
+                    }
+
+                    if (state.errorsByKey[state.activeKey]) {
+                        subtitle.textContent = config.fileLabel + " · 加载失败";
+                        renderMessageRow(config, "数据加载失败，请检查 CSV 文件路径。");
+                        emptyMessage.hidden = true;
+                        updatePager(1, 1);
+                        return;
+                    }
+
+                    rows = rows || [];
+                    var filteredRows = rows.filter(function(row) {
+                        return rowMatchesQuery(row, config, query);
+                    });
+                    var totalPages = Math.max(1, Math.ceil(filteredRows.length / config.pageSize));
+                    var currentPage = state.pagesByKey[state.activeKey] || 1;
+                    currentPage = Math.max(1, Math.min(totalPages, currentPage));
+                    state.pagesByKey[state.activeKey] = currentPage;
+
+                    var startIndex = (currentPage - 1) * config.pageSize;
+                    var pageRows = filteredRows.slice(startIndex, startIndex + config.pageSize);
+
+                    subtitle.textContent = query
+                        ? config.fileLabel + " · " + filteredRows.length + "/" + rows.length + " 条记录"
+                        : config.fileLabel + " · " + rows.length + " 条记录";
+
+                    clearElement(tableBody);
+                    pageRows.forEach(function(row) {
+                        var tableRow = document.createElement("tr");
+                        config.columns.forEach(function(column) {
+                            var cell = document.createElement("td");
+                            if (column.className) cell.className = column.className;
+                            var value = cleanText(getCellValue(row, column));
+                            cell.textContent = value || "—";
+                            if (value) cell.title = value;
+                            tableRow.appendChild(cell);
+                        });
+                        tableBody.appendChild(tableRow);
+                    });
+
+                    emptyMessage.hidden = filteredRows.length > 0;
+                    updatePager(currentPage, totalPages);
+                }
+
+                function selectDataset(key) {
+                    if (!datasets[key]) key = "patterns";
+                    state.activeKey = key;
+                    if (!state.pagesByKey[key]) state.pagesByKey[key] = 1;
+                    loadDataset(key, function() {
+                        if (state.activeKey === key) renderCurrentTable();
+                    });
+                    renderCurrentTable();
+                }
+
+                function openSummaryDataModal(defaultKey) {
+                    state.lastFocusedElement = document.activeElement;
+                    modal.classList.add("is-open");
+                    modal.setAttribute("aria-hidden", "false");
+                    selectDataset(defaultKey || "patterns");
+                    window.setTimeout(function() {
+                        if (searchInput) searchInput.focus();
+                    }, 0);
+                }
+
+                function closeSummaryDataModal() {
+                    if (!modal.classList.contains("is-open")) return;
+                    modal.classList.remove("is-open");
+                    modal.setAttribute("aria-hidden", "true");
+                    if (state.lastFocusedElement && typeof state.lastFocusedElement.focus === "function" && document.contains(state.lastFocusedElement)) {
+                        state.lastFocusedElement.focus();
+                    }
+                }
+
+                openTriggers.forEach(function(openTrigger) {
+                    openTrigger.addEventListener("click", function() {
+                        openSummaryDataModal(openTrigger.getAttribute("data-summary-table-trigger"));
+                    });
+                });
+
+                closeControls.forEach(function(control) {
+                    control.addEventListener("click", closeSummaryDataModal);
+                });
+
+                tabs.forEach(function(tab) {
+                    tab.addEventListener("click", function() {
+                        selectDataset(tab.getAttribute("data-summary-table-tab"));
+                    });
+                });
+
+                searchInput.addEventListener("input", function() {
+                    state.queriesByKey[state.activeKey] = searchInput.value;
+                    state.pagesByKey[state.activeKey] = 1;
+                    renderCurrentTable();
+                });
+
+                resetButton.addEventListener("click", function() {
+                    state.queriesByKey[state.activeKey] = "";
+                    state.pagesByKey[state.activeKey] = 1;
+                    renderCurrentTable();
+                    searchInput.focus();
+                });
+
+                prevButton.addEventListener("click", function() {
+                    state.pagesByKey[state.activeKey] = Math.max(1, (state.pagesByKey[state.activeKey] || 1) - 1);
+                    renderCurrentTable();
+                });
+
+                nextButton.addEventListener("click", function() {
+                    state.pagesByKey[state.activeKey] = (state.pagesByKey[state.activeKey] || 1) + 1;
+                    renderCurrentTable();
+                });
+
+                window.addEventListener("keydown", function(event) {
+                    if (event.key === "Escape" && modal.classList.contains("is-open")) {
+                        closeSummaryDataModal();
+                    }
+                });
+
+                window.closeSummaryDataModal = closeSummaryDataModal;
+            })();
 
 
             function applyPageState(nextPage) {

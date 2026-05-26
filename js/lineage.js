@@ -161,6 +161,50 @@
 
     function cleanText(value) { return value === undefined || value === null ? "" : String(value).trim(); }
     function clamp(min, max, value) { return Math.max(min, Math.min(max, value)); }
+    var LINEAGE_PI2 = Math.PI * 2;
+    var LINEAGE_PI_HALF = Math.PI / 2;
+
+    function normalizeAngle(angle) {
+        var normalized = angle % LINEAGE_PI2;
+        return normalized < 0 ? normalized + LINEAGE_PI2 : normalized;
+    }
+
+    function isRightSideAngle(angle) {
+        var normalized = normalizeAngle(angle);
+        return normalized > 0 && normalized < Math.PI;
+    }
+
+    function polarX(radius, angle) { return radius * Math.cos(angle - LINEAGE_PI_HALF); }
+    function polarY(radius, angle) { return radius * Math.sin(angle - LINEAGE_PI_HALF); }
+
+    function estimateLabelWidth(text, fontSize) {
+        var raw = cleanText(text);
+        if (!raw) return 0;
+
+        var cjkCount = 0;
+        var latinCount = 0;
+        for (var index = 0; index < raw.length; index += 1) {
+            if (raw.charCodeAt(index) > 255) {
+                cjkCount += 1;
+            } else {
+                latinCount += 1;
+            }
+        }
+
+        return cjkCount * fontSize * 0.95 + latinCount * fontSize * 0.62;
+    }
+
+    function safeSvgTextLength(node, text, fontSize) {
+        var measured = 0;
+        if (node && typeof node.getComputedTextLength === "function") {
+            measured = node.getComputedTextLength();
+        }
+        if (!isFinite(measured) || measured <= 0) {
+            measured = estimateLabelWidth(text, fontSize);
+        }
+        return measured;
+    }
+
     function createElement(tagName, className, textContent) {
         var element = document.createElement(tagName);
         if (className) element.className = className;
@@ -309,7 +353,7 @@
         if (!descriptionElement) return;
 
         var centerLabel = cleanText(viewConfig.centerLabel) || cleanText(lineageState.tuning.text.centerLabel) || "裙板";
-        descriptionElement.textContent = "下图以节点分支形式，展现" + centerLabel + "基础纹样衍生出各类变体的谱系脉络";
+        descriptionElement.textContent = "下图以径向关系图形式，展现" + centerLabel + "基础纹样衍生出各类变体的谱系脉络";
     }
 
     function bindViewSwitchButtons() {
@@ -373,12 +417,7 @@
 
     function splitTypeLabel(label) {
         var text = cleanText(label);
-        if (!text) return [""];
-        if (text.indexOf("——") > -1) {
-            var parts = text.split("——");
-            if (parts.length >= 2) return [parts[0] + "——", parts.slice(1).join("——")];
-        }
-        return text.length > 9 ? [text.slice(0, 9), text.slice(9)] : [text];
+        return text ? [text] : [""];
     }
 
     function addUniqueName(nameList, name) {
@@ -840,102 +879,215 @@
     }
 
     function computeLayout(data, width, height) {
-        var tuning = lineageState.tuning;
-        var layout = tuning.layout;
-        var visual = tuning.visual;
-        var centerX = width * layout.centerXRatio;
-        var centerY = height * layout.centerYRatio;
         var baseRadius = Math.min(width, height);
-        var typeRingRadius = baseRadius * layout.typeRingRatio;
-        var variantRingRadius = baseRadius * layout.variantRingRatio;
+        var sizeFactor = width / 1600;
+        var centerX = width / 2;
+        var centerY = height / 2;
 
-        data.centerNode.x = centerX;
-        data.centerNode.y = centerY;
-
-        var typeCount = Math.max(1, data.typeNodes.length);
-        var typeStep = (Math.PI * 2) / typeCount;
-
-        data.typeNodes.forEach(function (typeNode, typeIndex) {
-            var typeAngle = layout.typeStartAngle + typeStep * typeIndex;
-            typeNode.angle = typeAngle;
-            typeNode.x = centerX + Math.cos(typeAngle) * typeRingRadius;
-            typeNode.y = centerY + Math.sin(typeAngle) * typeRingRadius;
-        });
-
-        data.typeNodes.forEach(function (typeNode) {
-            var variants = data.variantsByType[typeNode.id] || [];
-            var count = variants.length;
-            var spread = clamp(layout.variantSpreadMin, layout.variantSpreadMax, (count - 1) * layout.variantSpreadStep + layout.variantSpreadBase);
-
-            variants.forEach(function (variantNode, index) {
-                var angleOffset = count === 1 ? 0 : (-spread / 2 + (spread * index) / (count - 1));
-                var variantAngle = typeNode.angle + angleOffset;
-                var radialOffset = index % 2 === 0 ? -layout.variantRadialOffset : layout.variantRadialOffset;
-                var variantRadius = variantRingRadius + radialOffset;
-
-                variantNode.angle = variantAngle;
-                variantNode.x = centerX + Math.cos(variantAngle) * variantRadius;
-                variantNode.y = centerY + Math.sin(variantAngle) * variantRadius;
-            });
-        });
-
-        data.nodes.forEach(function (node) {
-            if (node.level === 0) {
-                node.labelX = node.x;
-                node.labelY = node.y;
-                node.labelAnchor = "middle";
-                node.labelLines = [node.label];
-                return;
-            }
-
-            var angle = Math.atan2(node.y - centerY, node.x - centerX);
-            var labelOffset = visual.labelOffsetByLevel[String(node.level)] || visual.labelOffsetByLevel["2"];
-
-            node.labelX = node.x + Math.cos(angle) * labelOffset;
-            node.labelY = node.y + Math.sin(angle) * labelOffset;
-            node.labelAnchor = node.level === 1 ? "middle" : (Math.cos(angle) >= 0 ? "start" : "end");
-            node.labelLines = node.level === 1 ? splitTypeLabel(node.label) : [node.displayLabel || node.label];
-        });
-
-        data.layout = {
+        var radialLayout = {
             width: width,
             height: height,
             centerX: centerX,
             centerY: centerY,
-            typeRingRadius: typeRingRadius,
-            variantRingRadius: variantRingRadius
-        };
+            baseRadius: baseRadius,
+            sizeFactor: sizeFactor,
+            radTypeDonutInner: baseRadius * 0.110,
+            radTypeDonutOuter: baseRadius * 0.114,
+            radName: baseRadius * 0.125 + 6 * sizeFactor,
+            radVariantRingInner: baseRadius * 0.278,
+            radVariantRingOuter: baseRadius * 0.286,
+            radVariantDot: baseRadius * 0.278,
+            radVariantLabel: baseRadius * 0.298,
+            radVariantHoverInner: baseRadius * 0.258,
+            radVariantHoverOuter: baseRadius * 0.300,
+            radLineMin: baseRadius * 0.105,
+            radLineMax: baseRadius * 0.190,//转弯处
+            radLineLabel: baseRadius * 0.228,
+            radCenterHit: baseRadius * 0.09,
+            typeDotRadius: Math.max(13, 18 * sizeFactor),//节点大小1
+            variantDotRadius: Math.max(9, 13 * sizeFactor),//节点大小2
+            typeLabelFontSize:36 * sizeFactor,
+            typeLabelSubFontSize: 24 * sizeFactor,
+            variantLabelFontSize: 30 * sizeFactor,
+            centerTitleFontSize: 55 * sizeFactor,
+            guideFontSize:  28 * sizeFactor
+        };//衍生谱系图可调参数
+
+        data.centerNode.angle = 0;
+        data.centerNode.radialRadius = 0;
+        data.centerNode.chartX = 0;
+        data.centerNode.chartY = 0;
+        data.centerNode.x = centerX;
+        data.centerNode.y = centerY;
+        data.centerNode.labelLines = [data.centerNode.label];
+
+        var pie = d3.pie()
+            .sort(null)
+            .value(function (d) { return Math.max(1, d.count || 1); });
+        var typeArcs = pie(data.typeNodes);
+
+        typeArcs.forEach(function (arcData, index) {
+            var typeNode = data.typeNodes[index];
+            var labelLines = splitTypeLabel(typeNode.label);
+            var angle = (arcData.endAngle - arcData.startAngle) / 2 + arcData.startAngle;
+
+            typeNode.typeArc = arcData;
+            typeNode.angle = angle;
+            typeNode.centerAngle = angle;
+            typeNode.nameAngle = angle;
+            typeNode.radialRadius = radialLayout.radName;
+            typeNode.dotNameRadius = radialLayout.radName + estimateLabelWidth(typeNode.label, radialLayout.typeLabelFontSize) + 10 * sizeFactor;
+            typeNode.firstName = labelLines[0] || typeNode.label;
+            typeNode.lastName = labelLines.length > 1 ? labelLines.slice(1).join("") : "";
+            typeNode.labelLines = labelLines;
+            typeNode.labelAnchor = isRightSideAngle(angle) ? "start" : "end";
+            typeNode.chartX = polarX(typeNode.dotNameRadius, angle);
+            typeNode.chartY = polarY(typeNode.dotNameRadius, angle);
+            typeNode.x = centerX + typeNode.chartX;
+            typeNode.y = centerY + typeNode.chartY;
+        });
+
+        var hierarchyRows = [{ id: "lineage-root", parentId: "" }];
+        data.typeNodes.forEach(function (typeNode) {
+            hierarchyRows.push({ id: typeNode.id, parentId: "lineage-root", node: typeNode });
+            (data.variantsByType[typeNode.id] || []).forEach(function (variantNode) {
+                hierarchyRows.push({ id: variantNode.id, parentId: typeNode.id, node: variantNode });
+            });
+        });
+
+        if (hierarchyRows.length > 1) {
+            var root = d3.stratify()
+                .id(function (d) { return d.id; })
+                .parentId(function (d) { return d.parentId || null; })
+                (hierarchyRows);
+            var cluster = d3.cluster()
+                .size([360, radialLayout.radVariantDot])
+                .separation(function (a, b) { return a.parent === b.parent ? 1 : 1.3; });
+            cluster(root);
+
+            root.descendants().forEach(function (clusterNode) {
+                if (!clusterNode.data || !clusterNode.data.node) return;
+                if (clusterNode.data.node.level === 1) {
+                    clusterNode.data.node.clusterAngle = clusterNode.x * Math.PI / 180;
+                }
+            });
+
+            var leaves = root.leaves();
+            var angleDistance = leaves.length > 1
+                ? Math.abs(leaves[1].x - leaves[0].x) * Math.PI / 180
+                : LINEAGE_PI2;
+
+            leaves.forEach(function (leaf) {
+                var variantNode = leaf.data.node;
+                if (!variantNode || variantNode.level !== 2) return;
+
+                var variantAngle = leaf.x * Math.PI / 180;
+                variantNode.angle = variantAngle;
+                variantNode.centerAngle = variantAngle;
+                variantNode.radialRadius = radialLayout.radVariantDot;
+                variantNode.startAngle = variantAngle - angleDistance / 2;
+                variantNode.endAngle = variantAngle + angleDistance / 2;
+                variantNode.labelAnchor = isRightSideAngle(variantAngle) ? "start" : "end";
+                variantNode.labelLines = [variantNode.displayLabel || variantNode.label];
+                variantNode.chartX = polarX(radialLayout.radVariantDot, variantAngle);
+                variantNode.chartY = polarY(radialLayout.radVariantDot, variantAngle);
+                variantNode.x = centerX + variantNode.chartX;
+                variantNode.y = centerY + variantNode.chartY;
+            });
+        }
+
+        data.layout = radialLayout;
     }
 
-    function buildLinkPath(source, target, level) {
-        /*
-         * 弧形样条——与 main.js create_lines 同系列造型：
-         * 两个控制点沿径向外推到弧段位置，形成"鼓肚"弧线。
-         * level-1（中心→类型）弯曲较小；level-2（类型→变体）弯曲更明显。
-         */
-        var dx = target.x - source.x;
-        var dy = target.y - source.y;
-        var distance = Math.sqrt(dx * dx + dy * dy) || 1;
-        var normalX = -dy / distance;
-        var normalY = dx / distance;
+    function buildRadialConnectionPath(sourceAngle, sourceRadius, targetAngle, targetRadius, layout, level) {
+        if (level === 1) {
+            return d3.lineRadial()
+                .angle(function (d) { return d.angle; })
+                .radius(function (d) { return d.radius; })
+                .curve(d3.curveLinear)
+                ([
+                    { angle: sourceAngle || 0, radius: sourceRadius },
+                    { angle: targetAngle || 0, radius: targetRadius }
+                ]);
+        }
 
-        /* 弯曲幅度：level-1 轻弯，level-2 明显弧形 */
-        var bendRatio = level === 1 ? 0.08 : 0.35;
-        var bendSign = level === 1 ? 1 : (Math.sin(target.angle || 0) >= 0 ? 1 : -1);
-        var bend = distance * bendRatio * bendSign;
+        var sourceA = normalizeAngle(sourceAngle || 0);
+        var targetA = normalizeAngle(targetAngle || 0);
+        var lineData = [];
+        var side;
+        var da;
+        var angleSign;
 
-        /* 控制点 1：靠近源点 1/3 处，沿法线外推 */
-        var cp1x = source.x + dx * 0.25 + normalX * bend;
-        var cp1y = source.y + dy * 0.25 + normalY * bend;
+        if (targetA - sourceA < -Math.PI) {
+            side = "cw";
+            da = 2 + (targetA - sourceA) / Math.PI;
+            angleSign = 1;
+        } else if (targetA - sourceA < 0) {
+            side = "ccw";
+            da = (sourceA - targetA) / Math.PI;
+            angleSign = -1;
+        } else if (targetA - sourceA < Math.PI) {
+            side = "cw";
+            da = (targetA - sourceA) / Math.PI;
+            angleSign = 1;
+        } else {
+            side = "ccw";
+            da = 2 - (targetA - sourceA) / Math.PI;
+            angleSign = -1;
+        }
 
-        /* 控制点 2：靠近目标点 2/3 处，沿法线外推 */
-        var cp2x = source.x + dx * 0.75 - normalX * bend;
-        var cp2y = source.y + dy * 0.75 - normalY * bend;
+        var curveStart = level === 1 ? layout.radLineMin * 0.76 : layout.radLineMax;
+        var curveEnd = level === 1 ? layout.radLineMin : layout.radLineMin;
 
-        return "M" + source.x + "," + source.y
-             + " C" + cp1x + "," + cp1y
-             + " "  + cp2x + "," + cp2y
-             + " "  + target.x + "," + target.y;
+        var radCurveLine;
+        if (level === 1) {
+            radCurveLine = curveStart + (curveEnd - curveStart) * da;
+        } else {
+            // 第二层连线：两侧更贴近内圈文字下方，中间保持更靠外
+            var sideT = clamp(0, 1, da / 0.45);
+            sideT = Math.pow(sideT, 1.6);//变小向里贴
+
+            var innerCurveRadius = layout.radName + 2 * layout.sizeFactor;
+            var outerCurveRadius = layout.radLineMax;
+
+            radCurveLine = outerCurveRadius + (innerCurveRadius - outerCurveRadius) * sideT;
+        }
+        var startOffset = level === 1 ? 0.012 : (0.015 + 0.055 * sideT);
+        var endOffset = level === 1 ? 0.012 : (0.005 + 0.035 * sideT);
+        var startAngle = sourceA + angleSign * startOffset * Math.PI;
+        var endAngle = targetA - angleSign * endOffset * Math.PI;
+        var daInner;
+
+        if (targetA - sourceA < -Math.PI) {
+            daInner = LINEAGE_PI2 + (endAngle - startAngle);
+        } else if (targetA - sourceA < 0) {
+            daInner = startAngle - endAngle;
+        } else if (targetA - sourceA < Math.PI) {
+            daInner = endAngle - startAngle;
+        } else {
+            daInner = LINEAGE_PI2 - (endAngle - startAngle);
+        }
+
+        lineData.push({ angle: sourceA, radius: sourceRadius });
+        lineData.push({ angle: startAngle, radius: radCurveLine });
+
+        var step = 0.06;
+        var segmentCount = Math.abs(Math.floor(daInner / step));
+        var curveAngle = startAngle;
+        var sign = side === "cw" ? 1 : -1;
+        for (var index = 0; index < segmentCount; index += 1) {
+            curveAngle += (sign * step) % LINEAGE_PI2;
+            lineData.push({ angle: curveAngle, radius: radCurveLine });
+        }
+
+        lineData.push({ angle: endAngle, radius: radCurveLine });
+        lineData.push({ angle: targetA, radius: targetRadius });
+
+        return d3.lineRadial()
+            .angle(function (d) { return d.angle; })
+            .radius(function (d) { return d.radius; })
+            .curve(d3.curveBasis)
+            (lineData);
     }
 
 
@@ -1050,6 +1202,78 @@
 
     function resolvePinnedNode(data) { return data.nodeById[lineageState.pinnedNodeId] || data.centerNode; }
 
+    function updateRadialFocusStyles(context, activeNode) {
+        if (!context || !context.data || !context.data.layout) return;
+
+        var layout = context.data.layout;
+        context.nodeSelection.each(function (node) {
+            var group = d3.select(this);
+            var active = node.id === activeNode.id;
+            var relatedVariant = node.level === 2 && activeNode.level === 1 && node.parentId === activeNode.id;
+
+            group.select(".lineage-type-hover-circle")
+                .style("opacity", active && node.level === 1 ? 1 : 0);
+
+            group.select(".lineage-type-dot")
+                .attr("r", layout.typeDotRadius * (active && node.level === 1 ? 1.5 : 1))
+                .style("stroke-width", (3 * layout.sizeFactor) * (active && node.level === 1 ? 1.5 : 1));
+
+            group.select(".lineage-variant-dot")
+                .attr("r", layout.variantDotRadius * ((active || relatedVariant) ? 1.5 : 1))
+                .style("stroke-width", (layout.variantDotRadius * 0.5) * ((active || relatedVariant) ? 1.5 : 1))
+                .style("fill", function () {
+                    return node.color || "#c4c4c4";
+                });
+        });
+
+        if (context.linkSelection) {
+            context.linkSelection
+                .style("opacity", function (link) {
+                    if (activeNode.level === 0) return 0.3;//衍生谱系连线默认透明度
+                    return linkIsRelated(link, activeNode) ? 1 : 0.25;
+                })
+                .style("stroke-width", function (link) {
+                    var active = linkIsRelated(link, activeNode) && activeNode.level !== 0;
+                    var base = link.level === 1
+                        ? Math.max(3.2, 5.0 * layout.sizeFactor)
+                        : Math.max(3.6, 5.6 * layout.sizeFactor);//谱系图连线粗细
+                    return (active ? base * 1.28 : base) + "px";
+                });
+        }
+
+        if (context.ringSelection) {
+            setRelationClasses(
+                context.ringSelection,
+                function (typeNode) {
+                    if (!activeNode || activeNode.level === 0) return true;
+                    if (activeNode.level === 1) return typeNode.id === activeNode.id;
+                    if (activeNode.level === 2) return typeNode.id === activeNode.parentId;
+                    return true;
+                },
+                function (typeNode) {
+                    if (!activeNode) return false;
+                    return activeNode.level === 1
+                        ? typeNode.id === activeNode.id
+                        : activeNode.level === 2 && typeNode.id === activeNode.parentId;
+                }
+            );
+        }
+
+        if (context.guideText && context.guidePath && context.guideArc) {
+            var guideAngle = context.data.typeNodes.length ? context.data.typeNodes[0].nameAngle : 0;
+            var guideText = "彩色连线展示了类型与变体之间的衍生关系";
+            if (activeNode.level === 1) {
+                guideAngle = activeNode.nameAngle || activeNode.angle || guideAngle;
+                guideText = activeNode.label + "：" + (activeNode.count || 0) + "个变体";
+            } else if (activeNode.level === 2) {
+                guideAngle = activeNode.centerAngle || activeNode.angle || guideAngle;
+                guideText = activeNode.parentLabel + " → " + activeNode.label;
+            }
+            context.guidePath.attr("d", context.guideArc(guideAngle));
+            context.guideText.text(guideText);
+        }
+    }
+
     function applyFocus(focusNode) {
         var context = lineageState.renderContext;
         if (!context) return;
@@ -1080,6 +1304,7 @@
             function (link) { return linkIsRelated(link, activeNode); }
         );
 
+        updateRadialFocusStyles(context, activeNode);
         updateSidebarFocus(activeNode);
     }
 
@@ -1105,35 +1330,105 @@
         return mergeConfig(baseGradients, viewGradients);
     }
 
-    function renderRingsAndTrend(svg, data) {
-        var tuning = lineageState.tuning;
-        var layout = data.layout;
-        var trendOffset = tuning.visual.trendOffset;
+    function renderRingsAndTrend(chart) {
+        return chart.append("g")
+            .attr("class", "lineage-ring-layer")
+            .selectAll(".lineage-ring-placeholder")
+            .data([]);
     }
 
-    function renderLinks(svg, data) {
-        var linkCurve = lineageState.tuning.visual.linkCurve;
-        var linkLayer = svg.append("g").attr("class", "lineage-links");
+    function renderLineageGuideLabel(chart, data) {
+        var layout = data.layout;
+        var guideLayer = chart.append("g").attr("class", "lineage-line-label-group");
+        var guidePathId = "lineage-line-label-path";
+
+        function guideArc(angle) {
+            var x1 = polarX(layout.radLineLabel, angle + 0.01);
+            var y1 = polarY(layout.radLineLabel, angle + 0.01);
+            var x2 = polarX(layout.radLineLabel, angle - 0.01);
+            var y2 = polarY(layout.radLineLabel, angle - 0.01);
+            if (normalizeAngle(angle) > Math.PI / 2 && normalizeAngle(angle) < Math.PI * 1.5) {
+                return "M" + x1 + "," + y1 + " A" + layout.radLineLabel + "," + layout.radLineLabel + " 0 1 1 " + x2 + "," + y2;
+            }
+            return "M" + x2 + "," + y2 + " A" + layout.radLineLabel + "," + layout.radLineLabel + " 0 1 0 " + x1 + "," + y1;
+        }
+
+        var initialAngle = data.typeNodes.length ? data.typeNodes[0].nameAngle : 0;
+        var guidePath = guideLayer.append("path")
+            .attr("class", "lineage-line-label-path")
+            .attr("id", guidePathId)
+            .attr("d", guideArc(initialAngle))
+            .style("fill", "none")
+            .style("display", "none");
+
+        var guideText = guideLayer.append("text")
+            .attr("class", "lineage-line-label")
+            .attr("dy", "0.35em")
+            .style("text-anchor", "middle")
+            .style("font-size", layout.guideFontSize + "px")
+            .append("textPath")
+            .attr("xlink:href", "#" + guidePathId)
+            .attr("startOffset", "50%")
+            .text("彩色连线展示了类型与变体之间的衍生关系");
+
+        return {
+            guidePath: guidePath,
+            guideText: guideText,
+            guideArc: guideArc
+        };
+    }
+
+    function renderLinks(linkLayer, data) {
+        var layout = data.layout;
         var renderedLinks = data.links.map(function (link) {
             var targetNode = data.nodeById[link.target];
             var sourceNode = data.nodeById[link.source];
+            var path = "";
+            var color = (targetNode && targetNode.color) || (sourceNode && sourceNode.color) || null;
+
+            if (link.level === 1 && targetNode) {
+                path = buildRadialConnectionPath(
+                    targetNode.nameAngle || targetNode.angle || 0,
+                    Math.max(4, layout.radCenterHit * 0.38),
+                    targetNode.nameAngle || targetNode.angle || 0,
+                    targetNode.dotNameRadius || layout.radName,
+                    layout,
+                    link.level
+                );
+            } else if (sourceNode && targetNode) {
+                path = buildRadialConnectionPath(
+                    sourceNode.nameAngle || sourceNode.angle || 0,
+                    sourceNode.dotNameRadius || layout.radName,
+                    targetNode.centerAngle || targetNode.angle || 0,
+                    targetNode.radialRadius || layout.radVariantDot,
+                    layout,
+                    link.level
+                );
+            }
+
             return {
                 id: link.id,
                 level: link.level,
                 source: link.source,
                 target: link.target,
-                path: buildLinkPath(sourceNode, targetNode, link.level),
-                color: (targetNode && targetNode.color) || (sourceNode && sourceNode.color) || null/*连线颜色*/
+                path: path,
+                color: color/*连线颜色*/
             };
         });
 
-        /* 平面风格：不再绘制 link-shadow，用空选择占位保持接口兼容 */
+        /* CCS-SVG 同款主关系线不再绘制投影，用空选择占位保持接口兼容 */
         var linkShadowSelection = linkLayer.selectAll(".lineage-link-shadow").data([]);
 
         var linkSelection = linkLayer.selectAll(".lineage-link").data(renderedLinks).enter().append("path")
             .attr("class", function (d) { return "lineage-link lineage-link-level-" + d.level; })
             .attr("d", function (d) { return d.path; })
             .style("stroke", function (d) { return d.color; })
+            .style("stroke-width", function (d) {
+                return (d.level === 1
+                    ? Math.max(3.2, 5.0 * layout.sizeFactor)
+                    : Math.max(3.2, 5.0 * layout.sizeFactor)
+                ) + "px";
+            })
             .style("opacity", 0.7);
 
         return { linkSelection: linkSelection, linkShadowSelection: linkShadowSelection };
@@ -1158,75 +1453,250 @@
 
 
 
-    function renderNodes(svg, data) {
-        var visual = lineageState.tuning.visual;
-        var nodeLayer = svg.append("g").attr("class", "lineage-nodes");
+    function renderNodes(chart, data) {
+        var layout = data.layout;
+        var nodeLayer = chart.append("g").attr("class", "lineage-nodes");
 
-        var nodeSelection = nodeLayer.selectAll(".lineage-node").data(data.nodes).enter().append("g")
-            .attr("class", function (d) { return "lineage-node lineage-node-level-" + d.level; })
-            .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+        var centerNodeSelection = nodeLayer.selectAll(".lineage-center-node")
+            .data([data.centerNode])
+            .enter().append("g")
+            .attr("class", "lineage-node lineage-node-level-0 lineage-center-node")
             .attr("tabindex", 0)
             .attr("role", "button")
             .attr("aria-label", nodeAriaLabel);
 
-        /* 平面风格：只保留 core 圆，纯色 + 白描边，与 main.js type-dot 一致 */
-        nodeSelection.append("circle").attr("class", "lineage-node-core")
-            .attr("r", getNodeRadius)
-            .style("fill", nodeGradientFill)
-            .style("stroke", "white")
-            .style("stroke-width", function (d) { return d.level === 0 ? 3 : 2.5; });
+        centerNodeSelection.append("circle")
+            .attr("class", "lineage-center-hit")
+            .attr("r", layout.radCenterHit)
+            .style("fill", "transparent")
+            .style("pointer-events", "all");
 
-        nodeSelection.filter(function (d) { return d.level === 0; }).append("text")
-            .attr("class", "lineage-center-text")
+        var centerTitle = cleanText(data.centerNode.label);
+        centerNodeSelection.append("text")
+            .attr("class", "lineage-center-text lineage-center-title")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
-            .attr("dominant-baseline", "middle")
-            .text(function (d) { return d.label; });
+            .style("font-size", layout.centerTitleFontSize + "px")
+            .text(centerTitle);
 
-        return nodeSelection;
+        var typeNodeSelection = nodeLayer.selectAll(".lineage-type-node")
+            .data(data.typeNodes)
+            .enter().append("g")
+            .attr("class", "lineage-node lineage-node-level-1 lineage-type-node")
+            .attr("transform", function (d) { return "translate(" + d.chartX + "," + d.chartY + ")"; })
+            .attr("tabindex", 0)
+            .attr("role", "button")
+            .attr("aria-label", nodeAriaLabel);
+
+        typeNodeSelection.append("circle")
+            .attr("class", "lineage-hover-circle lineage-type-hover-circle")
+            .attr("r", Math.max(24, 44 * layout.sizeFactor))
+            .style("fill", function (d) { return d.color; })
+            .style("fill-opacity", 0.3)
+            .style("opacity", 0);
+
+        typeNodeSelection.append("circle")
+            .attr("class", "lineage-node-core lineage-type-dot")
+            .attr("r", layout.typeDotRadius)
+            .style("fill", function (d) { return d.color; })
+            .style("stroke", "white")
+            .style("stroke-width", 3 * layout.sizeFactor);
+
+        typeNodeSelection.append("circle")
+            .attr("class", "lineage-node-hit")
+            .attr("r", Math.max(24, 44 * layout.sizeFactor))//hover命中圈
+            .style("fill", "transparent")
+            .style("pointer-events", "all");
+
+        var variantNodeSelection = nodeLayer.selectAll(".lineage-variant-node")
+            .data(data.variantNodes)
+            .enter().append("g")
+            .attr("class", "lineage-node lineage-node-level-2 lineage-variant-node")
+            .attr("transform", function (d) { return "translate(" + d.chartX + "," + d.chartY + ")"; })
+            .attr("tabindex", 0)
+            .attr("role", "button")
+            .attr("aria-label", nodeAriaLabel);
+
+        variantNodeSelection.append("circle")
+            .attr("class", "lineage-node-core lineage-variant-dot")
+            .attr("r", layout.variantDotRadius)
+            .style("fill", function (d) { return d.color || "#c4c4c4"; })
+            .style("stroke", "white")
+            .style("stroke-width", layout.variantDotRadius * 0.5);
+
+        variantNodeSelection.append("circle")
+            .attr("class", "lineage-node-hit")
+            .attr("r", Math.max(15, 22 * layout.sizeFactor))//变体节点命中圈
+            .style("fill", "transparent")
+            .style("pointer-events", "all");
+
+        return nodeLayer.selectAll(".lineage-node");
     }
 
-    function appendLabelText(labelGroup, node) {
-        var visual = lineageState.tuning.visual;
-        var text = labelGroup.append("text")
-            .attr("class", "lineage-label-text")
-            .attr("text-anchor", node.labelAnchor)
-            .attr("dominant-baseline", "middle")
-            /*.style("fill", node.color || null);字体多彩*/
-
-        var lines = node.labelLines || [node.label];
-        var firstOffsetEm = -((lines.length - 1) * visual.labelFirstLineFactor);
-
-        lines.forEach(function (lineText, index) {
-            text.append("tspan").attr("x", 0).attr("dy", index === 0 ? (firstOffsetEm + "em") : (visual.labelLineGapEm + "em")).text(lineText);
-        });
+    function radialTextTransform(angle, radius) {
+        return "rotate(" + (angle * 180 / Math.PI - 90) + ")"
+            + "translate(" + radius + ")"
+            + (isRightSideAngle(angle) ? "" : "rotate(180)");
     }
 
-    function renderLabels(svg, data) {
-        var visual = lineageState.tuning.visual;
-        var labelNodes = data.nodes.filter(function (node) { return node.level !== 0; });
-        var labelLayer = svg.append("g").attr("class", "lineage-labels");
-        var labelSelection = labelLayer.selectAll(".lineage-label").data(labelNodes).enter().append("g")
-            .attr("class", function (d) { return "lineage-label lineage-label-level-" + d.level; })
-            .attr("transform", function (d) { return "translate(" + d.labelX + "," + d.labelY + ")"; });
+    function buildReadableArcPath(radius, startAngle, endAngle) {
+        var span = Math.max(0.001, Math.abs(endAngle - startAngle));
+        var centerAngle = normalizeAngle((startAngle + endAngle) / 2);
+        var largeArc = span > Math.PI ? 1 : 0;
 
-        labelSelection.each(function (node) { appendLabelText(d3.select(this), node); });
+        var xStart = polarX(radius, startAngle);
+        var yStart = polarY(radius, startAngle);
+        var xEnd = polarX(radius, endAngle);
+        var yEnd = polarY(radius, endAngle);
 
-        labelSelection.each(function () {
-            var group = d3.select(this);
-            var textNode = group.select("text").node();
-            if (!textNode) return;
-            var bbox = textNode.getBBox();
-            group.insert("rect", "text")
-                .attr("class", "lineage-label-bg")
-                .attr("x", bbox.x - visual.labelBgPadding.x)
-                .attr("y", bbox.y - visual.labelBgPadding.y)
-                .attr("width", bbox.width + visual.labelBgPadding.x * 2)
-                .attr("height", bbox.height + visual.labelBgPadding.y * 2)
-                .attr("rx", visual.labelBgPadding.rx)
-                .attr("ry", visual.labelBgPadding.ry);
+        // 这段弧的 endAngle 是靠近节点的一端。
+        // 上半圈：路径从 startAngle 到 endAngle，节点端在 100%。
+        // 下半圈：路径反向从 endAngle 到 startAngle，节点端在 0%，避免文字倒置。
+        if (centerAngle > Math.PI / 2 && centerAngle < Math.PI * 1.5) {
+            return {
+                path: "M" + xEnd + "," + yEnd +
+                    " A" + radius + "," + radius +
+                    " 0 " + largeArc + " 0 " + xStart + "," + yStart,
+                startOffset: "0%",
+                textAnchor: "start"
+            };
+        }
+
+        return {
+            path: "M" + xStart + "," + yStart +
+                " A" + radius + "," + radius +
+                " 0 " + largeArc + " 1 " + xEnd + "," + yEnd,
+            startOffset: "100%",
+            textAnchor: "end"
+        };
+    }
+
+    function buildCounterClockwiseTypeLabelPath(typeNode, radius, text, fontSize, gapAngle, padding) {
+        var width = estimateLabelWidth(text, fontSize) + padding;
+        var span = Math.max(0.18, Math.min(Math.PI * 0.55, width / Math.max(radius, 1)));
+
+        // endAngle 是靠近节点的位置。
+        // startAngle 比 endAngle 更小，所以整段文字位于节点逆时针方向。
+        var endAngle = (typeNode.nameAngle || 0) - gapAngle;
+        var startAngle = endAngle - span;
+
+        return buildReadableArcPath(radius, startAngle, endAngle);
+    }
+
+    function renderLabels(chart, data) {
+        var layout = data.layout;
+        var labelLayer = chart.append("g").attr("class", "lineage-labels lineage-radial-labels");
+        var typeLabelPrimaryRadius = layout.radName + 8 * layout.sizeFactor;
+        var typeLabelSecondaryRadius = Math.max(layout.radName - 8 * layout.sizeFactor, layout.typeLabelSubFontSize + 12 * layout.sizeFactor);
+        var typeLabelGapAngle = 0.18;//弧线排版文字起点
+
+        data.typeNodes.forEach(function (typeNode) {
+            var primaryPath = buildCounterClockwiseTypeLabelPath(
+                typeNode,
+                typeLabelPrimaryRadius,
+                typeNode.firstName,
+                layout.typeLabelFontSize,
+                typeLabelGapAngle,
+                18 * layout.sizeFactor
+            );
+
+            var secondaryPath = buildCounterClockwiseTypeLabelPath(
+                typeNode,
+                typeLabelSecondaryRadius,
+                typeNode.lastName,
+                layout.typeLabelSubFontSize,
+                typeLabelGapAngle + 0.016,
+                12 * layout.sizeFactor
+            );
+
+            typeNode.primaryLabelPathId = "lineage-type-label-path-" + typeNode.id;
+            typeNode.secondaryLabelPathId = "lineage-type-sub-label-path-" + typeNode.id;
+
+            typeNode.primaryLabelPath = primaryPath.path;
+            typeNode.primaryLabelStartOffset = primaryPath.startOffset;
+            typeNode.primaryLabelTextAnchor = primaryPath.textAnchor;
+
+            typeNode.secondaryLabelPath = secondaryPath.path;
+            typeNode.secondaryLabelStartOffset = secondaryPath.startOffset;
+            typeNode.secondaryLabelTextAnchor = secondaryPath.textAnchor;
         });
 
-        return labelSelection;
+        var typeLabelSelection = labelLayer.selectAll(".lineage-type-label")
+            .data(data.typeNodes)
+            .enter().append("g")
+            .attr("class", "lineage-label lineage-label-level-1 lineage-type-label")
+            .style("font-family", "Anime Ace")
+            .style("font-weight", "normal");
+            
+
+        typeLabelSelection.append("path")
+            .attr("class", "lineage-type-label-path lineage-type-name-label-path")
+            .attr("id", function (d) { return d.primaryLabelPathId; })
+            .attr("d", function (d) { return d.primaryLabelPath; })
+            .style("fill", "none")
+            .style("display", "none");
+
+        typeLabelSelection.append("text")
+            .attr("class", "lineage-label-text lineage-name-label")
+            .attr("id", function (d) { return "lineage-name-label-" + d.id; })
+            .style("font-size", layout.typeLabelFontSize + "px")
+            .style("text-anchor", function (d) { return d.primaryLabelTextAnchor; })
+            .append("textPath")
+            .attr("xlink:href", function (d) { return "#" + d.primaryLabelPathId; })
+            .attr("startOffset", function (d) { return d.primaryLabelStartOffset; })
+            .text(function (d) { return d.firstName; });
+
+        typeLabelSelection.append("path")
+            .attr("class", "lineage-type-label-path lineage-type-sub-label-path")
+            .attr("id", function (d) { return d.secondaryLabelPathId; })
+            .attr("d", function (d) { return d.secondaryLabelPath; })
+            .style("fill", "none")
+            .style("display", "none");
+
+        typeLabelSelection.append("text")
+            .attr("class", "lineage-label-text lineage-last-name-label")
+            .attr("id", function (d) { return "lineage-last-name-label-" + d.id; })
+            .style("font-size", layout.typeLabelSubFontSize + "px")
+            .style("text-anchor", function (d) { return d.secondaryLabelTextAnchor; })
+            .append("textPath")
+            .attr("xlink:href", function (d) { return "#" + d.secondaryLabelPathId; })
+            .attr("startOffset", function (d) { return d.secondaryLabelStartOffset; })
+            .text(function (d) { return d.lastName; });
+
+        var variantLabelSelection = labelLayer.selectAll(".lineage-variant-label")
+            .data(data.variantNodes)
+            .enter().append("g")
+            .attr("class", "lineage-label lineage-label-level-2 lineage-variant-label")
+            .style("text-anchor", function (d) { return isRightSideAngle(d.centerAngle) ? "start" : "end"; });
+
+        variantLabelSelection.append("text")
+            .attr("class", "lineage-label-text lineage-card-label")
+            .attr("dy", ".35em")
+            .attr("transform", function (d) { return radialTextTransform(d.centerAngle, layout.radVariantLabel); })
+            .style("font-size", layout.variantLabelFontSize + "px")
+            .text(function (d) { return d.displayLabel || d.label; });
+
+        return labelLayer.selectAll(".lineage-label");
+    }
+
+    function measureTypeLabelDots(data) {
+        var layout = data.layout;
+        data.typeNodes.forEach(function (typeNode) {
+            var firstNode = document.getElementById("lineage-name-label-" + typeNode.id);
+            var lastNode = document.getElementById("lineage-last-name-label-" + typeNode.id);
+            var firstWidth = safeSvgTextLength(firstNode, typeNode.firstName, layout.typeLabelFontSize);
+            var lastWidth = safeSvgTextLength(lastNode, typeNode.lastName, layout.typeLabelSubFontSize);
+            /*var measuredRadius = layout.radName + Math.max(firstWidth, lastWidth) + 6 * layout.sizeFactor;
+            var maxRadius = Math.max(layout.radName + 10 * layout.sizeFactor, layout.radVariantDot - 24 * layout.sizeFactor);
+            */
+            typeNode.dotNameRadius = layout.radName;
+            typeNode.chartX = polarX(typeNode.dotNameRadius, typeNode.nameAngle);
+            typeNode.chartY = polarY(typeNode.dotNameRadius, typeNode.nameAngle);
+            typeNode.x = layout.centerX + typeNode.chartX;
+            typeNode.y = layout.centerY + typeNode.chartY;
+        });
     }
 
     function bindInteractions(nodeSelection, svg, data) {
@@ -1294,10 +1764,18 @@
         });
 
 
-        renderRingsAndTrend(svg, data);
-        var linkSelections = renderLinks(svg, data);
-        var nodeSelection = renderNodes(svg, data);
-        var labelSelection = renderLabels(svg, data);
+        var chart = svg.append("g")
+            .attr("class", "lineage-radial-root")
+            .attr("transform", "translate(" + data.layout.centerX + "," + data.layout.centerY + ")");
+
+        var linkLayer = chart.append("g").attr("class", "lineage-links");
+        var ringSelection = renderRingsAndTrend(chart);
+        var guideLabel = renderLineageGuideLabel(chart, data);
+        var labelSelection = renderLabels(chart, data);
+        measureTypeLabelDots(data);
+
+        var linkSelections = renderLinks(linkLayer, data);
+        var nodeSelection = renderNodes(chart, data);
 
         bindInteractions(nodeSelection, svg, data);
 
@@ -1306,7 +1784,11 @@
             nodeSelection: nodeSelection,
             labelSelection: labelSelection,
             linkSelection: linkSelections.linkSelection,
-            linkShadowSelection: linkSelections.linkShadowSelection
+            linkShadowSelection: linkSelections.linkShadowSelection,
+            ringSelection: ringSelection,
+            guidePath: guideLabel.guidePath,
+            guideText: guideLabel.guideText,
+            guideArc: guideLabel.guideArc
         };
 
         applyFocus(resolvePinnedNode(data));

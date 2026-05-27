@@ -358,6 +358,8 @@ body.landing-active .lantern-nav {
 }
 
 .origin-container {
+    --origin-scene-layout-scale: max(var(--layout-scale), 0.2);
+    --origin-scene-compensation: calc(var(--layout-max-scale) / var(--origin-scene-layout-scale));
     position: fixed;
     inset: 0;
     z-index: 2;
@@ -386,7 +388,8 @@ body.landing-active .lantern-nav {
     flex-direction: column;
     align-items: center;
     gap: clamp(8px, 1.45vh, 14px);
-    transform: translateY(50px);
+    transform-origin: center top;
+    transform: scale(var(--origin-scene-compensation)) ;
 }
 
 .origin-stage {
@@ -539,16 +542,25 @@ body.landing-active .lantern-nav {
 }
 
 .origin-replay {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    max-width: min(96vw, 1240px);
     margin-top: -4px;
     gap: 10px;
     opacity: 0;
     pointer-events: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     transform: translateY(10px);
     transition: opacity 0.3s ease, transform 0.3s ease, gap 0.3s ease;
+}
+
+.origin-replay::-webkit-scrollbar {
+    display: none;
 }
 
 .origin-replay.is-visible {
@@ -570,7 +582,7 @@ body.landing-active .lantern-nav {
     --origin-replay-btn-width: clamp(132px, 11.2vw, 176px);
     inline-size: var(--origin-replay-btn-width);
     aspect-ratio: 1210 / 710;
-    display: inline-grid;
+    display: grid;
     place-items: center;
     border: 0;
     border-radius: 0;
@@ -629,7 +641,7 @@ body.landing-active .lantern-nav {
 .origin-action.is-visible {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0);
+    transform: translateY(-30px);
     --origin-action-width: clamp(224px, 17.16vw, 295px);
     font-size: clamp(1.452rem, 1.87vw, 2.3rem);
 }
@@ -694,12 +706,15 @@ body.landing-active .lantern-nav {
     .origin-replay {
         gap: 8px;
         width: 98vw;
+        justify-content: flex-start;
     }
 
     .origin-replay-label {
-        width: 100%;
-        text-align: center;
+        width: auto;
+        text-align: left;
         margin-right: 0;
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
 
     .origin-layer::after {
@@ -876,12 +891,12 @@ body.landing-active .lantern-nav {
 .lineage-container {
     /* 衍生谱系页面调参区：优先调整这里 */
     --lineage-stage-width: clamp(900px, 60vw, 1400px); /* 左侧图谱区域宽度 */
-    --lineage-stage-height: clamp(200px, 54vw, 1080px);/* 左侧图谱区域高度 */
+    --lineage-stage-height: clamp(900px, calc(54vw / var(--layout-scale)), 1080px);/* 左侧图谱区域高度 */
     --lineage-stage-offset-x: clamp(28px, 3.5vw, 72px); /* 图谱在左侧容器内偏移 */
     --lineage-stage-radius: clamp(0px, 1.458vw, 78px); /* 左侧图谱圆角 */
     --lineage-stage-inner-inset: clamp(0px, 0.729vw, 64px); /* 左侧图谱内层虚线边距 */
     --lineage-sidebar-width: clamp(570px, 32.292vw, 670px); /* 图录宽度 */
-    --lineage-sidebar-height: clamp(1060px, 57.813vw, 1160px); /* 图录高度 */
+    --lineage-sidebar-height: clamp(1060px, calc(57.813vw / var(--layout-scale)), 1160px); /* 图录高度 */
     --lineage-sidebar-offset-x: clamp(0px, 0vw, 50px); /* 图录左右位置：负左*/
     --lineage-sidebar-offset-y: clamp(-65px, -0.781vw, 35px); /* 图录上下位置：负上*/
     --lineage-sidebar-radius: clamp(0px, 1.25vw, 74px); /* 右侧图录圆角 */
@@ -913,7 +928,7 @@ body.landing-active .lantern-nav {
 
 .lineage-content-wrap {
     width: clamp(1690px, 66.7vw, 1710px);
-    height: clamp(650px, 70vw, 850px);
+    height: var(--lineage-sidebar-height);
     display: flex;
     align-items: center;
     justify-content: space-between;

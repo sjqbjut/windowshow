@@ -353,7 +353,7 @@
         if (!descriptionElement) return;
 
         var centerLabel = cleanText(viewConfig.centerLabel) || cleanText(lineageState.tuning.text.centerLabel) || "裙板";
-        descriptionElement.textContent = "下图以径向关系图形式，展现" + centerLabel + "基础纹样衍生出各类变体的谱系脉络";
+        descriptionElement.textContent = "下图以辐射状树图形式，展现" + centerLabel + "基础纹样衍生出各类变体的谱系脉络";
     }
 
     function bindViewSwitchButtons() {
